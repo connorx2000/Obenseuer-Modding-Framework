@@ -6,20 +6,28 @@ nav_order: 1
 
 # Your first mod
 
-This builds a mod that writes one line to its own log file and shows an on-screen hint when a save loads. It takes about five minutes, and you do not need to have made a mod before.
+This page builds a mod that writes one line to its own log file and shows an on-screen hint when a save loads. It takes about five minutes. You do not need to have made a mod before.
 
 ## What you need first
 
-- The game, [BepInEx](../../glossary.md#bepinex) and the framework, installed as on the [install page](../../install.md). Do the whole page, including starting the game once.
-- The .NET 10 SDK. It turns your code into a DLL, the mod file. To check it is installed, open a terminal and run `dotnet --version`. It should print a number starting with `10`. If the command is not found, install the SDK from the [install page](../../install.md) and open a new terminal.
+- The game, [BepInEx](../../glossary.md#bepinex) (the game's mod loader) and the [framework](../../glossary.md#framework), installed as on the [install page](../../install.md). Do the whole page, including starting the game once.
+- The .NET 10 SDK. It turns your code into a DLL, the mod file. To check it is installed, open a terminal (the Build and run section says how) and run `dotnet --version`. It should print a number starting with `10`. If the command is not found, install the SDK from the install page and open a new terminal.
 - A text editor. Windows Notepad works. [Visual Studio Code](https://code.visualstudio.com/) is a free one with code coloring.
-- An internet connection for the first build. It downloads a small package that .NET needs for the game's code format.
+- An internet connection for the first build. The build downloads a small package that .NET needs for the game's code format.
 
 ## Steps
 
-1. Get the `Starter` folder. Open the [repository](https://github.com/NomadsReach/Obenseuer-Modding-Framework), click the green Code button, then Download ZIP, and extract the zip. Copy the `Starter` folder to a place of your own, for example `C:\Mods\MyFirstMod`. The folder holds `MyFirstMod.csproj` (the project file that tells .NET how to build), `Plugin.cs` (your code), `Directory.Build.props` (which finds your game folder) and `README.md`.
+The work has two parts: get the project, then build it and run the game.
+
+### Get the project
+
+1. Get the `Starter` folder. Open the [repository](https://github.com/NomadsReach/Obenseuer-Modding-Framework), click the green Code button, then Download ZIP, and extract the zip. Copy the `Starter` folder to a place of your own, for example `C:\Mods\MyFirstMod`. It holds four files:
+   - `MyFirstMod.csproj`: the project file. It tells .NET how to build.
+   - `Plugin.cs`: your code.
+   - `Directory.Build.props`: finds your game folder.
+   - `README.md`.
 2. Rename `MyFirstMod.csproj` to your mod's name, for example `CoolMod.csproj`. The DLL gets the same name. You can rename the folder too.
-3. Open `Plugin.cs` in your text editor. It already holds the code below, without the comments, so you can leave it as it is for now. If you do change it, keep the `ModInfo` id unique (letters, digits and dots), because the mod's log file, settings file and save data are all named after it.
+3. Open `Plugin.cs` in your text editor. It already holds the code below, without the comments, so you can leave it as it is for now. If you do change it, keep the `ModInfo` id (your [mod id](../../glossary.md#mod-id)) unique. It may hold letters, digits and dots. The mod's log file, settings file and save data are all named after it.
 
    ```csharp
    using ObenseuerCore;
@@ -43,33 +51,44 @@ This builds a mod that writes one line to its own log file and shows an on-scree
    }
    ```
 
-   This is a framework mod: one DLL that runs on BepInEx 5 and BepInEx 6, so there is no second build, and it has no reference to BepInEx. The framework finds the class through `ModInfo` and runs `OnLoad` once. You need framework 0.11.0 or later. See [Framework mods](../../api/framework-mods.md). You only need a BepInEx plugin if you want a BepInEx feature, see [Packaging](packaging.md#bepinex-plugins-advanced).
-4. Close the game. Open a terminal in your mod folder, the one with the `.csproj` file. The quick way is to open the folder in File Explorer, click the address bar, type `cmd` and press Enter. Then run this line:
+   This is a framework mod: one DLL that runs on BepInEx 5 and BepInEx 6. There is no second build, and the code has no reference to BepInEx. The framework finds the class through `ModInfo` and runs `OnLoad` once. You need framework 0.11.0 or later. See [Framework mods](../../api/framework-mods.md). A BepInEx [plugin](../../glossary.md#plugin) is only needed for a BepInEx feature, see [Packaging](packaging.md#bepinex-plugins-advanced).
+
+The project is ready. Next, build it.
+
+### Build and run
+
+1. Close the game. Open a terminal in your mod folder, the one with the `.csproj` file. The quick way: open the folder in File Explorer, click the address bar, type `cmd` and press Enter. Then run this line:
 
    ```
    dotnet build -c Release -p:DeployToGame=true
    ```
 
    The last lines should say `Build succeeded.`, `0 Warning(s)` and `0 Error(s)`. The build copies the DLL to `BepInEx\plugins\<name>\` in the game folder, so you do not copy anything by hand. Without `-p:DeployToGame=true` the DLL stays in the build output folder, `bin\Release\net472\`. There is no `build.cmd`. Use `dotnet build`.
-   - If the game is not in the default Steam folder, add its path, for example `-p:GameDir="D:\Games\Obenseuer"`. The folder is the one that holds `Obenseuer.exe`.
-   - If the build says it could not find the game, BepInEx or the framework, the message names the missing piece. Finish the [install](../../install.md), start the game once, then build again.
-5. Start the game and load a save. A hint box titled "My First Mod" appears. It is the game's card game rules box. The player can hide it with the Hints key (K by default), so press K if you do not see it. The game has no setting for hints in its settings menu.
-6. Open `BepInEx\logs\example.myfirstmod.log` in the game folder. The file is named after your mod's id. Its first line ends with `INFO: loaded`, for example `[frame 1834] [41.207] INFO: loaded`.
+2. Start the game and load a save. A hint box titled "My First Mod" appears. It is the game's card game rules box. The player can hide it with the Hints key (K by default), so press K if you do not see it. The game has no setting for hints in its settings menu.
+3. Open `BepInEx\logs\example.myfirstmod.log` in the game folder. The file is named after your mod's id. Its first line ends with `INFO: loaded`, for example `[frame 1834] [41.207] INFO: loaded`.
 
-If the hint or the log line is missing, see [my mod does not load](../../faq.md#my-mod-does-not-load).
+Your first mod is built and running. The section What each part does, below, explains the code.
+
+### Common problems
+
+- The build says it could not find the game, BepInEx or the framework: the message names the missing piece. Finish the [install](../../install.md), start the game once, then build again. If the game is not in the default Steam folder, see the next bullet.
+- The game is not in the default Steam folder: add its path to the build line, for example `-p:GameDir="D:\Games\Obenseuer"`. The folder is the one that holds `Obenseuer.exe`.
+- The hint or the log line is missing: open `BepInEx\logs\ObenseuerCore.log` and find the line that says "framework mods:". If your mod is not listed, check that the DLL is directly in `BepInEx\plugins\<name>\`, not one folder deeper. Then see [my mod does not load](../../faq.md#my-mod-does-not-load).
 
 ## Using Visual Studio
 
-Visual Studio 2022 can build the mod. You can install a project template so that File > New Project creates the mod for you, see [Visual Studio template](visual-studio-template.md). Or open the `Starter` project by hand:
+Visual Studio 2022 can build the mod. A project template lets File > New Project create the mod for you, see [Visual Studio template](visual-studio-template.md). Or open the `Starter` project by hand:
 
 1. Open Visual Studio 2022 and choose Open a project or solution. Pick `Starter\MyFirstMod.csproj`, or your renamed copy.
 2. Set the configuration to Release and build.
-3. The DLL lands in `bin\Release\net472\`. Copy it to `BepInEx\plugins\<name>\` in the game folder, or run the `dotnet build` line from step 4 with `-p:DeployToGame=true`, which copies it for you.
+3. The DLL lands in `bin\Release\net472\`. Copy it to `BepInEx\plugins\<name>\` in the game folder. Or run the `dotnet build` line from Build and run, above, with `-p:DeployToGame=true`, which copies it for you.
+
+The mod is built. Start the game and load a save, as in Build and run.
 
 ## What each part does
 
 - `Config.Bind` adds the `Speed` setting. Players change it in the Mods menu, which is the "MODS" button on the main menu, under My First Mod. This sample does not use the value yet. The [Config page](config.md) shows how to read it.
-- `Mod` gives your mod's keybinds, save data and patch helpers under one id. `Log` writes to the log file you just opened.
+- `Mod` gives your mod's [keybinds](keybinds.md), [save data](save-data.md) and [patch](patching.md) helpers under one id. `Log` writes to the log file you opened above.
 - `Events.WhenReady` runs its action once a save is loaded or a new game's first level has loaded. See [Using events](using-events.md).
 
 ## Where to go next

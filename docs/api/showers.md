@@ -7,11 +7,18 @@ nav_order: 14
 
 # Showers
 
+`Showers` reads the showers in the [scene](../glossary.md#scene) you are in, switches them on or off, and tells you when one is switched. Use it when your mod needs to control a shower or react to one.
+
 Status: experimental.
 
 ## What it is
 
-A shower is a fixture the player can switch on to wash. This API lets your mod list the showers in the scene you are in, see whether each one is switched on and whether water is really running, switch one on or off, and get told when any shower is switched on or off, by the player or by another mod.
+A shower is a fixture the player can switch on to wash. This API gives your mod these jobs:
+
+- List the showers in the scene you are in.
+- See whether each one is switched on, and whether water is really running.
+- Switch a shower on or off.
+- Get told when any shower is switched on or off, by the player or by another mod.
 
 It does not give you the water tank behind a shower or the washing effect on the player. Those stay under the game's control.
 
@@ -23,7 +30,7 @@ It does not give you the water tank behind a shower or the washing effect on the
 
 ## Quick example
 
-This mod writes a log line every time a shower is switched on or off. Once a save is loaded, it also logs every shower in the scene and whether it is on.
+This mod writes a [log](../guides/getting-started/logging.md) line every time a shower is switched on or off. Once a save is loaded, it also logs every shower in the scene and whether it is on.
 
 ```csharp
 using ObenseuerCore;
@@ -44,7 +51,7 @@ public sealed class ShowerWatch : FrameworkMod
 }
 ```
 
-`Changed` is an event: the framework calls your code each time it happens. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+`Changed` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -69,7 +76,7 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Showers</code> <span>list, read and switch showers</span></p>
 
-This is the class to start from. `All()` and `Get(id)` read showers, `SetOn` switches one on or off, and `Changed` tells you when any shower is switched on or off.
+Start here. `All()` and `Get(id)` read showers, and `SetOn` switches one on or off. `Changed` tells you when any shower is switched on or off.
 
 <div class="api-pair" markdown="1">
 
@@ -87,7 +94,7 @@ public static class Showers
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ShowerInfo>` | Every shower in the scene you are in. |
-| `Get(id)` | `ShowerInfo` | The shower with this id. `null` when nobody has it. |
+| `Get(id)` | `ShowerInfo` | The shower with this id. `null` when none has it. |
 | `SetOn(id, on)` | `bool` | Switches a shower on or off. `true` when it ends up in the state you asked for. |
 
 | Property | Type | What it means |
@@ -104,7 +111,7 @@ public static class Showers
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShowerInfo</code> <span>a snapshot of one shower</span></p>
 
-`All()` and `Get(id)` give you one of these. `On` is the switch, and `Water` tells you whether water is really running, which can differ from `On` when the tank is empty. <span class="tech">(It is filled from the game's `InteractableShower`.)</span>
+`All()` and `Get(id)` give you one of these. `On` is the switch. `Water` tells you whether water is really running, which can differ from `On` when the tank is empty. <span class="tech">(It is filled from the game's `InteractableShower`.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -143,7 +150,7 @@ public sealed class ShowerChangedArgs
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The id of the shower, the same as `ShowerInfo.Id`. |
+| `Id` | `string` | The shower's id, the same as `ShowerInfo.Id`. |
 | `On` | `bool` | `true` when it was switched on, `false` when it was switched off. |
 
 </div>
@@ -151,24 +158,24 @@ public sealed class ShowerChangedArgs
 
 ### Things to know
 
-- `All()` lists the showers that are switched on in the scene you are in. A shower that is in another scene, or that the game has hidden, is not listed. <span class="tech">(It searches the active objects of the active scene for `InteractableShower`.)</span>
-- A shower id is a piece of text that names one shower. `All()` and `Get` give it to you. It is stable as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the shower's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Shower[1]`.)</span>
+- `All()` lists the showers that are switched on in the scene you are in. A shower in another scene, or one the game has hidden, is not listed. <span class="tech">(It searches the active objects of the active scene for `InteractableShower`.)</span>
+- A shower id is a piece of text that names one shower. `All()` and `Get` give it to you. It stays the same as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the shower's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Shower[1]`.)</span>
 - `Get(id)` gives you a snapshot, not a live view. The values do not change by themselves, so call `Get` again for fresh values.
 - `On` and `Water` can differ. `On` means the shower is switched on. `Water` means water is really running. A shower with an empty water tank can be on while `Water` stays `false`, as in the game. <span class="tech">(`On` reads `InteractableShower.showerOn` and `Water` reads `waterOn`. Both are protected fields, read through reflection.)</span>
-- `SetOn(id, on)` does what the player does when they use the shower. The shower plays its sound and animation and starts or stops its water. It returns `true` when the shower exists and ends up in the state you asked for. Asking for the state it is already in does nothing and also returns `true`. <span class="tech">(It calls the game's own `TurnOn()` or `TurnOff()`, then checks `showerOn` again.)</span>
-- `Changed` fires when a shower goes from off to on or from on to off. It fires no matter who did it: the player using the shower, your mod, or another mod. It does not fire when the water starts or stops on its own, and it does not fire when a save loads, because a loaded shower is already in its saved state. <span class="tech">(It is raised after `InteractableShower.TurnOn(bool, bool)` and `TurnOff(bool)` when `showerOn` differs from its value before the call. The game's load code calls those methods too, but the state already matches by then.)</span>
-- `Changed` can also fire while a save is loading or being written. If your handler should ignore those, check `SaveData.Busy`, which is `true` during a load or a save.
+- `SetOn(id, on)` does what the player does when they use the shower. The shower plays its sound and animation, and starts or stops its water. It returns `true` when the shower exists and ends up in the state you asked for. Asking for the state it is already in does nothing and also returns `true`. <span class="tech">(It calls the game's own `TurnOn()` or `TurnOff()`, then checks `showerOn` again.)</span>
+- `Changed` fires when a shower goes from off to on or from on to off. It fires no matter who did it: the player using the shower, your mod, or another mod. It does not fire when the water starts or stops on its own. It does not fire when a save loads either, because a loaded shower is already in its saved state. <span class="tech">(It is raised after `InteractableShower.TurnOn(bool, bool)` and `TurnOff(bool)` when `showerOn` differs from its value before the call. The game's load code calls those methods too, but the state already matches by then.)</span>
+- `Changed` can also fire while a save is loading or being written. If your handler should ignore those, check [`SaveData.Busy`](../api-core/savedata.md#savedatabusy). It is `true` during a load or a save.
 - `IsAvailable` tells you whether `Changed` works. It is `false` when the framework could not set up the event. The reads and `SetOn` can still work.
 - `SetOn` ignores who owns the shower. The game's own use does not check the owner either, so a shower marked as owned by a character still switches on. <span class="tech">(The field is `InteractableShower.owner`. The "Owned" text comes from `UpdateUseMessage` only.)</span>
 
 ### Limits
 
 - `SetOn` returns `false` when it can't do the job. That happens when no shower has that id, and while a save is loading or being written.
-- You can't start or stop only the water, and you can't touch the water tank or the washing effect. The water follows the shower: it starts when the shower is switched on and stops when it is switched off or the tank runs dry. Use `SetOn` to control it. <span class="tech">(`StartWater` and `StopWater` run from `TurnOn` and `TurnOff` and from the output tank (`LiquidStorage`). The cooling effect is `SaunaCooling`, which the shower turns on and off.)</span>
+- You can't start or stop only the water, and you can't touch the water tank or the washing effect. The water follows the shower. It starts when the shower is switched on. It stops when the shower is switched off or the tank runs dry. Use `SetOn` to control it. <span class="tech">(`StartWater` and `StopWater` run from `TurnOn` and `TurnOff` and from the output tank (`LiquidStorage`). The cooling effect is `SaunaCooling`, which the shower turns on and off.)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Files: `src/Api/Showers.cs`, `src/Api/ShowersPatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -184,10 +191,16 @@ The framework changes some of the game's methods when it starts, so it can tell 
 ### What to check for and what comes back
 
 - Nothing here throws an error for a bad argument. A null or empty id finds no shower, so `Get` gives `null` and `SetOn` gives `false`.
-- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null` or `false`), and the first failure of each member goes to the log as an error. Later failures of that member are not logged again.
+- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null` or `false`). The first failure of each member goes to the log as an error. Later failures of that member are not logged again.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. A game update can break one of them. Then the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, and turns the group off. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- If the shower event can't be set up, only `Changed` stops. The framework checks the two shower fields and then changes the game's `InteractableShower.TurnOn(bool, bool)` and `TurnOff(bool)`. If any of that fails, the feature group `obenseuer.moddingframework.showers` turns off and error lines and a warning go to the log. `IsAvailable` is then `false`. <span class="tech">(If a field is missing, `On` and `Water` read as `false`, and `SetOn(id, true)` still calls the game but returns `false`, because it checks the same field afterwards.)</span>
+- If the shower event can't be set up, only `Changed` stops. The framework checks the two shower fields, then changes the game's `InteractableShower.TurnOn(bool, bool)` and `TurnOff(bool)`. If any of that fails, the feature group `obenseuer.moddingframework.showers` turns off, and error lines and a warning go to the log. `IsAvailable` is then `false`. <span class="tech">(If a field is missing, `On` and `Water` read as `false`, and `SetOn(id, true)` still calls the game but returns `false`, because it checks the same field afterwards.)</span>
+
+**Common problems**
+
+- `SetOn` returns `false`: no shower has that id (a null or empty id finds none), or a save is loading or being written. It also gives `false` when there is nothing to read yet, or when the game itself fails. `SetOn(id, true)` gives `false` when a shower field is missing. Pass an id that `All()` or `Get` gave you.
+- `Changed` runs while a save is loading or being written: the event can fire then. Check `SaveData.Busy` in your handler and ignore the event when it is `true`.
+- `Changed` never fires and `IsAvailable` is `false`: the shower event could not be set up, and the feature group `obenseuer.moddingframework.showers` is off. Look for the error lines and the warning in the group's log file in `BepInEx\logs`. The reads and `SetOn` can still work.

@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-Send the player a bill for 50 OC that is due in seven days. `Create` returns `true` when the invoice was issued.
+Short snippets for the usual jobs with [`Invoices`](listing-and-sending-bills.md): send a bill, check whether the player can pay, and cancel a bill.
+
+Send the player a bill for 50 [OC](../../glossary.md#oc) (Open Sewer Coins), due in seven days. `Create` returns `true` when the invoice was issued.
 
 ```csharp
 bool sent = Invoices.Create("Example Repairs", MoneyCurrency.OC, 50, 7);

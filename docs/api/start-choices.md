@@ -7,11 +7,20 @@ nav_order: 11
 
 # Start choices
 
+`StartChoices` reads how the player's character began a new game. Use it when your mod should behave differently depending on those start picks.
+
 Status: experimental.
 
 ## What it is
 
-When the player starts a new game, the game shows a start selection screen where they pick how their character begins: a family, a partner, a police record and so on. This API lets your mod read those picks, check whether a certain pick was made, see whether the character starts married, in a relationship or single, and hear about each pick as the player makes it. It only reads. It cannot add, remove or change a pick.
+When the player starts a new game, the game shows a start selection screen. There they pick how their character begins: a family, a partner, a police record and so on. This API lets your mod:
+
+- read those picks
+- check whether a certain pick was made
+- see whether the character starts married, in a relationship or single
+- hear about each pick as the player makes it
+
+It only reads. It cannot add, remove or change a pick.
 
 ## When to use it
 
@@ -21,7 +30,7 @@ When the player starts a new game, the game shows a start selection screen where
 
 ## Quick example
 
-This mod writes a log line each time the player makes a pick on the start screen. Once a save is loaded, it also logs the picks so far and whether the character is married.
+This mod writes a [log](../guides/getting-started/logging.md) line each time the player makes a pick on the start screen. Once a save is loaded, it also logs the picks so far and whether the character is married.
 
 ```csharp
 using ObenseuerCore;
@@ -43,7 +52,7 @@ public sealed class StartWatch : FrameworkMod
 }
 ```
 
-`Chosen` is an event: the framework calls your code each time it happens. A game that is loaded from a save never fires it, which is why the example reads `Selected()` as well. See [Using events](../guides/getting-started/using-events.md).
+`Chosen` is an event: the framework calls your code each time it happens. A game that is loaded from a save never fires it, so the example reads `Selected()` as well. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -84,7 +93,7 @@ A pick is one choice the player made on the start screen. Each pick you get is a
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StartChoices</code> <span>read the picks and hear about new ones</span></p>
 
-This is the class to start from. `Selected()` and `Has(id)` read the picks the player made, `Relationship` says how the character starts, and `Chosen` tells you about each new pick.
+This is the class to start from. `Selected()` and `Has(id)` read the picks the player made. `Relationship` says how the character starts, and `Chosen` tells you about each new pick.
 
 <div class="api-pair" markdown="1">
 
@@ -139,8 +148,8 @@ public sealed class StartChoiceInfo
 | `Id` | `string` | The pick's id in the game. |
 | `Title` | `string` | The name shown on the start screen. |
 | `Description` | `string` | The pick's description text, without the addiction lines the start screen adds. |
-| `Oc` | `int` | The money the pick gives, in OC (Open Sewer Coins). |
-| `Rm` | `int` | The money the pick gives, in RM (Real Money). |
+| `Oc` | `int` | The money the pick gives, in [OC](../glossary.md#oc) (Open Sewer Coins). |
+| `Rm` | `int` | The money the pick gives, in [RM](../glossary.md#rm) (Real Money). |
 
 </div>
 </div>
@@ -173,9 +182,13 @@ public sealed class StartChoiceArgs
 - This API only reads. It does not add, remove or change picks. Each call gives you a copy.
 - `Selected()` gives an empty list before the game's start manager exists, and when no pick was made. Empty entries are left out. <span class="tech">(The start manager is `StartManager`. The picks are in its `selectedSelections` list, which the game saves with the game.)</span>
 - `Has(id)` is `true` when any pick has that id. Passing `null` gives back `false` and writes one line to the log.
-- `Relationship` says how the character starts out. It is `Married` when a pick has the id `Family`, `In a relationship` when a pick has the id `Girlfriend` or `Boyfriend`, and `Single` otherwise. The first matching pick in the list decides, as it does in the game. It is `null` before the start manager exists. It is worked out from the picks as they are now, so it is right straight after a pick. <span class="tech">(The game's own `StartManager.relationship` field is only set at the start and on load, so it can be out of date.)</span>
+- `Relationship` says how the character starts out:
+  - `Married` when a pick has the id `Family`.
+  - `In a relationship` when a pick has the id `Girlfriend` or `Boyfriend`.
+  - `Single` otherwise.
+- For `Relationship`, the first matching pick in the list decides, as it does in the game. It is `null` before the start manager exists. It is worked out from the picks as they are now, so it is right straight after a pick. <span class="tech">(The game's own `StartManager.relationship` field is only set at the start and on load, so it can be out of date.)</span>
 - `Chosen` fires once for each pick, after the game has applied the pick. By then the game has given the money, addictions, items and relationships that go with it, and recorded the pick. <span class="tech">(It is a postfix on `StartManager.Next`.)</span>
-- The picks are saved with the game and read back on load, so `Selected`, `Has` and `Relationship` give the same answers after a load.
+- The picks are saved with the game and read back on load. So `Selected`, `Has` and `Relationship` give the same answers after a load.
 
 #### Limits
 
@@ -183,9 +196,13 @@ public sealed class StartChoiceArgs
 - `Chosen` only fires from the new-game start screen. If that screen is missing, the pick is recorded but `Chosen` does not fire for it.
 - `IsAvailable` is `false` when the `Chosen` event could not be set up. `Selected`, `Has` and `Relationship` do not depend on it. See [If something fails to set up](#if-something-fails-to-set-up).
 
+**Common problems**
+
+- `Chosen` does not fire: the game was loaded from a save, the new-game start screen is missing, or the event could not be set up (`IsAvailable` is `false`). Read `Selected()` instead. It does not depend on the event.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.startchoices.log`.
 
 Everything not listed in this reference is internal and may change without notice. This page is experimental and may change too.
@@ -200,6 +217,6 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it. Then it turns the group off and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the pick change cannot be made, the feature group is turned off and `Chosen` stops firing. `StartChoices.IsAvailable` becomes `false`. `Selected`, `Has` and `Relationship` keep working. <span class="tech">(The game method involved is `StartManager.Next`. The log line reads "start choice events not installed, Chosen is disabled".)</span>

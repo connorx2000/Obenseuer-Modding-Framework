@@ -7,24 +7,26 @@ nav_order: 1
 
 # Characters
 
+`Characters` reads the game's character definitions (name, age, job) and lists the player's saved characters. Use it to look a person up by number or to show the save list.
+
 This page uses `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-Every person in the game, including the player, has a character definition: a name, an age, a job and a few other facts. This API lets your mod read those definitions, including the ones for people who are not in the scene you are in. It also lists the characters the player has saved games for, the same list the main menu shows when you choose to load a game.
+Every person in the game, including the player, has a character definition: a name, an age, a job and a few other facts. This API lets your mod read those definitions, including the ones for people who are not in the [scene](../glossary.md#scene) you are in. It also lists the characters the player has saved games for, the same list the main menu shows when you choose to load a game.
 
 The people who are standing in the loaded scene are on the [NPCs](npcs.md) page.
 
 ## When to use it
 
-- Look up a character's full name, age or job from the number the NPC pages give you.
+- Look up a character's full name, age or job from the number the [NPC](npcs.md) pages give you.
 - List every character the game has, for example to build a menu of names.
 - Show the player's saved characters and when each was last played.
 
 ## Quick example
 
-This mod writes every character the game has to the log. Once a save is loaded, it also logs the saved characters.
+This mod writes every character the game has to the [log](../guides/getting-started/logging.md). Once a save is loaded, it also logs the saved characters.
 
 ```csharp
 using ObenseuerCore;
@@ -46,7 +48,7 @@ public sealed class CharacterList : FrameworkMod
 }
 ```
 
-`Events.WhenReady` runs your code once the game has finished loading. See [Using events](../guides/getting-started/using-events.md).
+[`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once the game has finished loading. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -84,7 +86,7 @@ A character definition is the game's record of one person. `Characters` gives yo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Characters</code> <span>the game's character definitions</span></p>
 
-Call `All()` for every character definition, or `Get(id)` with a number from an NPC page to find one.
+Call `All()` for every character definition, or `Get(id)` with a number from an [NPC](npcs.md) page to find one.
 
 <div class="api-pair" markdown="1">
 
@@ -131,7 +133,7 @@ public sealed class CharacterInfo
 | `Id` | `int` | The character's number in the game. The NPC pages use the same number. |
 | `Name` | `string` | The first name. |
 | `LastName` | `string` | The last name. |
-| `FullName` | `string` | The first and last name together, or just the first name when there is no last name. |
+| `FullName` | `string` | The first and last name together, or only the first name when there is no last name. |
 | `GenderString` | `string` | The gender as the game writes it. |
 | `Age` | `int` | The character's age in years. |
 | `Relationship` | `string` | How the game describes the character's relationship to the player. |
@@ -155,7 +157,7 @@ public sealed class CharacterInfo
 
 ### Saved characters
 
-When the player starts a new game, the game makes a save folder for that character. `Characters.Saved()` lists those folders, the same characters the main menu offers to load.
+When the player starts a new game, the game makes a [save](../guides/getting-started/save-data.md) folder for that character. `Characters.Saved()` lists those folders, the same characters the main menu offers to load.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Characters</code> <span>the saved-character list</span></p>
@@ -215,7 +217,7 @@ public sealed class SavedCharacterInfo
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log name: `obenseuer.moddingframework.characters`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -228,4 +230,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-This page changes none of the game's methods, so there is nothing to set up and no feature group that can be turned off. There is no `IsAvailable` to check.
+This page changes none of the game's methods, so there is nothing to set up and no [feature group](../glossary.md#feature-group) that can be turned off. There is no `IsAvailable` to check.

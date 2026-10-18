@@ -7,24 +7,26 @@ nav_order: 1
 
 # Common tasks
 
+Short code recipes for [`WorldObjects`](finding-objects.md) and [`Spawn`](spawn.md): finding an object, keeping a note on it and dropping items.
+
 This page uses `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Find an object by its save id. `Find` returns null when no active object has it.
+Find an object by its save id (a unique name the game gives to an object it saves). `Find` returns null when no active object has it.
 
 ```csharp
 GameObject found = WorldObjects.Find("some-save-id");
 if (found != null) Log.Info(found.name + " is at " + found.transform.position);
 ```
 
-Find an object by its name path in a scene, and get the path of an object.
+Find an object by its name path in a scene, and get the path of an object. [Scene paths](scene-paths.md) explains the path format.
 
 ```csharp
 GameObject jar = WorldObjects.FindByPath("SomeScene", "Room/Shelf/Jar", false);
 if (jar != null) Log.Info("found " + WorldObjects.PathOf(jar));
 ```
 
-Keep a note on the saved objects within 3 metres of the player, and read it back. The note stays with the save.
+Keep a [note](mod-data-on-a-world-object.md) on the saved objects within 3 metres of the player, and read it back. The note stays with the save. Only objects with a save id can hold one, so the loop skips the others.
 
 ```csharp
 foreach (WorldObjectInfo obj in WorldObjects.Near(PlayerState.Position, 3f))

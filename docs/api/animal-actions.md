@@ -8,6 +8,8 @@ nav_order: 1
 
 # Animal actions
 
+[`AnimalActions`](animal-actions/orders.md) controls what the animals near the player do. Use it when your mod needs an animal to act on command, or to stay tame or wild across loads.
+
 Status: experimental.
 
 ## What it is
@@ -23,7 +25,7 @@ This API lets your mod give orders to the animals around the player: make one si
 
 ## Quick example
 
-This mod waits until the game is ready, finds the first cat in the scene you are in, and makes it run for 4 seconds.
+This mod waits until the game is ready and finds the first cat in the [scene](../glossary.md#scene) you are in. It then makes the cat run for 4 seconds.
 
 ```csharp
 using ObenseuerCore;
@@ -44,4 +46,4 @@ public sealed class CatRun : FrameworkMod
 }
 ```
 
-Every order takes your mod's id as its first argument. `Mod.Id` is the id you gave in `[ModInfo]`. An order returns `true` when it was given and `false` when it was not. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+Every order takes your [mod id](../glossary.md#mod-id) as its first argument. `Mod.Id` is the id you gave in `[ModInfo]`. An order returns `true` when it was given and `false` when it was not. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

@@ -7,14 +7,18 @@ nav_order: 2
 
 # Steam
 
-`Steam` tells you whether Steam is working and who the local player and their friends are. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+`Steam` tells you whether Steam is working, and who the local player and their friends are. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
-A few words used on this page. A SteamID64 is the long number that identifies one Steam account. A peer is another player in your lobby whom the framework has checked and accepts. A handler is the piece of your code that the framework runs when something arrives.
+Some words used on this page:
+
+- A [SteamID64](../../glossary.md#steamid64) is the long number that identifies one Steam account.
+- A [peer](../../glossary.md#peer) is another player in your [lobby](../../glossary.md#lobby) whom the framework has checked and accepts.
+- A handler is the piece of your code that the framework runs when something arrives.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Steam</code> <span>Steam status and friends</span></p>
 
-Check `IsReady` first, since hosting and joining a lobby do not work until it is `true`. `Name(steamId)` and `FriendsPlaying(appId)` give you the names and friends to show.
+Check `IsReady` first: hosting and joining a lobby do not work until it is `true`. `Name(steamId)` and `FriendsPlaying(appId)` give you the names and friends to show.
 
 <div class="api-pair" markdown="1">
 
@@ -52,4 +56,8 @@ public static class Steam
 ## Limits
 
 - Until `IsReady` is `true`, hosting and joining a lobby do not work.
-- `Name` can be empty at first, so ask again on a later frame. For someone who is not your friend, Steam may not know the name yet. The first call asks Steam for it and returns `""`, and the name arrives a moment later. The text is cleaned the same way as the other text from other players (see "Presence"). <span class="tech">(It calls `SteamFriends.RequestUserInformation(id, true)` when Steam reports the name as empty or `[unknown]`.)</span>
+- `Name` can be empty at first, so ask again on a later frame. Steam may not know the name of someone who is not your friend yet. The first call asks Steam for it and returns `""`, and the name arrives a moment later. The text is cleaned the same way as the other text from other players (see [Presence](presence.md)). <span class="tech">(It calls `SteamFriends.RequestUserInformation(id, true)` when Steam reports the name as empty or `[unknown]`.)</span>
+
+**Common problems**
+
+- `Name` returns `""`: Steam is not ready, or Steam does not know the name yet. For a name Steam does not know, the first call asks Steam for it, so ask again on a later frame.

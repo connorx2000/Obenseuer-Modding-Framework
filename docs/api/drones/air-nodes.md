@@ -7,15 +7,15 @@ nav_order: 3
 
 # Air nodes
 
+An air node is a waypoint on a drone's route. `Drones.Nodes()` lists them, so your mod can find a node id to send a drone to.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-An air node is a waypoint on a drone's route. `Drones.Nodes()` lists them so your mod can find a node id to send a drone to.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Drones</code> <span>the air nodes in the scene</span></p>
 
-Call `Drones.Nodes()` to list the air nodes in the scene, and pass a node's `Id` to `SetTarget`.
+Call `Drones.Nodes()` to list the air nodes in the [scene](../../glossary.md#scene) (one loaded area of the game). Pass a node's `Id` to [`SetTarget`](route.md).
 
 <div class="api-pair" markdown="1">
 
@@ -51,7 +51,7 @@ public sealed class AirNodeInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Names this node. It is the same kind of id as `DroneInfo.Id`. |
+| `Id` | `string` | Names this node. It is the same kind of id as [`DroneInfo.Id`](reading-and-controlling-drones.md). |
 | `Position` | `Vector3` | Where the node is, in world coordinates. |
 | `LinkedNodeIds` | `List<string>` | The ids of the nodes this one links to, in route order. |
 
@@ -60,10 +60,10 @@ public sealed class AirNodeInfo
 
 ## Things to know
 
-- `Nodes()` only lists the nodes in the scene you are in, and you can't change that. A node in another scene is not listed. <span class="tech">(It uses `FindObjectsByType`, so inactive objects are left out.)</span>
-- `LinkedNodeIds` lists every node this one links to, not just the one the drone will take next. A node with no links gives an empty list. <span class="tech">(It is the full `Air_Node.nextNodes` list, with empty entries skipped. The node the game picks next depends on `Air_Node.activeNodeIndex`.)</span>
+- `Nodes()` only lists the nodes in the [scene](../../glossary.md#scene) you are in, and you can't change that. A node in another scene is not listed. <span class="tech">(It uses `FindObjectsByType`, so inactive objects are left out.)</span>
+- `LinkedNodeIds` lists every node this one links to, not only the one the drone will take next. A node with no links gives an empty list. <span class="tech">(It is the full `Air_Node.nextNodes` list, with empty entries skipped. The node the game picks next depends on `Air_Node.activeNodeIndex`.)</span>
 - The ids match the ones `DroneInfo.TargetNodeId` and `SetTarget` use. You can take an id from `Nodes()` and pass it straight to `SetTarget`.
 
 ## Limits
 
-- You can't change which nodes link to which. The links are set when the map is built, so to move a drone along a different route, send it to a node with `SetTarget`. <span class="tech">(`nextNodes` is set in the Unity editor, and the framework has no node-link writer.)</span>
+- You can't change which nodes link to which. The links are set when the map is built. To move a drone along a different route, send it to a node with [`SetTarget`](route.md). <span class="tech">(`nextNodes` is set in the Unity editor, and the framework has no node-link writer.)</span>

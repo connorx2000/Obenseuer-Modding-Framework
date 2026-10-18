@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short code for the jobs mods do most often with [`FloodGates`](reading-and-controlling-gates.md): read a gate, open or close it, switch its power, and check the event.
+
 Read one gate. Take the id from `FloodGates.All()`. `Get` gives `null` when no gate has that id.
 
 ```csharp

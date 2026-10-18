@@ -7,4 +7,4 @@ nav_order: 12
 
 # Story
 
-Quests, dialogue and the law record, plus the authoring of new quests and conversations.
+This group covers quests, dialogue and the law record. It also covers writing new quests and conversations.

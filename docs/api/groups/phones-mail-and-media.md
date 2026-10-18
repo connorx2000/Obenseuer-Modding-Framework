@@ -7,4 +7,4 @@ nav_order: 10
 
 # Phones, mail and media
 
-Phones and phone lines, mailboxes, parcel lockers, notes, books, computers, radios and televisions.
+This group covers phones and phone lines, mailboxes, parcel lockers and notes. It also covers books, computers, radios and televisions.

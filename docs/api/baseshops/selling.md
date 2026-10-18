@@ -7,15 +7,17 @@ nav_order: 4
 
 # Selling
 
+`Sell(id, furnitureId, count)` sells `count` pieces of one kind of furniture from the player's building stock to a furniture shop, the way the shop screen does. This page lists the result values, the `Sold` event, and the order in which the steps run and are undone.
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-`Sell(id, furnitureId, count)` sells `count` pieces of one kind of furniture from the player's building stock to a furniture shop, the way the shop screen does. The game's own sale code reads the selection on the open shop screen, so the framework repeats its steps with calls that work without the screen.
+The game's own sale code reads the selection on the open shop screen. So the framework repeats its steps with calls that work without the screen.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShops</code> <span>selling furniture to a shop</span></p>
 
-Call `Sell` to sell furniture from the player to a furniture shop, and listen to `Sold` to hear about sales made through it.
+Call `Sell` to sell furniture from the player to a furniture shop. Listen to `Sold` to hear about sales made through it.
 
 <div class="api-pair" markdown="1">
 
@@ -41,7 +43,7 @@ public static class BaseShops
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopSellResult</code> <span>what happened when you tried to sell</span></p>
 
-`Sell` returns this. `Ok` means the sale is complete, and the other values say why it was not.
+`Sell` returns this. `Ok` means the sale is complete. The other values say why it was not.
 
 <div class="api-pair" markdown="1">
 
@@ -63,7 +65,7 @@ public enum BaseShopSellResult
 | Value | Meaning |
 |---|---|
 | `Ok` | The sale is complete. |
-| `Busy` | Not now. A save is loading or being written, a money handler is nested too deep, another `Sell` is running, or the shop screen is open. |
+| `Busy` | Not yet: a save is loading or being written, a money handler is nested too deep, another `Sell` is running, or the shop screen is open. |
 | `NotFound` | No furniture shop has that id, or the player has no matching piece. |
 | `Unsupported` | The shop is a train shop. |
 | `Refused` | The request is not allowed. See the notes below. |
@@ -78,7 +80,7 @@ public enum BaseShopSellResult
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopSoldArgs</code> <span>what Sold tells you</span></p>
 
-`Sold` hands you this after a sale made with `Sell`. `FurnitureId` and `Count` say what was sold, and `Oc` and `Rm` what the player was paid.
+`Sold` hands you this after a sale made with `Sell`. `FurnitureId` and `Count` say what was sold. `Oc` and `Rm` say what the player was paid.
 
 <div class="api-pair" markdown="1">
 
@@ -100,35 +102,41 @@ public sealed class BaseShopSoldArgs
 | `Kind` | `string` | The type of shop. It is always `FurnitureShop`. |
 | `FurnitureId` | `string` | The id of the furniture that was sold. |
 | `Count` | `int` | How many pieces were sold. |
-| `Oc` | `int` | The total OC the player was paid. |
-| `Rm` | `int` | The total RM the player was paid. |
+| `Oc` | `int` | The total [OC](../../glossary.md#oc) (Open Sewer Coins) the player was paid. |
+| `Rm` | `int` | The total [RM](../../glossary.md#rm) (Real Money) the player was paid. |
 
 </div>
 </div>
 
 ## Things to know
 
-- You find the piece by its furniture id, and the player must hold at least `count` pieces of it. A piece that has things inside it is skipped, because the game refuses it too ("Contains Items!"). <span class="tech">(The stock entry is the first entry of `BuildingSystem.availableFurnitures` whose `furniture.Id` is `furnitureId` and whose `gameObject` is null.)</span>
+- You find the piece by its [furniture](../furniture.md) id, and the player must hold at least `count` pieces of it. A piece that has things inside it is skipped, because the game refuses it too ("Contains Items!"). <span class="tech">(The stock entry is the first entry of `BuildingSystem.availableFurnitures` whose `furniture.Id` is `furnitureId` and whose `gameObject` is null.)</span>
 - Some pieces can't be sold. A free piece and a piece the shop does not take are refused, as the game refuses them. <span class="tech">(The checks are `Furniture.IsFree` and `FurnitureShop.CanSell`.)</span>
-- The price is the shop's selling price for each piece, times `count`. A total below 0 in either currency, for example a mod piece with a negative price, is refused, and so is a total of 0 in both.
-- The shop must hold the whole total in both OC and RM. The game checks only one piece, so `Sell` checks the whole total, and a sale is never paid in part. <span class="tech">(It uses `GetOcSellPrice` and `GetRmSellPrice`, which use `sellPercent`, worked out in 64-bit numbers so a large count can't wrap around. The game's check is `CheckIfShopHasMoney`.)</span>
-- `Refused` covers a `count` below 1, an empty `furnitureId`, a free piece, a piece with things inside it, a piece the shop does not take, a total of 0 or less, a total above 16 million, and a wallet that could not hold the amount.
+- The price is the shop's selling price for each piece, times `count`. A total below 0 in either currency is refused, for example for a mod piece with a negative price. So is a total of 0 in both.
+- The shop must hold the whole total in both [OC](../../glossary.md#oc) and [RM](../../glossary.md#rm). The game checks only one piece, so `Sell` checks the whole total. A sale is never paid in part. <span class="tech">(It uses `GetOcSellPrice` and `GetRmSellPrice`, which use `sellPercent`, worked out in 64-bit numbers so a large count can't wrap around. The game's check is `CheckIfShopHasMoney`.)</span>
+- `Refused` covers a `count` below 1 and an empty `furnitureId`. It also covers a free piece, a piece with things inside it, and a piece the shop does not take. A total of 0 or less, a total above 16 million, and a wallet that could not hold the amount are refused too.
 - `Sell` returns `Busy` while another `Sell` is running. That can happen when a money handler calls `Sell` while a sale is paying out.
 - `Sell` also returns `Busy` while the game's shop screen is open. The screen keeps a pointer to the player's stack and could sell a stack that `Sell` already removed.
-- The steps run in a fixed order. The checks take nothing. Then the shop's money goes down by the total, the pieces leave the player's stock, the shop takes the pieces, and then the wallet is paid OC and then RM.
-- The wallet limit is checked for both currencies before the first step, so the wallet can't refuse after the first part is paid. The framework pays the player last, so money is only created after every stock step has worked, and a money handler sees a finished sale. <span class="tech">(The steps use `RemoveSellMoney` in the game's sell, `BuildingSystem.RemoveFurniture`, `FurnitureShop.AddItem`, and `Cash.Give`, the public add behind `Money.AddMoney`. The game pays the wallet first and removes the piece last.)</span>
+- The steps run in a fixed order. The checks take nothing. Then the shop's money goes down by the total, and the pieces leave the player's stock. The shop takes the pieces. Then the wallet is paid OC and then RM.
+- The wallet limit is checked for both currencies before the first step. So the wallet can't refuse after the first part is paid. The framework pays the player last. Money is only created after every stock step has worked, and a money handler sees a finished sale. <span class="tech">(The steps use `RemoveSellMoney` in the game's sell, `BuildingSystem.RemoveFurniture`, `FurnitureShop.AddItem`, and `Cash.Give`, the public add behind `Money.AddMoney`. The game pays the wallet first and removes the piece last.)</span>
 - If a step fails, the steps already taken are undone in reverse order and the result is `Failed`.
 - If the RM payment fails after the OC payment, the OC is taken back from the wallet. That undo can't be refused by a save or a nested handler.
 - If the shop took the pieces, the same number is removed from the shop's stock.
-- If the pieces were removed from the player, the player's entry gets back the amount it had before, and goes back to its place in the building stock if it left it. If the removal finished, the task-item count it lowered is added back as well.
+- If the pieces were removed from the player, the player's entry gets back the amount it had before. It goes back to its place in the building stock if it left it. If the removal finished, the task-item count it lowered is added back as well.
 - The shop's money goes back up by the total.
 - An undo that can't be applied is logged as an error. See the limits below.
 - `Sold` only fires for sales made with `Sell`. The game's own sales do not raise it. It fires after the `Busy` guard has been released, so a `Sold` handler can call `Sell` again.
 - A shop has no opening hours, so `Sell` never refuses because a shop is closed.
-- `Sell` takes the first matching entry without contents. A piece that the player holds in two entries (for example with different extra data) sells from the first one only, and `Sell` returns `OutOfStock` if that entry is short. `Sell` does not refresh the building menu.
+- `Sell` takes the first matching entry without contents. A piece that the player holds in two entries (for example with different extra data) sells from the first one only. `Sell` returns `OutOfStock` if that entry is short. `Sell` does not refresh the building menu.
 
 ## Limits
 
-- The undo has limits. If a money handler spends the OC just paid and the RM payment then fails, the OC can't be taken back, and an error goes to the log.
-- If the task-item update inside `RemoveFurniture` fails, the building stock is restored but the task-item count stays as the failure left it. <span class="tech">(The task-item update is in `BuildingSystem.RemoveFurniture`.)</span>
+- The undo has limits. If a money handler spends the OC just paid and the RM payment then fails, the OC can't be taken back. An error goes to the [log](../../guides/getting-started/logging.md).
+- If the task-item update inside `RemoveFurniture` fails, the building stock is restored. The task-item count stays as the failure left it. <span class="tech">(The task-item update is in `BuildingSystem.RemoveFurniture`.)</span>
 - If a shop's `AddItem` fails after it recorded a custom picture path, the path stays.
+
+**Common problems**
+
+- `Sell` returns `Busy` while no save is loading or being written: the shop screen is open, another `Sell` is running, or a money handler is nested too deep. Close the screen. To sell again after a sale, call `Sell` from the `Sold` handler, which runs after the guard is released.
+- `Sell` returns `Refused`: the `count` is below 1, or the `furnitureId` is empty. Or the piece is free, has things inside it, or is one the shop does not take. Or the total is 0 or less or above 16 million, or the wallet could not hold the amount. The `Refused` bullet under Things to know lists these causes.
+- `Sell` returns `OutOfStock` although the player holds enough: the pieces sit in two entries, and `Sell` sells from the first one only.

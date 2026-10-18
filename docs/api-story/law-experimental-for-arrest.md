@@ -7,9 +7,9 @@ nav_order: 5
 
 # Law (experimental for Arrest)
 
-The game keeps a record of the crimes the player has committed, and it can send the player to prison. `Law` lets your mod read that record, add and clear crimes, change or cancel a crime as it is recorded, send the player to prison, and react to the player being spotted, fined, arrested or released.
+The game keeps a record of the crimes the player has committed, and it can send the player to prison. `Law` lets your mod read that record, add and clear crimes, and change or cancel a crime as it is recorded. It can also send the player to prison, and react when the player is spotted, fined, arrested or released.
 
-Currency: RM is Real Money (see [RM](../glossary.md#rm)).
+Money on this page is in RM, Real Money (see [RM](../glossary.md#rm)).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Law</code> <span>read, record and clear crimes, and arrests</span></p>
@@ -64,7 +64,7 @@ public static class Law
 |---|---|---|
 | `GetGeneric(kind)` | `float` | The amount of the generic records of that kind. |
 | `GetAgainst(npcId)` | `float` | The amount recorded against one NPC. `0` for ids of 0 or less. |
-| `Commit(kind, severity, victimNpcId, silent)` | `bool` | Records a crime. Returns `true` when it was recorded. |
+| `Commit(kind, severity, victimNpcId, silent)` | `bool` | Records a crime. `true` when it was recorded. |
 | `Clear()` | `bool` | Clears all crime records. |
 | `Clear(victimNpcId)` | `bool` | Clears one victim's records, across every crime type. |
 | `Clear(kind)` | `bool` | Clears the first generic record of that kind. |
@@ -133,7 +133,7 @@ public sealed class FineArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CrimeKind</code> <span>what sort of crime it is</span></p>
 
-This is the `Kind` of a crime, used by `Commit`, `GetGeneric`, `Clear` and `CrimeArgs`. Each value is one of the game's crime types, and the framework refuses `None`.
+This is the `Kind` of a crime, used by `Commit`, `GetGeneric`, `Clear` and `CrimeArgs`. Each value is one of the game's crime types. The framework refuses `None`.
 
 <div class="api-pair" markdown="1">
 
@@ -224,7 +224,7 @@ public sealed class CrimeArgs
 
 ### Putting it together
 
-Refuses to record small thefts, then records a vandalism crime and logs the fine.
+This mod refuses to record small thefts. Once a save is loaded ([`Events.WhenReady`](../api/core-helpers/events-whenready.md)), it records a vandalism crime and [logs](../guides/getting-started/logging.md) the fine.
 
 <div class="api-example" markdown="1">
 
@@ -261,22 +261,22 @@ public sealed class LawTour : FrameworkMod
 ### Reading
 
 - Reads give `0` or `false` when the crime system is not loaded (on the main menu) or when the call fails.
-- `Total` includes the stolen goods the player carries, and `TotalFromRecords` counts crime records only. `FineRM` is the fine, rounded.
+- `Total` includes the stolen goods the player carries. `TotalFromRecords` counts crime records only. `FineRM` is the fine, rounded.
 - `HasStolenGoods` and `StolenGoodsValue` read the stolen goods the player carries. `StolenGoodsValue` leaves out permitted items, and it is `0` when the inventory is not loaded.
-- `SentenceHours` is the game's own sentence rule, worked out from the crime figures. It takes the number of crimes without stolen goods, divides it by the game's crimes-per-prison-hour value, rounds it, and keeps the result between 1 and 100, plus 12 hours for each earlier jail term. `TimesInJail` counts the earlier jail terms. <span class="tech">(The divisor is `crimePerPrisonHour`.)</span>
+- `SentenceHours` is the game's own sentence rule, worked out from the crime figures. The game takes the number of crimes without stolen goods and divides it by its crimes-per-prison-hour value. It rounds the result and keeps it between 1 and 100, plus 12 hours for each earlier jail term. `TimesInJail` counts the earlier jail terms. <span class="tech">(The divisor is `crimePerPrisonHour`.)</span>
 
 ### Recording and clearing crimes
 
 - `Commit(kind, severity, victimNpcId, silent)` records a crime the way the game does, and returns `true` when it was recorded. `victimNpcId` above 0 names the victim, and 0 means no victim. Every crime in the game goes through the same step, so yours is treated like any other. <span class="tech">(It calls the game's `CommitCrime`.)</span>
-- `Clear()` clears all crime records, and `Clear(victimNpcId)` clears one victim's records across every crime type.
+- `Clear()` clears all crime records. `Clear(victimNpcId)` clears one victim's records across every crime type.
 - `Clear(kind)` clears the first generic record of that kind, and leaves victim records alone. The generic record is the one `GetGeneric` adds up. `Clear(victimNpcId, kind)` clears the first record of that kind against that victim, and leaves generic records alone.
 - Both of those return `false` for a `None` or unknown kind. `Clear(victimNpcId, kind)` also returns `false` for an id of 0 or less. Both refuse under the same conditions as `Clear()`.
 
 ### Changing a crime as it is recorded
 
-- `Intercept(modId, handler)` runs for every crime, before it is recorded. Handlers run in the order they were added. Adding the same handler for the same mod again does nothing.
+- `Intercept(modId, handler)` runs for every crime, before it is recorded (see [interceptor](../glossary.md#interceptor)). Handlers run in the order they were added. Adding the same handler for the same mod again does nothing.
 - Your handler can change `Kind`, `Severity` and `Silent`, or set `Cancel`. A `Kind` of `None` or an unknown value keeps the game's kind. `Severity` is kept between 1 and 1,000,000 only when the handler changed it. `Silent` hides the crime notification.
-- Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Kind`, `Severity` and `Silent` are last-writer-wins: the last handler to set them counts, and they are ignored once the crime is cancelled.
+- Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`. Setting it back to `false` has no effect. `Kind`, `Severity` and `Silent` are last-writer-wins: the last handler to set them counts. They are ignored once the crime is cancelled.
 - `Committed` fires for each crime that was recorded. Its `Severity` is the recorded value, at least 1. A cancelled crime is not recorded, and `Committed` does not fire.
 
 ### Arrest (experimental)
@@ -286,17 +286,23 @@ public sealed class LawTour : FrameworkMod
   - A theft record of 10% of the stolen goods the player carries is added, when there are any.
   - Every crime record's amount becomes `severityFactor` times its value, rounded. This cannot be undone.
   - The count of jail terms goes up by one, which raises the sentence limit by 12 hours. <span class="tech">(`timesInJail` increases by one. The achievement is `ARRESTED`.)</span>
-  - Police chases stop, the arrest achievement is given, tiredness is set to at least 10, the player passes out, and the arrest sleep scene is scheduled 10 seconds later.
+  - Police chases stop, and the arrest achievement is given. Tiredness is set to at least 10, the player passes out, and the arrest sleep scene is scheduled 10 seconds later.
 
 ### Events
 
-- `Spotted` fires when a crime witness sees the player, at most once per frame. <span class="tech">(It fires when `Witness.IsWitnessed` returns true for a crime witness, only for calls with `invoke` set.)</span>
+- `Spotted` fires when a crime [witness](../glossary.md#witness) sees the player, at most once per frame. <span class="tech">(It fires when `Witness.IsWitnessed` returns true for a crime witness, only for calls with `invoke` set.)</span>
 - `Fined` fires when the player pays a fine. `Amount` is the rounded RM amount that was due before payment. <span class="tech">(It fires when the game's `PayFine` succeeds.)</span>
-- `Arrested` fires when the game sends the player to prison, and `Released` fires when the player leaves prison. <span class="tech">(`Arrested` fires from `Crime.OnGoingToPrison`.)</span>
+- `Arrested` fires when the game sends the player to prison. `Released` fires when the player leaves prison. <span class="tech">(`Arrested` fires from `Crime.OnGoingToPrison`.)</span>
 
 ## Limits
 
-- `Commit` returns `false` and records nothing in these cases: the crime system is not loaded, `kind` is `None` or not a real kind, `severity` is outside 1 through 1,000,000, the achievements are not loaded, an intercept cancels the crime, or the game throws.
+- `Commit` returns `false` and records nothing in these cases:
+  - the crime system is not loaded;
+  - `kind` is `None` or not a real kind;
+  - `severity` is outside 1 through 1,000,000;
+  - the achievements are not loaded;
+  - an intercept cancels the crime;
+  - the game throws.
 - `Clear()` and `Clear(victimNpcId)` return `false` while an arrest is in progress or a level change is active. `Clear(victimNpcId)` returns `false` for an id of 0 or less.
 - A `true` from `Clear(kind)` or `Clear(victimNpcId, kind)` means the game call ran, not that a record was cleared. They reset the game's bribe flag even when no record matches.
 - `Arrest` returns `false` and does nothing when:
@@ -306,3 +312,9 @@ public sealed class LawTour : FrameworkMod
   - the achievements, player stats, waiting controller or inventory are not loaded;
   - `Total` times `severityFactor` would not fit in a whole number. <span class="tech">(A conversation is open when `DialogueManager.isConversationActive` or `DialogueController.instance.DialogueActive` is true. "Already in prison" is `Prison.inPrison`, read through reflection. It calls the game's `Crime.GoToPrison`.)</span>
 - If the game throws during the call, the framework clears the arrest-in-progress flag, and `Arrest` returns `false`.
+
+**Common problems**
+
+- `Commit` returns `false` and nothing is recorded: one of the cases above applies, for example a `kind` of `None` or a `severity` outside 1 through 1,000,000. Check also whether an `Intercept` handler, yours or another mod's, cancels the crime.
+- `Clear(kind)` or `Clear(victimNpcId, kind)` returns `true` but a record is still there: `true` only means the game call ran. Each clears one record, the first of that kind, and leaves the other group of records alone.
+- `Arrest` returns `false`: an arrest is already in progress, a conversation is open, or the player is already in prison. The full list is under Limits, above.

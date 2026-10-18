@@ -7,15 +7,17 @@ nav_order: 5
 
 # Building a clip from numbers
 
+`FromPcm` and `FromPcm16` build a clip from a list of numbers. Use them when the sound has to live inside your DLL instead of a loose file, or when your code makes the sound.
+
 This page uses `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Sometimes the sound has to live inside your DLL instead of a loose file, or your code makes the sound. `FromPcm` and `FromPcm16` build a clip from a list of numbers. Each number is one point on the sound wave, called a sample.
+Each number is one point on the sound wave, called a sample.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>builds clips from sample numbers</span></p>
 
-Call `FromPcm` or `FromPcm16` with your samples to build a clip, then play it with `PlayClip` or `PlayClipAt`. Destroy the clip when you are finished with it.
+Call `FromPcm` or `FromPcm16` with your samples to build a clip. Play it with [`PlayClip` or `PlayClipAt`](playing-your-own-clip.md), and destroy the clip when you are finished with it.
 
 <div class="api-pair" markdown="1">
 
@@ -38,16 +40,20 @@ public static class Sounds
 ## Things to know
 
 - `samples` holds the sound one moment at a time. For stereo sound, each moment is a left sample followed by a right sample. <span class="tech">(The samples are interleaved frames.)</span>
-- `channels` is 1 to 8, and `rate` is how many moments there are each second, from 8000 to 192000. The number of samples must be more than zero and a whole multiple of `channels`.
+- `channels` is 1 to 8. `rate` is how many moments there are each second, from 8000 to 192000. The number of samples must be more than zero and a whole multiple of `channels`.
 - `FromPcm` uses decimal samples between -1 and 1, and `FromPcm16` uses whole numbers from -32768 to 32767.
-- `FromPcm` leaves your array alone. It works on a copy, turns a sample that is not a real number into silence, and clamps any other sample into the range -1 to 1.
+- `FromPcm` leaves your array alone. It works on a copy. A sample that is not a real number becomes silence, and any other sample is clamped into the range -1 to 1.
 - `FromPcm16` divides each sample by 32768, so -32768 becomes -1.
-- You own the clip you get back, so destroy it when you are finished. The framework does not keep a reference to it. Pass it to `UnityEngine.Object.Destroy` when you no longer need it.
+- You own the clip you get back, and the framework does not keep a reference to it. Pass it to `UnityEngine.Object.Destroy` when you no longer need it.
 - Play the clip with `PlayClip` or `PlayClipAt`. `Effects` is the usual channel for sound effects.
 
 ## Limits
 
-- Big arrays are refused. The limit is the same 16 MiB that `LoadWav` uses, counted in bytes: about 4.2 million `float` values, or about 8.4 million `short` values. A bigger array gives `null` and one line in the log.
+- Big arrays are refused. The limit is the same 16 MiB that [`LoadWav`](loading-a-wav-file.md) uses, counted in bytes: about 4.2 million `float` values, or about 8.4 million `short` values. A bigger array gives `null` and one line in the [log](../../guides/getting-started/logging.md).
 - Wrong arguments throw an error that names the argument. A `null` or empty `name` throws `ArgumentException`. A `null` `samples` throws `ArgumentNullException`. A bad `channels`, `rate` or sample count throws `ArgumentException`.
 - Call these from your mod's normal code. From a background thread you started, Unity refuses to build the clip and you get `null`. See [Main thread](../../glossary.md#main-thread).
 - You get `null` when Unity can't build the clip, and the first failure is written to the log.
+
+**Common problems**
+
+- `FromPcm` or `FromPcm16` returns `null`: the array is bigger than the 16 MiB limit, the call came from a background thread you started, or Unity could not build the clip. Call it from your mod's normal code and check the log.

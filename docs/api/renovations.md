@@ -8,9 +8,19 @@ nav_order: 9
 
 # Renovations
 
+[`Renovations`](renovations/reading-renovations.md) lets your mod work with the upgrades contractors build in the player's building. Use it to show prices and progress, order an upgrade, or react when one is finished.
+
 ## What it is
 
-The player's building can be upgraded by contractors: new electricity, water, heating, walls, a kitchen and more. Some upgrades are for the whole building and some are for one apartment. Each upgrade is called a renovation in this API. It lets your mod list the renovations, see what state each is in, read the price and the build progress, order one, and get told when one is finished. Renovation cost and build-time tweaks are in `TweaksRenovations`. The rules for the building and its tenants are on the [Housing page](housing.md).
+The player's building can be upgraded by contractors: new electricity, water, heating, walls, a kitchen and more. Some upgrades are for the whole building and some are for one apartment. This API calls each upgrade a renovation. It gives your mod these jobs:
+
+- List the renovations.
+- See what state each one is in.
+- Read the price and the build progress.
+- Order one.
+- Get told when one is finished.
+
+Renovation cost and build-time tweaks are in `TweaksRenovations`. The rules for the building and its tenants are on the [Housing page](housing.md).
 
 ## When to use it
 
@@ -21,7 +31,7 @@ The player's building can be upgraded by contractors: new electricity, water, he
 
 ## Quick example
 
-This mod writes a log line when a renovation is finished. Once a save is loaded, it also logs the renovations the player can order now, with their price.
+This mod writes a [log](../guides/getting-started/logging.md) line when a renovation is finished. Once a save is loaded, it also logs the renovations the player can order now, with their price.
 
 ```csharp
 using ObenseuerCore;
@@ -44,4 +54,4 @@ public sealed class RenoWatch : FrameworkMod
 }
 ```
 
-`Finished` is an event: the framework calls your code each time it happens. OC is Open Sewer Coins, the game's everyday money, and RM is Real Money, its second currency (see the glossary entries [OC](../glossary.md#oc) and [RM](../glossary.md#rm)). See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Finished` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. OC is Open Sewer Coins, the game's everyday money. RM is Real Money, its second currency. See the glossary entries [OC](../glossary.md#oc) and [RM](../glossary.md#rm). See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

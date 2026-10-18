@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`WorldSky`](setting-and-clearing.md): read the sky, change it, put it back, and set it again after a load.
+
 Read what the sky looks like now.
 
 ```csharp
@@ -29,7 +31,7 @@ Put the values back to what the game does.
 WorldSky.Clear(Mod.Id);
 ```
 
-Set your values again after every load, because they are not kept.
+Set your values again after every load, because they are not kept. See [How several mods share the sky](how-several-mods-share-the-sky.md#limits).
 
 ```csharp
 Events.SceneLoaded += scene =>

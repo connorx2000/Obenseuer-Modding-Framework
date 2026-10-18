@@ -7,6 +7,8 @@ nav_order: 1
 
 # Books
 
+`Books` tells your mod which books the player holds, which of them have been read, and when a book is read for the first time. Use it when a reward or a quest step depends on the player reading a book.
+
 Status: experimental.
 
 ## What it is
@@ -21,7 +23,7 @@ This API lets your mod see the books the player has collected and whether each o
 
 ## Quick example
 
-This mod writes a log line when the player reads a book. Once a save is loaded, it also logs every book the player holds.
+This mod writes a [log](../guides/getting-started/logging.md) line when the player reads a book. Once a save is loaded, it also logs every book the player holds.
 
 ```csharp
 using ObenseuerCore;
@@ -42,7 +44,7 @@ public sealed class BookWatch : FrameworkMod
 }
 ```
 
-`Read` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Read` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
 
 ## Common tasks
 
@@ -65,12 +67,12 @@ if (Books.IsRead("some-book-id")) Log.Info("The player has read it.");
 
 This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
-A book in your list is a `BookEntryInfo`. The list only has books the player is holding right now, because the game has no list of every book that exists.
+Each book in the list is a `BookEntryInfo`. The list holds only the books the player is holding right now, because the game has no list of every book that exists.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Books</code> <span>the books the player holds</span></p>
 
-Use `All` to list the books the player holds, `IsRead` to check one by its id, and listen to `Read` to hear when a book is read.
+`All` lists the books the player holds. `IsRead` checks one by its id. `Read` fires when a book is read.
 
 <div class="api-pair" markdown="1">
 
@@ -95,7 +97,7 @@ public static class Books
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Read` | `BookReadArgs` | The player has just read a book. |
+| `Read` | `BookReadArgs` | A book went from unread to read. |
 
 </div>
 </div>
@@ -118,7 +120,7 @@ public sealed class BookEntryInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The book's id. Use it with `IsRead`. |
+| `Id` | `string` | The book's id. Pass it to `IsRead`. |
 | `Title` | `string` | The book's title. |
 | `PageCount` | `int` | How many pages the book has in total, not only the ones the player holds. |
 
@@ -150,18 +152,18 @@ public sealed class BookReadArgs
 
 ### Things to know
 
-- `All()` only lists books the player holds. The game has no list of every book, so a book the player has not found does not appear. <span class="tech">(the list comes from the game's note collection (`NoteController.notes`); an entry with no book in it is skipped)</span>
+- `All()` lists only the books the player holds. The game has no list of every book, so a book the player has not found does not appear. <span class="tech">(the list comes from the game's note collection (`NoteController.notes`); an entry with no book in it is skipped)</span>
 - A book's `Id` is the first of these that the game has set: its id, its asset path, or its title. <span class="tech">(this is `BookInfo.Id` in the game)</span>
 - `IsRead(id)` says whether the player has read the book. It returns `false` for a book the player does not hold.
 - When a new page arrives in a book, the game marks the whole book unread again. <span class="tech">(it reads the `read` flag of the player's `CollectedNoteInfo` for that book)</span>
 - `Read` fires when a book goes from unread to read. That happens when the player selects the book in the notes window.
 - `Read` fires again after a new page arrives and the player reads the book again. It does not fire for a book that is already read. <span class="tech">(it is raised after `NoteUIPanel.Selected` when the `read` flag changed from false to true)</span>
-- A note is not a book. Single notes, including the notes the player writes in the notebooks in their inventory, are not books and never raise `Read`.
+- A note is not a book. Single notes never raise `Read`. That includes the notes the player writes in the notebooks in their inventory.
 
 ### Limits
 
-- A `null` id passed to `IsRead` also returns `false`, and one line about it goes to the log.
-- The framework does not hold back `Read` while a save is loading. A handler that should ignore events raised then can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- A `null` id passed to `IsRead` returns `false`, and one line about it goes to the log.
+- The framework does not hold back `Read` while a save is loading. A handler that should ignore events raised then can check [`SaveData.Busy`](../api-core/savedata.md). It is `true` while a save is loading or being written.
 - You can't add pages to a book or mark a book as read. This API only reads. Single notes, which are not books, are on the [Notes page](notes.md).
 
 ## Details
@@ -172,16 +174,20 @@ Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
 - The framework changes one of the game's methods when it starts, so it can tell your mod when a book is read.
-- Its feature group, the name you will see in the log, is `obenseuer.moddingframework.books`.
+- Its [feature group](../glossary.md#feature-group) (the name you see in the log) is `obenseuer.moddingframework.books`.
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the [main thread](../glossary.md#main-thread).
 - It is safe to call any of it at any time, even on the main menu. With nothing to read, `All()` gives an empty list and `IsRead` gives `false`. Neither depends on `IsAvailable`.
 - `Books.IsAvailable` tells you whether `Read` works. It is `false` when the framework could not set up the read event, or when the feature group was turned off.
 - If the game fails while the framework reads, you get the plain default (an empty list or `false`) instead of an error.
 
 ### If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the feature group that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the change to the notes window fails, the feature group turns off and `Read` stops. One warning goes to the log. `All()` and `IsRead` keep working. <span class="tech">(the method is `NoteUIPanel.Selected`. The log line reads "book events not installed, Read is disabled")</span>
+
+**Common problems**
+
+- `Read` never fires and `IsAvailable` is `false`: the read event could not be set up, or the feature group was turned off. Look for the warning in `BepInEx\logs\obenseuer.moddingframework.books.log`. `All()` and `IsRead` still work.

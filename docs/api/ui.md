@@ -8,12 +8,20 @@ nav_order: 4
 
 # UI
 
+The UI kit builds windows and controls for your mod in the framework's own style. Use it when your mod needs a screen of its own. The [UI and HTML views guide](../guides/ui.md) builds screens step by step.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-This is the framework's small kit for building screens in your mod. It has windows (`ModWindow`), ready-made controls such as buttons, sliders and toggles (`ModUi`), and the colours and shapes the kit uses (`UiTheme`, `UiSprites`). Screens built with it match the framework's Mods menu. If you would rather write your screen in HTML, see the [WebUi page](webui.md).
+This is the framework's small kit for building screens in your mod. It has these parts:
+
+- Windows: [`ModWindow`](ui/windows.md).
+- Ready-made controls such as buttons, sliders and toggles: [`ModUi`](ui/controls.md).
+- The colours and shapes the kit uses: [`UiTheme`](ui/colours-and-shapes.md) and `UiSprites`.
+
+Screens built with it match the framework's [Mods menu](framework-mods/mods-menu.md). If you would rather write your screen in HTML, see the [WebUi page](webui.md).
 
 ## When to use it
 
@@ -26,7 +34,7 @@ This is the framework's small kit for building screens in your mod. It has windo
 
 This mod opens a window when you press F8, and closes it when you press F8 again. The window has a heading, a line of text, a slider, a toggle and a button.
 
-Your project needs references to `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll`, both from the game's `Obenseuer_Data\Managed` folder. Without them the compiler reports error CS0012. The first lines of the file add the kit's namespace.
+Your project needs references to `Unity.TextMeshPro.dll` and `UnityEngine.UI.dll`, both from the game's `Obenseuer_Data\Managed` folder. Without them the compiler reports error CS0012. [Setting up your project](ui/setting-up-your-project.md) has the details. The first lines of the file add the kit's namespace.
 
 ```csharp
 using ObenseuerCore;
@@ -69,10 +77,26 @@ public sealed class UiDemo : FrameworkMod
 }
 ```
 
-`ModWindow.Open` builds the window and runs your code once to fill it. The `window.Body` is the empty area to put controls in. The controls call your code when the player changes them. While a window is open the game's own controls are off, so the example checks the game state only before it opens the window. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`.
-`Open` returns null when a window with the same mod id and title is already open (that window is raised instead), or when its setup fails (the window is destroyed and the error is logged). `build` runs under `Run`. An exception closes the window with reason `Fault`, sets `Faulted` and logs once. `Closed` fires before the window's previews are disposed, so a mod can flush its own work there. Escape closes only the top window, and not while a text field in it has focus. `Find` returns the open window with that mod id and title, or null, so a hotkey can close it. A window closes with `SceneUnload` only when the scene it was opened in unloads; other additive scene unloads are ignored.
+`ModWindow.Open` builds the window and runs your code once to fill it. `window.Body` is the empty area to put controls in. The controls call your code when the player changes them. While a window is open the game's own controls are off. So the example checks the game state, with [`UiState`](ui-state.md), only before it opens the window. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`.
 
-Dock sizes: Left and Right are 440 px panels with 24 px margins. Right starts 110 px from the top. Center is 640 px wide. Left, Right and Center block clicks across their whole panel. Full covers the screen with a 0.97 alpha backdrop that hides the game and blocks its clicks. Full also has a 440 px `Side` column on the left with `Body` to its right; the framework's own Mods menu asks for a proportional side column instead (23.5% of the window, about 440 px at 16:9), so a mod's own Full window keeps the fixed width. The footer is a 56 px bar along the bottom.
+How a window opens and closes:
+
+- `Open` returns null when a window with the same [mod id](../glossary.md#mod-id) (the id your mod uses for its files) and title is already open. That window is raised instead.
+- `Open` also returns null when its setup fails. The window is destroyed and the error is [logged](../guides/getting-started/logging.md).
+- `build` runs under `Run`. An exception closes the window with reason `Fault`, sets `Faulted` and logs once.
+- `Closed` fires before the window's previews are disposed, so a mod can flush its own work there.
+- Escape closes only the top window, and not while a text field in it has focus.
+- `Find` returns the open window with that mod id and title, or null, so a hotkey can close it.
+- A window closes with `SceneUnload` only when the [scene](../glossary.md#scene) it was opened in unloads. Other additive scene unloads are ignored.
+
+Dock sizes:
+
+- Left and Right are 440 px panels with 24 px margins. Right starts 110 px from the top.
+- Center is 640 px wide.
+- Left, Right and Center block clicks across their whole panel.
+- Full covers the screen with a 0.97 alpha backdrop that hides the game and blocks its clicks.
+- Full also has a 440 px `Side` column on the left, with `Body` to its right. The framework's own Mods menu asks for a proportional side column instead (23.5% of the window, about 440 px at 16:9). So a mod's own Full window keeps the fixed width.
+- The footer is a 56 px bar along the bottom.
 
 ```csharp
 public static class ModUi
@@ -97,7 +121,9 @@ public static class ModUi
 }
 ```
 
-The clickable kit controls (`Button`, the segments of `Segmented`, `Tabs`, the steppers, the caption of `Toggle`, and the swatch chips) clear the EventSystem selection when clicked, so Enter and Space do not repeat a click. The kit leaves `Selectable.navigation` alone, except the scroll page's scrollbar, which is set to None so a click on it cannot move the focus; the classic Mods menu wires it explicitly, see [framework core classes](../api-core.md#modmenu). `Scroll` returns the content of a scroll page, and a scroll page has a viewport with a clipping mask and a visible scrollbar on the right.
+The clickable kit controls clear the EventSystem selection when clicked, so Enter and Space do not repeat a click. These are `Button`, the segments of `Segmented`, `Tabs`, the steppers, the caption of `Toggle`, and the swatch chips. The kit leaves `Selectable.navigation` alone, except the scroll page's scrollbar. That scrollbar is set to None, so a click on it cannot move the focus. The classic Mods menu wires it explicitly, see [framework core classes](../api-core.md#modmenu).
+
+`Scroll` returns the content of a scroll page. A scroll page has a viewport with a clipping mask and a visible scrollbar on the right.
 
 ```csharp
 public sealed class ModSlider
@@ -160,11 +186,23 @@ public sealed class ModelPreview : MonoBehaviour
 }
 ```
 
-A preview draws the target's renderers on layer 31 while its window is open. These include the renderers of `PlayerLocator.playerRig` and `playerRigUnrigified`, which are switched on for the window and switched back off when it closes. Only renderers on active GameObjects are claimed. Only one preview can be open at a time; a second `ModUi.ModelPreview` faults the window it is in. Drag turns the figure, and the wheel zooms. `Framing` reframes at once and moves the switch. `ShowFramingSwitch` shows or hides the Body|Face switch that the preview builds in its top-right corner. `Refresh()` adopts renderers that became active since the last call, for example after a mesh swap, and reframes. The camera and lights are disabled while the preview's tab page is hidden. `Dispose()` restores every change, then shows or hides the player model to match the game's current first or third person view, returns the recorded renderer count, and is safe to call twice. A skinned mesh's bounds are restored only when its shared mesh is the one recorded. The window disposes its previews when it closes. On the first settled frame the window logs one `model preview:` line with the recorded, active, visible and rig counts, and the first ten active renderers that are not visible.
+How a [model preview](ui/the-model-preview.md) works:
+
+- A preview draws the target's renderers (the parts of the model it draws) on layer 31 while its window is open.
+- These include the renderers of `PlayerLocator.playerRig` and `playerRigUnrigified`. They are switched on for the window and switched back off when it closes. Only renderers on active GameObjects are claimed.
+- Only one preview can be open at a time. A second `ModUi.ModelPreview` faults the window it is in.
+- Drag turns the figure, and the wheel zooms.
+- `Framing` reframes at once and moves the switch. `ShowFramingSwitch` shows or hides the Body|Face switch that the preview builds in its top-right corner.
+- `Refresh()` adopts renderers that became active since the last call, for example after a mesh swap, and reframes.
+- The camera and lights are disabled while the preview's tab page is hidden.
+- `Dispose()` restores every change. Then it shows or hides the player model to match the game's current first or third person view. It returns the recorded renderer count, and is safe to call twice.
+- A skinned mesh's bounds are restored only when its shared mesh is the one recorded.
+- The window disposes its previews when it closes.
+- On the first settled frame the window logs one `model preview:` line. The line holds the recorded, active, visible and rig counts, and the first ten active renderers that are not visible.
 
 ## UiTheme and UiSprites
 
-A read-only facade over the kit's palette and sprites. The names and types are fixed. The palette members are get-only properties. A mod that uses `UiTheme.Card` and `UiTheme.Font` directly breaks at build time if any member is renamed.
+[`UiTheme`](ui/colours-and-shapes.md) and `UiSprites` are a read-only facade over the kit's palette and sprites. The names and types are fixed. The palette members are get-only properties. A mod that uses `UiTheme.Card` and `UiTheme.Font` directly breaks at build time if any member is renamed.
 
 ```csharp
 public static class UiTheme
@@ -191,7 +229,7 @@ public static class UiSprites
 
 The same palette drives the ConfigurationManager dark theme.
 
-Open questions:
+Open questions (see also [What has not been tested in a running game](ui/what-has-not-been-tested-in-a-running-game.md)):
 
 - Text field and key binding rows: focus, typing, Esc and Enter inside a real window, and the field lock released on blur.
 - A throwing callback under a window (Fault) and outside one (log only), in game.

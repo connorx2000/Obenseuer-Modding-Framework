@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-Give every shop in the scene 500 OC and no RM, so it can pay for more sales.
+Short examples for the usual jobs with [`BaseShops`](shops.md): giving a shop money, making it restock, and buying or selling furniture for the player.
+
+Give every shop in the [scene](../../glossary.md#scene) 500 [OC](../../glossary.md#oc) and no [RM](../../glossary.md#rm), so it can pay for more sales.
 
 ```csharp
 foreach (BaseShopInfo shop in BaseShops.All())
@@ -23,7 +25,7 @@ void RestockShop(string shopId)
 }
 ```
 
-Buy one piece of furniture for the player. The result tells you what happened.
+Buy one piece of furniture for the player. The result says what happened; the values are on [Buying](buying.md).
 
 ```csharp
 void BuyOne(string shopId, string furnitureId)
@@ -33,7 +35,7 @@ void BuyOne(string shopId, string furnitureId)
 }
 ```
 
-Sell one piece of furniture from the player's stock to a shop.
+Sell one piece of furniture from the player's stock to a shop. The result values are on [Selling](selling.md).
 
 ```csharp
 void SellOne(string shopId, string furnitureId)

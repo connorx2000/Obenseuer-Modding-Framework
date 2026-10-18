@@ -7,15 +7,17 @@ nav_order: 8
 
 # SaveData
 
+`SaveData` keeps your mod's own data in the player's save, so your numbers and lists survive a reload. Use it when your mod has state that must come back after the player loads a save. See [Save data](../guides/getting-started/save-data.md) for a walkthrough.
+
 This page uses `Vector3`, `Quaternion`, `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-`SaveData` keeps your mod's own data in the player's save. You hand it a small class of your own. It writes that class into the save on every save and gives it back on every load, so your numbers and lists survive a reload. Each mod gets its own file. See [Save data](../guides/getting-started/save-data.md) for a walkthrough.
+You hand `SaveData` a small class of your own. The framework writes that class into the save on every save and gives it back on every load. Each mod gets its own file.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SaveData</code> <span>keep your data in the save</span></p>
 
-Call `Register` once with your mod id, a function that returns your data for each save, and a function that gives it back on each load. `Busy` tells you whether a save or load is running.
+Call `Register` once with your [mod id](../glossary.md#mod-id) and two functions. One returns your data for each save, and the other takes it back on each load. `Busy` tells you whether a save or load is running.
 
 <div class="api-pair" markdown="1">
 
@@ -78,20 +80,25 @@ public class MyMod : BaseUnityPlugin
 
 ### What can go in your class
 
-- Your class needs an empty constructor, and public fields are what get saved. `T` must be a class with a parameterless constructor. Public fields and `[SerializeField]` fields are written. `[NonSerialized]` fields and properties are not.
-- Lists, arrays, dictionaries and the usual Unity value types are saved. That includes lists and dictionaries of your own classes, and `Vector2`, `Vector3`, `Vector4`, `Quaternion`, `Color`, `Rect` and `Matrix4x4`.
+- `T` must be a class with a parameterless constructor. Public fields and `[SerializeField]` fields are written. `[NonSerialized]` fields and properties are not.
+- Lists, arrays, dictionaries and the usual Unity value types are saved. That includes lists and dictionaries of your own classes, and `Vector2`, [`Vector3`](../glossary.md#vector3), `Vector4`, [`Quaternion`](../glossary.md#quaternion), `Color`, `Rect` and `Matrix4x4`.
 - A list, array or `[Serializable]` class that is `null` is saved as an empty one and loads as an empty one.
-- Game objects are never saved. Fields of type `UnityEngine.Object` (`GameObject`, `Component`, `Texture` and so on) are skipped. They are never written, and never created on load. Store an id or a name instead.
+- Game objects are never saved. Fields of type `UnityEngine.Object` ([`GameObject`](../glossary.md#gameobject), `Component`, `Texture` and so on) are skipped. They are never written, and never created on load. Store an id or a name instead.
 - Classes that can be one of several types, and top-level arrays, are not supported. <span class="tech">(It is written with Newtonsoft.Json.)</span>
-- If the file cannot be read as the normal format, the framework tries the game's older format instead. Each time that happens it logs a warning and copies the file to `<modId>.json.bad`. Saving is not skipped. The next save writes `<modId>.json` in the normal format, and does not touch the `.bad` copy. <span class="tech">(The older format is `JsonUtility`.)</span>
+- If the file cannot be read as the normal format, the framework tries the game's older format instead. Each time that happens it [logs](../guides/getting-started/logging.md) a warning and copies the file to `<modId>.json.bad`. Saving is not skipped. The next save writes `<modId>.json` in the normal format, and does not touch the `.bad` copy. <span class="tech">(The older format is `JsonUtility`.)</span>
 
 ### The mod id
 
-- Your mod id must follow the file-name rules, or `Register` throws an `ArgumentException`. It must be non-empty and at most 64 characters, and it cannot contain characters that Windows rejects in file names, `/`, `\` or `..`.
+- Your mod id must follow the file-name rules, or `Register` throws an `ArgumentException`. It must be non-empty and at most 64 characters. It cannot contain characters that Windows rejects in file names, `/`, `\` or `..`.
 - It cannot be a Windows device name: `CON`, `PRN`, `AUX`, `NUL`, or `COM` or `LPT` followed by a digit or a superscript 1, 2 or 3, also with an extension (`con.txt`).
 - New mods should keep to letters, digits, `.`, `_` and `-`, 1 to 64 characters. That is the stricter rule the game APIs check, and it works everywhere.
 - `Foo` and `foo` are the same mod id. Capital letters are ignored. Registering a mod id that is already registered, in any capitals, throws an `InvalidOperationException`.
 - The file is called `<modId>.json`.
+
+**Common problems**
+
+- `Register` throws `ArgumentException`: the mod id breaks the file-name rules. Keep to letters, digits, `.`, `_` and `-`, 1 to 64 characters, and not a Windows device name.
+- `Register` throws `InvalidOperationException`: that mod id is already registered, in any capitals. Register each mod id once.
 
 ### Saving
 
@@ -104,8 +111,12 @@ public class MyMod : BaseUnityPlugin
 - If there is no file, `onLoad` gets `null`. For a class, `default(T)` is `null`, so always handle `null`, for example with `s ?? new T()`.
 - If the file cannot be parsed, your mod starts empty and the broken file is kept. The problem is logged, the file is copied to `<modId>.json.bad`, and `onLoad` gets `null`. The next save overwrites `<modId>.json`, not the `.bad` copy.
 - Backup and antivirus tools can lock a file for a moment. If the file is locked, the framework tries again twice, 50 ms apart.
-- If the file is still locked after the retries, `onLoad` gets `null`, no `.bad` copy is made, and saves for your mod are skipped (logged once) until a load reads the file. This way the good file is never overwritten by an empty state.
+- If the file is still locked after the retries, `onLoad` gets `null` and no `.bad` copy is made. Saves for your mod are skipped (logged once) until a load reads the file. This way the good file is never overwritten by an empty state.
 - A file larger than 64 MB (67,108,864 bytes) is not read. It is handled like a locked file: `onLoad` gets `null`, the size is logged, and saves are skipped until a load reads a file under the limit.
+
+**Common problems**
+
+- `onLoad` gets `null`: there is no file, the file could not be parsed, it is locked, or it is over 64 MB. Handle `null` with `s ?? new T()` and check the log.
 
 ### When you can register
 

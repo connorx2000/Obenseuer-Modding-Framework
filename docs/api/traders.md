@@ -8,11 +8,20 @@ nav_order: 15
 
 # Traders
 
+[`Traders`](traders/reading-a-trader.md) reads and changes the characters the player trades with: their money, their prices, and direct trades without the trade screen. Use it to change a trader's money or prices, or to trade for the player from your own code.
+
 Status: experimental.
 
 ## What it is
 
-Traders are the characters the player buys from and sells to on the trade screen. Each has some money, a stock of items, and prices. This API reads a trader's money, currency and what it will buy, changes how much money it has, refills it, scales its prices up or down, and lets your mod buy from or sell to a trader directly, without the trade screen. To find a trader's id, use `Shops.All()` on the [Economy](economy/shops.md#shops) page.
+Traders are the characters the player buys from and sells to on the trade screen. Each has some money, a stock of items, and prices. This API lets your mod:
+
+- Read a trader's money, currency and what it will buy.
+- Change how much money a trader has, or refill it.
+- Scale a trader's prices up or down.
+- Buy from or sell to a trader directly, without the trade screen.
+
+To find a trader's id, use `Shops.All()` on the [Economy](economy/shops.md#shops) page.
 
 ## When to use it
 
@@ -22,7 +31,7 @@ Traders are the characters the player buys from and sells to on the trade screen
 
 ## Quick example
 
-This mod makes every trader charge 25 percent more when the player buys, and leave selling prices alone. The factors are forgotten when a new level loads, so it sets them again each time.
+This mod makes every trader charge 25 percent more when the player buys, and leaves selling prices alone. The factors are forgotten when a new level loads, so it sets them again each time.
 
 ```csharp
 using ObenseuerCore;
@@ -46,4 +55,4 @@ public sealed class PriceWatch : FrameworkMod
 }
 ```
 
-`WhenReady` runs your code once the game is ready, and `SceneLoaded` runs it each time a level loads. See [Using events](../guides/getting-started/using-events.md) for more on both. The first argument of `SetPriceFactors` is your mod's id, `Mod.Id`.
+[`WhenReady`](core-helpers/events-whenready.md) runs your code once the game is ready. `SceneLoaded` runs it each time a level ([scene](../glossary.md#scene)) loads. See [Using events](../guides/getting-started/using-events.md) for more on both. The first argument of `SetPriceFactors` is your [mod id](../glossary.md#mod-id), `Mod.Id`.

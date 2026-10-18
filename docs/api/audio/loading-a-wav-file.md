@@ -7,15 +7,15 @@ nav_order: 4
 
 # Loading a WAV file
 
+A WAV file is a sound file. `LoadWav` reads one from disk and gives you a clip you can play.
+
 This page uses `AudioClip` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-A WAV file is a sound file. `LoadWav` reads one from disk and gives you a clip you can play.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>loads WAV files</span></p>
 
-Call `LoadWav` with the path to a WAV file, then play the clip with `PlayClip` or `PlayClipAt`. It gives `null` when the file cannot be used.
+Call `LoadWav` with the path to a WAV file, then play the clip with [`PlayClip` or `PlayClipAt`](playing-your-own-clip.md). It gives `null` when the file cannot be used.
 
 <div class="api-pair" markdown="1">
 
@@ -28,7 +28,7 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `LoadWav(path)` | `AudioClip` | Reads a WAV file into a clip. Returns `null` when the file can't be used. |
+| `LoadWav(path)` | `AudioClip` | Reads a WAV file into a clip. `null` when the file can't be used. |
 
 </div>
 </div>
@@ -40,5 +40,9 @@ public static class Sounds
 ## Limits
 
 - Only WAV files work. `.ogg`, `.mp3` and every other format give `null`. Convert the sound to WAV first.
-- `LoadWav` gives you `null` for a missing file, a file that is not a WAV, a format it can't read, or a file that is cut short. A path that is `null` or empty throws an error.
+- `LoadWav` gives you `null` for a missing file or a file that is not a WAV. It also gives `null` for a format it can't read, or a file that is cut short. A path that is `null` or empty throws an error.
 - WAV files bigger than 16 MiB are refused (you get `null`). The game keeps the sound in memory as decimal numbers, so a big file can use a lot of memory. A 16 MiB file with 8-bit sound takes about 64 MiB while it loads.
+
+**Common problems**
+
+- `LoadWav` returns `null`: the file is missing, is not a WAV, uses a format it can't read, is cut short, or is bigger than 16 MiB. For `.ogg`, `.mp3` and other formats, convert the sound to WAV first.

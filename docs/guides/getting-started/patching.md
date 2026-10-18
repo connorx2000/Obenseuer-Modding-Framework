@@ -6,9 +6,11 @@ nav_order: 7
 
 # Patching
 
-Patching means adding your own code to run just before or just after one of the game's own methods. It is the most fragile way to change the game: a game update can rename or remove the method you patched. Patch a game method only when no [event](using-events.md) or framework helper does what you need.
+Patching means adding your own code to run directly before or directly after one of the game's own methods. It is the most fragile way to change the game: a game update can rename or remove the method you patched. Patch a game method only when no [event](using-events.md) or framework helper does what you need.
 
-This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below, then run `dotnet build -c Release -p:DeployToGame=true` with the game closed. The patch below makes your `AfterDayChanged` method run each time the game raises its day counter. A method that runs after the game's method is called a postfix. `Mod.Postfix` returns `true` when the patch was applied.
+## The example
+
+This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below. The patch makes your `AfterDayChanged` method run each time the game raises its day counter. A method that runs after the game's method is called a postfix. `Mod.Postfix` returns `true` when the patch was applied.
 
 ```csharp
 using ObenseuerCore;
@@ -32,9 +34,24 @@ public class ExampleHello : FrameworkMod
 }
 ```
 
-Start the game and let a day pass. The log `BepInEx\logs\example.hello.log` gets the line `day counter increased`. A static method cannot use `Log`, so it asks for the log by mod id with `CoreLog.For`.
+A static method cannot use `Log`, so it asks for the log by [mod id](../../glossary.md#mod-id) with [`CoreLog.For`](../../api-core/corelog.md). Then build and check the result:
 
-- **`Mod.Prefix`, `Mod.Postfix` and `Mod.Finalizer` add a patch to a game method.** A prefix runs before the game's method, a postfix runs after it, and a finalizer runs even when the game's method throws an error. Each returns `true` if the patch was applied.
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game and let a game day pass.
+3. Open `BepInEx\logs\example.hello.log`. It has the line `day counter increased`.
+
+The patch works. Things to know, below, covers the three patch kinds and what happens when a patch fails.
+
+### Common problems
+
+- The log has the warning "day patch unavailable": the patch was not applied. The causes this page gives:
+  - The game's method has changed. The framework writes an error line to your mod's log.
+  - The method name has more than one version in the game. Pass the parameter types as a `Type[]` after the method name.
+  - The game is not build 0.5.08 and the player set `[Safety] RefuseUnknownBuild` to `true`. Every patch is then refused.
+
+## Things to know
+
+- **`Mod.Prefix`, `Mod.Postfix` and `Mod.Finalizer` add a patch to a game method.** A prefix runs before the game's method. A postfix runs after it. A finalizer runs even when the game's method throws an error. Each returns `true` if the patch was applied.
 - **Your patch method must be `static`.** You name it with its class and its name as text, as in the code above.
 - **If a name has more than one version in the game, pass the parameter types.** Each of the three has an overload that takes a `Type[]` of parameter types after the method name. The patch is skipped and logged when the name is ambiguous.
 - **A misspelled name for your own method throws an error.** The name is text, so the compiler cannot check it. Copy it exactly.
@@ -44,7 +61,7 @@ Start the game and let a day pass. The log `BepInEx\logs\example.hello.log` gets
 
 ## Patches your mod cannot work without
 
-`Mod.Prefix` and the others make a normal patch. If your mod is useless without one patch, call `CorePatcher.Patch` instead and pass `true` for `core`. A failed core patch removes every patch made for your mod and turns the mod's patches off. The last argument is your mod id. It must not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`, because the framework keeps both for itself.
+`Mod.Prefix` and the others make a normal patch. If your mod is useless without one patch, call [`CorePatcher.Patch`](../../api-core/corepatcher.md) instead and pass `true` for `core`. A failed core patch removes every patch made for your mod and turns the mod's patches off. The last argument is your [mod id](../../glossary.md#mod-id). It must not start with `obenseuer.moddingframework` or `nomad.obenseuer.core`, because the framework keeps both for itself.
 
 ```csharp
 // Put this in OnLoad. The arguments are: game class, method name, parameter types (none here),

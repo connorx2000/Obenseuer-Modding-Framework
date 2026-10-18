@@ -7,4 +7,4 @@ nav_order: 11
 
 # Screen and UI
 
-The HUD, the UI kit, HTML views, UI state, screen effects and sound.
+This group covers the HUD, the UI kit, [HTML views](../../guides/ui.md), UI state, screen effects and sound.

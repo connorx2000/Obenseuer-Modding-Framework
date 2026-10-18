@@ -7,7 +7,9 @@ nav_order: 5
 
 # Events
 
-`Events` tells your mod when the game clock reaches a new hour or a new day, when a scene loads, and when a save is written or loaded. You subscribe with `+=`, and the framework calls your code each time it happens. There is also `Events.WhenReady`, which waits until a save is loaded and then runs your code once.
+`Events` tells your mod when the game clock reaches a new hour or a new day. It also tells you when a [scene](../glossary.md#scene) loads, and when a [save](../guides/getting-started/save-data.md) is written or loaded. Use it when your code must react to those moments.
+
+You subscribe with `+=`, and the [framework](../glossary.md#framework) calls your code each time the event happens. `Events.WhenReady` waits until a save is loaded and then runs your code once. The [Using events](../guides/getting-started/using-events.md) guide shows the pattern step by step.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Events</code> <span>clock, scene and save events</span></p>
@@ -45,7 +47,7 @@ public static class Events
 
 ## Putting it together
 
-Logs each new hour, each new day and each load.
+This plugin logs each new hour, each new day and each load.
 
 <div class="api-example" markdown="1">
 
@@ -75,14 +77,14 @@ public class MyMod : BaseUnityPlugin
 
 ## Things to know
 
-- Your handlers run in the order they subscribed, and one handler that fails does not stop the others. The framework writes the error to the log, and only the first failure of each handler per event.
+- Your handlers run in the order they subscribed. One handler that fails does not stop the others. The [framework](../glossary.md#framework) writes the error to the [log](../guides/getting-started/logging.md), and only the first failure of each handler per event.
 - You may subscribe or unsubscribe inside a handler. The change starts with the next event.
 - `HourPassed` is checked once every game minute, so it can arrive up to a minute late. If the player sleeps or the time jumps, you see the new hour on the next minute. If the time jumps to the same hour on a different day, it still fires.
-- A level change does not repeat the hour it lands on. After a level change, `HourPassed` fires only when the hour or the day is different from the last one reported. A load or a new game started from the main menu does fire on its first game minute, even for the same hour, because the main menu forgets the last hour.
+- A level change does not repeat the hour it lands on. After a level change, `HourPassed` fires only when the hour or the day differs from the last one reported. A load or a new game started from the main menu does fire on its first game minute, even for the same hour. That is because the main menu forgets the last hour.
 - `Saved` and `Loaded` also fire on every level change. The game changes level by saving and then loading again, so you get one of each.
 - `WhenReady` runs your code at once when a save is already loaded. Otherwise it runs it once, later. An error in your code is logged, and does not stop anything else.
 
 ## Limits
 
-- If your handler lives in a scene object, unsubscribe when the object is destroyed. Do it in `OnDestroy`. If you do not, the framework still calls the handler after its object is gone, and then only the first failure is logged.
+- If your handler lives in a [scene](../glossary.md#scene) object, unsubscribe when the object is destroyed. Do it in `OnDestroy`. If you do not, the framework still calls the handler after its object is gone, and then only the first failure is logged.
 - `WhenReady` throws `ArgumentNullException` when `action` is null.

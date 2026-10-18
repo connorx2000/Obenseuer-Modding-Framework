@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-Stop the menu reacting to input while your own window is open, and give control back when it closes. Every `false` needs a matching `true`.
+Short snippets for the usual jobs with [`MainMenuButtons`](mainmenubuttons.md): hold the menu's controls, check that the menu is open, and check that your button was added.
+
+Stop the menu reacting to input while your own window is open, and give control back when it closes. Every `false` needs a matching `true`. [SetControlsEnabled](setcontrolsenabled.md) explains how the holds are counted.
 
 ```csharp
 MainMenuButtons.SetControlsEnabled(Mod.Id, false);
@@ -20,7 +22,7 @@ Check whether the main menu is up and your buttons are on it.
 if (MainMenuButtons.IsOpen) Log.Info("The main menu is open.");
 ```
 
-Find out whether your button was added. `Add` gives back `false` when the name was already taken.
+Find out whether your button was added. [`Add`](add.md) gives back `false` when the name was already taken.
 
 ```csharp
 if (!MainMenuButtons.Add(Mod.Id, "Settings", "MY SETTINGS", () => Log.Info("Settings clicked.")))

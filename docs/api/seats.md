@@ -7,12 +7,21 @@ nav_order: 13
 
 # Seats
 
+`Seats` lists the chairs and toilets in the [scene](../glossary.md#scene) (one loaded area of the game). It seats or stands up the player, and tells you when someone sits or stands. Use it to react to sitting, or to seat the player from a script.
+
 This page uses `Vector3`, `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-A seat is any chair in the game, toilets included. This API lets your mod list the seats in the scene you are in, see which are taken and by whom, make the player sit down in one or stand up again, and get told when the player or an NPC sits down or stands up. It does not control NPCs: the game's schedules decide when NPCs sit.
+A seat is any chair in the game, toilets included. This API lets your mod do these jobs:
+
+- List the seats in the [scene](../glossary.md#scene) you are in.
+- See which seats are taken, and by whom.
+- Make the player sit down in a seat, or stand up again.
+- Get told when the player or an [NPC](npcs.md) sits down or stands up.
+
+It does not control NPCs. The game's [schedules](npc-schedules.md) decide when NPCs sit.
 
 ## When to use it
 
@@ -22,7 +31,7 @@ A seat is any chair in the game, toilets included. This API lets your mod list t
 
 ## Quick example
 
-This mod writes a log line each time someone sits down or stands up. Once a save is loaded, it also logs how many seats there are in the scene and how many of them are free.
+This mod writes a [log](../guides/getting-started/logging.md) line each time someone sits down or stands up. Once a save is loaded, it also logs how many seats the scene has, and how many of them are free.
 
 ```csharp
 using ObenseuerCore;
@@ -46,7 +55,7 @@ public sealed class SeatWatch : FrameworkMod
 }
 ```
 
-`Sat` and `Left` are events: the framework calls your code each time they happen. `WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
+`Sat` and `Left` are events: the framework calls your code each time they happen. [`WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
 
 ## Common tasks
 
@@ -70,12 +79,16 @@ if (one != null && one.OccupiedByPlayer) Seats.Leave();
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Seats</code> <span>list, sit, stand and hear about seats</span></p>
 
-This is the class to start from. `All()` and `Get(id)` find seats, `Sit` and `Leave` seat the player or stand them up, and `Sat` and `Left` tell you when someone sits down or stands up.
+This is the class to start from:
+
+- `All()` and `Get(id)` find seats.
+- `Sit` and `Leave` seat the player or stand them up.
+- `Sat` and `Left` tell you when someone sits down or stands up.
 
 <div class="api-pair" markdown="1">
 
@@ -97,8 +110,8 @@ public static class Seats
 |---|---|---|
 | `All()` | `List<SeatInfo>` | Every seat in the scene you are in, toilets included. |
 | `Get(id)` | `SeatInfo` | The seat with this id. `null` when there is none. |
-| `Sit(id)` | `bool` | Makes the player sit in this seat. `true` when they are seated in it afterwards. |
-| `Leave()` | `bool` | Makes the player stand up. `true` once they have started to stand. |
+| `Sit(id)` | `bool` | Makes the player sit in this seat. `true` when the player is seated in it afterwards. |
+| `Leave()` | `bool` | Makes the player stand up. `true` once the player has started to stand. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -115,7 +128,7 @@ public static class Seats
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SeatInfo</code> <span>a snapshot of one seat</span></p>
 
-`All()` and `Get(id)` give you one of these. Use `IsOccupied` and `OccupiedByPlayer` to find a free seat or the player's own seat, and pass `Id` to `Sit`. <span class="tech">(It is built from the game's `InteractableChair`, and `IsToilet` is `true` for a `Toilet`.)</span>
+`All()` and `Get(id)` give you one of these. Use `IsOccupied` and `OccupiedByPlayer` to find a free seat or the player's own seat. Pass `Id` to `Sit`. <span class="tech">(It is built from the game's `InteractableChair`, and `IsToilet` is `true` for a `Toilet`.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -132,7 +145,7 @@ public sealed class SeatInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | A name for this seat that you can use with `Get` and `Sit`. |
+| `Id` | `string` | A name for this seat. Use it with `Get` and `Sit`. |
 | `IsOccupied` | `bool` | `true` when an NPC, a piece of furniture or the player holds the seat. |
 | `OccupiedByPlayer` | `bool` | `true` when the player is sitting in this seat. |
 | `Position` | `Vector3` | Where the seat is, in world coordinates. |
@@ -159,7 +172,7 @@ public sealed class SeatArgs
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The seat's id, the same as `SeatInfo.Id`. |
-| `ByPlayer` | `bool` | `true` when the player did it. `false` when an NPC did. |
+| `ByPlayer` | `bool` | `true` when the player did it, `false` when an NPC did. |
 
 </div>
 </div>
@@ -167,7 +180,7 @@ public sealed class SeatArgs
 ### Things to know
 
 - `All()` lists the seats that are switched on in the scene you are in. Toilets are included. <span class="tech">(it lists every active `InteractableChair` in the active scene.)</span>
-- `Id` is a name that identifies one seat. It normally stays the same each time the game runs. A seat the game gave no unique id gets one made from its place in the scene, and that id changes when the scene changes. <span class="tech">(it is the save GUID, else the scene path.)</span>
+- `Id` is a name that identifies one seat. It normally stays the same each time the game runs. A seat the game gave no unique id gets one made from its place in the scene. That id changes when the scene changes. <span class="tech">(it is the save GUID, else the scene path.)</span>
 - `Get(id)` returns `null` for an empty or unknown id.
 - `Sit(id)` makes the player sit the way the game does when they press the use key. If the game would refuse, `Sit` refuses quietly and returns `false`. <span class="tech">(the checks are `InteractableChair.PlayerIsSitting`, `SaveData.Busy`, the `GameController` state (menu, shop, pause menu, console, dialogue, `keysDisabled`, `GameIsPaused`), `PlayerState.IsSleeping`, `OpenSewerCharacterController.ControlsDisabled`, `Interactable.IsInteractDisabled`, `Occupied` and the distance to the camera (`InteractObjects.useDistance`). After the checks it calls the chair's public `Interact()`, which is virtual, so a `Toilet` keeps its own lid and bucket checks. The result is read back from `PlayerSittingHere`, so a refusal inside the game, for example a camera move still running, also gives `false`.)</span>
 - `Leave()` starts the player standing up, so they may still look seated right after the call. It returns `true` once the stand-up has started. The player is no longer seated, and `Left` fires, when the camera move ends. <span class="tech">(it uses the same busy checks as `Sit`, then `Interact()` on the seated chair. It is refused while `DisableStopSit` is set (contests and card tables) or while the chair's camera move is still running. For a `Toilet` whose `enabled` is `false`, the game's `Toilet.Use` only shows a warning.)</span>
@@ -177,14 +190,28 @@ public sealed class SeatArgs
 
 ### Limits
 
-- `Sit(id)` is `false` when the seat is not found, when the player is already seated anywhere, and when the game is loading or saving a save. It is also `false` when the player is busy: a menu, shop, pause menu, console or conversation is open, keys are turned off, the game is paused, or the player is asleep. And it is `false` when the player cannot move, for example on a ladder or while picking a lock, when the seat is switched off for use or already taken, and when the player's camera is more than 1.5 metres from the seat. A toilet still shows its own warnings, such as a missing lid or bucket, because they come from the game's own use code. <span class="tech">(the camera check uses `InteractObjects.useDistance`. The result also covers a refusal inside the game, as described above.)</span>
-- `Leave()` returns `false` when the player is not seated, when the game is busy in the ways listed for `Sit`, or when the game has locked them in. A card table or a contest locks the player into the chair, and a toilet that is switched off only shows a warning instead of standing the player up.
-- `Sat` does not fire for NPCs that the game places in a seat while it loads or sets up a scene, and it does not fire for the sit that a save restores.
+- `Sit(id)` is `false` in these cases:
+  - The seat is not found.
+  - The player is already seated anywhere.
+  - The game is loading or saving a save.
+  - The player is busy: a menu, shop, pause menu, console or conversation is open, keys are turned off, the game is paused, or the player is asleep.
+  - The player cannot move, for example on a ladder or while picking a lock.
+  - The seat is switched off for use, or already taken.
+  - The player's camera is more than 1.5 metres from the seat.
+
+  A toilet still shows its own warnings, such as a missing lid or bucket, because they come from the game's own use code. <span class="tech">(the camera check uses `InteractObjects.useDistance`. The result also covers a refusal inside the game, as described above.)</span>
+- `Leave()` returns `false` when the player is not seated, or the game has locked them in. It also returns `false` when the game is busy in the ways listed for `Sit`. A card table or a contest locks the player into the chair. A toilet that is switched off only shows a warning instead of standing the player up.
+- `Sat` does not fire for NPCs that the game places in a seat while it loads or sets up a scene. It does not fire for the sit that a save restores.
 - The events never fire while a save is loading.
+
+**Common problems**
+
+- `Sit` returns `false`: the game would not let the player sit. Every cause is in the `Sit(id)` bullet above.
+- The player still looks seated after `Leave()` returned `true`: the stand-up has started but the camera move has not ended. The player is no longer seated, and `Left` fires, when it ends.
 
 ### What you can't do (yet)
 
-- You can't set whether a seat counts as occupied. The game sets that flag again on every physics step from a trigger on the furniture, so a change from your mod would be overwritten at once. <span class="tech">(`InteractableChair.ChangeOccupied` is written every physics frame by `ChairOccupiedTrigger`.)</span>
+- You can't set whether a seat counts as occupied. The game sets that flag again on every physics step from a trigger on the furniture. A change from your mod would be overwritten at once. <span class="tech">(`InteractableChair.ChangeOccupied` is written every physics frame by `ChairOccupiedTrigger`.)</span>
 - You can't put an NPC in a seat or take one out. The NPC schedules and the tenement spawn do that.
 - You can't stop the player from standing up. The card game and contest code does that for itself. <span class="tech">(`DisableStopSit` is not wrapped.)</span>
 - You can't change where the camera or the player goes when sitting. <span class="tech">(`cameraPosition`, `upChairOffset` and `downChairOffset` are not wrapped.)</span>
@@ -192,7 +219,7 @@ public sealed class SeatArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.seats.log`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -206,6 +233,6 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when someone sits or stands. If a game update breaks one of them, only the `Sat` and `Left` events turn off, and the framework writes error lines and a warning to the log. Its feature group is `obenseuer.moddingframework.seats`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
+The framework changes some of the game's methods when it starts, so it can tell your mod when someone sits or stands. If a game update breaks one of them, only the `Sat` and `Left` events turn off. The framework writes error lines and a warning to the log. Its [feature group](../glossary.md#feature-group) is `obenseuer.moddingframework.seats`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
 
 - `Seats.IsAvailable` is `false` when the events are switched off. `All`, `Get`, `Sit` and `Leave` keep working. If any one of the changes is missing, none of them is used. <span class="tech">(the methods are the private `InteractableChair.Sit(bool, bool)`, `StopSitEnd()`, `NPCSit(GameObject, bool)` and `StopNPCSit(GameObject)`. The framework also needs the private `disableStopSit` and `currentCoroutine` fields.)</span>

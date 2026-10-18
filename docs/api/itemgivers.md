@@ -7,9 +7,16 @@ nav_order: 7
 
 # Item givers
 
+`ItemGivers` finds the objects in the world that hand items to the player, reads and changes their stock, and reports each handout. Use it to react to handouts, or to empty or refill a giver for a quest.
+
 ## What it is
 
-An item giver is an object in the world that hands items to the player when the player uses it. It usually holds a limited stock, and some of them fill up again after a while. This API lets your mod list the item givers in the scene you are in, and read how much stock each one has left. It can empty or refill one, and tells you each time one hands something over.
+An item giver is an object in the world that hands items to the player when the player uses it. It usually holds a limited stock, and some of them fill up again after a while. This API lets your mod:
+
+- List the item givers in the [scene](../glossary.md#scene) you are in.
+- Read how much stock each one has left.
+- Empty or refill one.
+- Get told each time one hands something over.
 
 The API does not hand out items itself. A handout is always the game's own, started by the player using the object or by a game script.
 
@@ -21,7 +28,7 @@ The API does not hand out items itself. A handout is always the game's own, star
 
 ## Quick example
 
-This mod logs a line each time an item giver hands something to the player. Once a save is loaded, it also logs how many item givers are in the scene and how many of those have run out.
+This mod writes a [log](../guides/getting-started/logging.md) line each time an item giver hands something to the player. Once a save is loaded, it also logs how many item givers are in the scene and how many of those have run out.
 
 ```csharp
 using ObenseuerCore;
@@ -48,14 +55,14 @@ public sealed class GiverWatch : FrameworkMod
 
 ## Common tasks
 
-Empty every item giver in the scene that still has stock. `SetEmpty` returns `false` for a giver that never runs out, so ignore those:
+Empty every item giver in the scene that still has stock. `SetEmpty` returns `false` for a giver that never runs out, so the snippet skips those:
 
 ```csharp
 foreach (ItemGiverInfo giver in ItemGivers.All())
     if (!giver.Empty && giver.Amount >= 0) ItemGivers.SetEmpty(giver.Id, true);
 ```
 
-Refill one item giver the way the game does it:
+Refill an item giver the way the game does it:
 
 ```csharp
 foreach (ItemGiverInfo giver in ItemGivers.All())
@@ -76,12 +83,12 @@ This is the full list of what the API gives you, one section for each part. Text
 
 ### Item givers
 
-`ItemGivers` finds the item givers in the scene you are in. Each one is an `ItemGiverInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
+`ItemGivers` finds the item givers in the [scene](../glossary.md#scene) you are in. Each one is an `ItemGiverInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemGivers</code> <span>finds, empties and refills item givers</span></p>
 
-This is the class you start from. `All()` lists the item givers in the scene, `SetEmpty` empties or restocks one, and `Respawn` refills one the way the game does.
+This is the class you start from. `All()` lists the item givers in the scene. `SetEmpty` empties or restocks one, and `Respawn` refills one the way the game does.
 
 <div class="api-pair" markdown="1">
 
@@ -128,7 +135,7 @@ public sealed class ItemGiverInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Its save id, or when it has none a text path of where it sits in the scene. |
+| `Id` | `string` | Its save id. When it has none, a text path of where it sits in the scene. |
 | `Title` | `string` | The name the game shows when the player looks at it. |
 | `CanGive` | `bool` | `true` while the giver is allowed to hand items over. Some switch themselves off after one handout. |
 | `Empty` | `bool` | `true` when its stock is used up. Always `false` for a giver that never runs out. |
@@ -143,7 +150,7 @@ public sealed class ItemGiverInfo
 - `SetEmpty(id, false)` gives the giver one unit of stock when it has none. One is the smallest stock that lets the giver hand something out. That number is not from the game. To refill it the way the game does, use `Respawn`.
 - `SetEmpty` and `Respawn` both refuse an item giver that never runs out. They return `false` and change nothing. They also return `false` for an id nobody has, and while a save is loading or being written.
 - `SetEmpty` returns `true` when `Empty` now matches what you asked for. When the stock already matched, nothing happens and you still get `true`.
-- Changing the stock triggers the giver's own signals. If the giver goes from stocked to empty, or the other way, the game fires the signals that other objects in the scene may be wired to. When the stock already matches, nothing fires. <span class="tech">(The change runs the game's private `UpdateState`, which fires the relays `onEmpty` or `onNotEmpty`.)</span>
+- Changing the stock triggers the giver's own signals ([relays](../glossary.md#relay)). Other objects in the scene may be wired to them. The game fires them when the giver goes from stocked to empty, or the other way. When the stock already matches, nothing fires. <span class="tech">(The change runs the game's private `UpdateState`, which fires the relays `onEmpty` or `onNotEmpty`.)</span>
 - `Respawn(id)` refills the giver with a random amount, the way the game's own refill does. The amount is picked between the giver's two stock limits. The game also fires its signals and restarts the giver's refill timer. <span class="tech">(It runs the game's private `RefillItemGiver`. That sets a random stock between the two bounds, fires the relays, and resets the spawn timer.)</span>
 - `Respawn` does not switch a giver back on. A giver that switched itself off after a handout stays off, and `CanGive` stays `false`. <span class="tech">(This is the `selfDisable` setting. `Respawn` does not change `canGive`.)</span>
 
@@ -154,7 +161,7 @@ public sealed class ItemGiverInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemGivers</code> <span>the handout event</span></p>
 
-`Gave` is the only event here. `IsAvailable` is `false` when the handout event could not be set up, and `All`, `SetEmpty` and `Respawn` keep working.
+`Gave` is the only event here. `IsAvailable` is `false` when the handout event could not be set up. `All`, `SetEmpty` and `Respawn` keep working then.
 
 <div class="api-pair" markdown="1">
 
@@ -200,7 +207,7 @@ public sealed class ItemGiverArgs
 - `Gave` fires once for each stack of items handed over. If a giver hands out two kinds of item, you get two events. <span class="tech">(It is raised from a postfix (a change that runs after a game method) on the game's private `GiveItem`, when the items were added to the player's inventory. `ItemId` is `ItemReference.ID`.)</span>
 - `Gave` fires before the giver's stock goes down. If your handler reads `Amount` on the giver, it sees the stock from before this handout. <span class="tech">(It also fires before the game's `onInteract` signal.)</span>
 - `Gave` does not fire for a giver that hands out in another way. If a giver does not go through the game's usual handout method, the framework cannot see it.
-- The framework does not hold the event back while a save loads. A handler that should ignore events raised then can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- The framework does not hold the event back while a save loads. A handler that should ignore events raised then can check `SaveData.Busy`. It is `true` while a save is loading or being written.
 
 ### What you can't do (yet)
 
@@ -211,7 +218,7 @@ public sealed class ItemGiverArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -222,15 +229,24 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu. With no save loaded, `All()` returns an empty list.
-- Nothing here throws an error to your code. A `null` or empty id finds nothing, so `SetEmpty` and `Respawn` return `false`. If the game itself fails while the framework works, you get the same plain answer, and the first failure of each member goes to the log.
+- Nothing here throws an error to your code. A `null` or empty id finds nothing, so `SetEmpty` and `Respawn` return `false`. If the game itself fails while the framework works, you get the same plain answer. The first failure of each member goes to the log.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
 
 ### What to check for
 
 - `ItemGivers.IsAvailable` tells you whether `Gave` works. It is `false` when the framework could not set up the event, or when its feature group was turned off. `All`, `SetEmpty` and `Respawn` keep working when it is `false`.
 
+**Common problems**
+
+- `SetEmpty` or `Respawn` returns `false`: one of these applies.
+  - The giver never runs out. Its `Amount` is `-1`. The first snippet under Common tasks skips such givers.
+  - Nobody has that id. A `null` or empty id finds nothing.
+  - A save is loading or being written.
+  - The game itself failed while the framework worked.
+- `Gave` does not fire: `IsAvailable` is `false`, or the giver does not go through the game's usual handout method. Check `IsAvailable` before you rely on `Gave`.
+
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it. It writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change to the game's handout method cannot be made, only `Gave` stops. `ItemGivers.IsAvailable` becomes `false`. `All`, `SetEmpty` and `Respawn` keep working. <span class="tech">(The single change is a postfix on the private `InteractableItemGiver.GiveItem`.)</span>

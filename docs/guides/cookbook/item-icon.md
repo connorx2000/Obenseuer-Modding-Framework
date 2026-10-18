@@ -8,11 +8,18 @@ nav_order: 6
 
 Replace the icon of an item that is already in the game with a PNG picture that ships in your mod folder. Use it to give an existing item a new look, such as a re-drawn bottle.
 
-`Items.Find` looks the item up by its title. `ItemIcons.OverrideVanilla` swaps its icon for your picture. The items load after the game starts, so the code waits with `Events.WhenReady` until a save has loaded.
+## Prepare the picture
 
 1. Make a square PNG with a transparent background, 128 or 256 pixels on each side. Name it `bottle.png`.
-2. Put it in an `icons` folder next to your DLL, so the path is `BepInEx\plugins\<name>\icons\bottle.png` in the game folder. `<name>` is your project's name, the folder the build made for your DLL. Run the build in step 4 first if the folder is not there yet, and make `icons` by hand, because the build copies only the DLL.
-3. Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with this code.
+2. Put it in an `icons` folder next to your DLL, so the path is `BepInEx\plugins\<name>\icons\bottle.png` in the game folder. `<name>` is your project's name, the folder the build made for your DLL. If that folder is not there yet, run the build in The example, below, first. Make `icons` by hand, because the build copies only the DLL.
+
+The picture is in place. Next, add the code that loads it.
+
+## The example
+
+[`Items.Find`](../../api/items/lookup.md) looks the item up by its title. [`ItemIcons.OverrideVanilla`](../../api/registry/item-icons.md) swaps its icon for your picture. The items load after the game starts, so the code waits with [`Events.WhenReady`](../../api/core-helpers/events-whenready.md) until a save has loaded.
+
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with this code.
 
 ```csharp
 using System.IO;
@@ -45,13 +52,21 @@ public class ExampleIcon : FrameworkMod
 }
 ```
 
-4. Close the game, run `dotnet build -c Release -p:DeployToGame=true` and start the game. Load a save and open your inventory. The empty glass bottle has your picture.
+Then build and look at the item:
 
-Notes:
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game, load a save and open your inventory. The empty glass bottle has your picture.
+
+The bottle shows your icon. Things to know, below, covers the path and when the icon applies.
+
+### Common problems
+
+- The bottle keeps the game's icon: the code stops when `Items.Find` finds no item with the title in `ItemTitle`. `ItemIcons.OverrideVanilla` returns `false` when the image cannot be read. Check that the picture is in the `icons` folder, as in Prepare the picture, above. If the mod did not load at all, see [my mod does not load](../../faq.md#my-mod-does-not-load).
+
+## Things to know
 
 - The path must be absolute. `Assembly.GetExecutingAssembly().Location` gives one.
-- `Events.WhenReady` runs the action now if a save is loaded or a new game's first level has loaded, or once on the next of those. The items must be loaded before `Items.Find` works.
-- `ItemIcons.OverrideVanilla` returns `false` when the image cannot be read.
+- [`Events.WhenReady`](../../api/core-helpers/events-whenready.md) runs the action now if a save is loaded or a new game's first level has loaded, or once on the next of those. The items must be loaded before [`Items.Find`](../../api/items/lookup.md) works.
 - Icons are not saved. Removing the mod brings back the game's icon.
 - To add a new item with its own icon, see [Content](../content.md).
 

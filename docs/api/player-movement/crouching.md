@@ -7,12 +7,12 @@ nav_order: 6
 
 # Crouching
 
-These two calls make the player crouch and stand up.
+`Crouch()` and `StandUp()` make the player crouch and stand up from your mod's code.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerMovement</code> <span>crouch and stand up</span></p>
 
-Call `Crouch()` to crouch the player and `StandUp()` to bring them back up.
+Call `Crouch()` to crouch the player, and `StandUp()` to bring them back up.
 
 <div class="api-pair" markdown="1">
 
@@ -27,7 +27,7 @@ public static class PlayerMovement
 | Method | Returns | What it does |
 |---|---|---|
 | `Crouch()` | `bool` | Makes the player crouch. `true` when the player is crouched afterwards. |
-| `StandUp()` | `bool` | Makes the player stand up. `true` when the player stands or already stood. |
+| `StandUp()` | `bool` | Makes the player stand up. `true` when the player stands, or already stood. |
 
 </div>
 </div>
@@ -42,4 +42,4 @@ public static class PlayerMovement
 ## Limits
 
 - If something is over the player's head, the player stays crouched and `StandUp()` returns `false`.
-- Both return `false` when no player is loaded. They also return `false` when the controller is switched off, when `IsAvailable` is `false`, and while a save is loading or being written.
+- Both return `false` when no player is loaded. They also return `false` when the controller is switched off, when [`IsAvailable`](reading-how-the-player-moves.md) is `false`, and while a save is loading or being written.

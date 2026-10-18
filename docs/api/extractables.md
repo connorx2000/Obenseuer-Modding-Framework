@@ -7,12 +7,18 @@ nav_order: 4
 
 # Extractables
 
+`Extractables` lets your mod list, read and hit the objects the player breaks apart with a tool for items. Use it to count them, hit one from code, or react when one breaks open.
+
 This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-An extractable is a thing in the world that the player breaks apart with the right tool to get items out of it. It has health, and each hit takes some off. When the health runs out, the game spawns the items and removes the object. This API lets your mod list the extractables in the scene you are in, and read their health. It can also hit one as if the player had, and tells you when one is broken open.
+An extractable is a thing in the world that the player breaks apart with the right tool to get items out of it. It has health, and each hit takes some off. When the health runs out, the game spawns the items and removes the object. This API gives your mod these jobs:
+
+- List the extractables in the [scene](../glossary.md#scene) you are in, and read their health.
+- Hit one as if the player had.
+- Get told when one is broken open.
 
 Extractables are not the same as resource nodes, which hold a stock of something to take out. See [Resources](resources.md) for those.
 
@@ -24,7 +30,7 @@ Extractables are not the same as resource nodes, which hold a stock of something
 
 ## Quick example
 
-This mod writes a log line each time an extractable is broken open. Once a save is loaded, it also logs how many extractables are in the scene and how much health they have left in total.
+This mod writes a [log](../guides/getting-started/logging.md) line each time an extractable is broken open. Once a save is loaded, it also logs how many extractables are in the scene and their total health left.
 
 ```csharp
 using ObenseuerCore;
@@ -47,7 +53,7 @@ public sealed class ExtractWatch : FrameworkMod
 }
 ```
 
-`Extracted` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Extracted` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
 
 ## Common tasks
 
@@ -61,7 +67,7 @@ foreach (ExtractableInfo extractable in Extractables.All())
 }
 ```
 
-Read the health of one extractable you saved the id of earlier:
+Read the health of one extractable whose id you saved earlier:
 
 ```csharp
 int health = Extractables.Health("some-extractable-id");
@@ -76,16 +82,16 @@ if (!Extractables.IsAvailable) Log.Warn("The Extracted event is off in this game
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
+This is the full list of what the API offers. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 ### Listing and hitting extractables
 
-`Extractables` finds the extractables in the scene you are in. Each one is an `ExtractableInfo`, a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
+`Extractables` finds the extractables in the scene you are in. Each one is an `ExtractableInfo`: a snapshot of it at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Extractables</code> <span>lists and hits extractables</span></p>
 
-This is the class you start from. `All()` lists the extractables in the scene, `Get(id)` finds one by its id, and `Damage(id)` hits one as the player would.
+This is the class you start from. `All()` lists the extractables in the scene. `Get(id)` finds one by its id. `Damage(id)` hits one as the player would.
 
 <div class="api-pair" markdown="1">
 
@@ -104,7 +110,7 @@ public static class Extractables
 | `All()` | `List<ExtractableInfo>` | Every extractable in the active scene. |
 | `Get(id)` | `ExtractableInfo` | The one with this id. `null` when there is none. |
 | `Health(id)` | `int` | Its health. `0` when there is none. |
-| `Damage(id)` | `bool` | Hits it once as the player would. Returns `true` when the hit took health off. |
+| `Damage(id)` | `bool` | Hits it once as the player would. `true` when the hit took health off. |
 
 </div>
 </div>
@@ -127,7 +133,7 @@ public sealed class ExtractableInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Its save id, or when it has none a text path of where it sits in the scene. |
+| `Id` | `string` | Its save id. When it has none, a text path of where it sits in the scene. |
 | `Name` | `string` | The name of the object in the scene. |
 | `Health` | `int` | The health it had when you asked. |
 
@@ -138,14 +144,22 @@ public sealed class ExtractableInfo
 
 - `All()` lists the extractables in the scene you are in. Extractables that are switched off, or in another scene, are not listed. It returns an empty list when no scene is loaded, for example on the main menu.
 - `Id` is the object's save id, or a text path when it has none. A path changes if the object is moved or renamed, so do not keep it for long. <span class="tech">(The id is the `Extractable.GUID` field, or a scene path when `GUID` is empty. `Name` is the `GameObject` name.)</span>
-- `Get(id)` and `Health(id)` return `null` and `0` for an id nobody has. If you need to know whether the extractable exists, use `Get` and check for `null`.
+- `Get(id)` and `Health(id)` return `null` and `0` for an id nobody has. To know whether the extractable exists, use `Get` and check for `null`.
 - A hit that takes the last health breaks the extractable open. The game spawns the items, plays the effect and sound, and removes the object, the same as when the player does it.
 
 ### Limits
 
 - `Damage(id)` can't pick how much damage to do. Every hit takes the same amount of health, set by the game. The framework could only change it by writing the health directly, and the game never does that. <span class="tech">(The game's `Extractable.Damage()` always removes 25 health, so `Damage` takes only the id.)</span>
-- `Damage(id)` only works if the player is holding the right tool. Each extractable accepts certain tools. If the player is not holding one of them, the game does nothing and shows no message, and `Damage` returns `false`. Equip the tool first, or hand the player one. <span class="tech">(The game checks `Inventory.CheckIfPlayerWieldsItem(Tools)`. `Damage` returns `true` only when `Health` is lower after the call.)</span>
-- `Damage(id)` returns `false` in other cases too. It returns `false` for an id nobody has, and for an extractable that is already broken open and about to be removed (its health is below 1). It also returns `false` while a save is loading or being written. <span class="tech">(It is the `SaveGate.Busy` check. A refused hit does not change `Health`.)</span>
+- `Damage(id)` only works if the player is holding the right tool. Each extractable accepts certain tools. Without one of them, the game does nothing and shows no message, and `Damage` returns `false`. Equip the tool first, or hand the player one. <span class="tech">(The game checks `Inventory.CheckIfPlayerWieldsItem(Tools)`. `Damage` returns `true` only when `Health` is lower after the call.)</span>
+- `Damage(id)` also returns `false` in these cases:
+  - an id nobody has;
+  - an extractable that is already broken open and about to be removed (its health is below 1);
+  - while a save is loading or being written. <span class="tech">(It is the `SaveGate.Busy` check. A refused hit does not change `Health`.)</span>
+
+**Common problems**
+
+- `Damage` returns `false` and nothing happens: the player is not holding a tool the extractable accepts. Equip the tool first, or hand the player one. The other cases are in the `Damage(id)` bullet above, and it also returns `false` when no scene is loaded.
+- `Health` returns `0`: the id may be unknown, or no scene is loaded. Use `Get` and check for `null`.
 
 ### The break-open event
 
@@ -201,7 +215,7 @@ public sealed class ExtractedArgs
 ### Things to know
 
 - `Extracted` fires once, right after the game has spawned the items. It fires for a hit by the player and for a hit made with `Damage`. Your handler runs inside the game's own call, so keep it short. <span class="tech">(It is raised synchronously from a Harmony postfix (a change that runs after a game method) on `Extractable.Damage`, when health went from 1 or more to below 1.)</span>
-- `IsAvailable` tells you whether the event works. It is `false` when the framework could not set up the event, or when its feature group was turned off. `All`, `Get`, `Health` and `Damage` keep working when it is `false`.
+- `IsAvailable` tells you whether the event works. It is `false` when the framework could not set up the event, or when its [feature group](../glossary.md#feature-group) was turned off. `All`, `Get`, `Health` and `Damage` keep working when it is `false`.
 
 ### Limits
 
@@ -210,7 +224,7 @@ public sealed class ExtractedArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) (the game's mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -220,16 +234,16 @@ The framework changes one of the game's methods when it starts, so it can tell y
 ### When you can call it
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
-- It is safe to call at any time, even on the main menu. With no scene loaded, reads return an empty list, `null` or `0`, and `Damage` returns `false`.
-- Nothing here throws an error to your code. If the game itself fails while the framework reads, you get the same empty answer, and the first failure of each member goes to the log.
+- Any call is safe at any time, even on the main menu. With no scene loaded, reads return an empty list, `null` or `0`, and `Damage` returns `false`.
+- Nothing here throws an error to your code. If the game itself fails while the framework reads, you get the same empty answer. The first failure of each member goes to the log.
 - Your event handlers run inside the game's own call, one at a time. If a handler throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- If the change to `Extractable.Damage` cannot be made, only the `Extracted` event stops. `Extractables.IsAvailable` becomes `false` and error lines and a warning go to the log. `All`, `Get`, `Health` and `Damage` keep working. <span class="tech">(The warning reads "extractable hooks incomplete, Extracted event is disabled".)</span>
+- If the change to `Extractable.Damage` cannot be made, only the `Extracted` event stops. `Extractables.IsAvailable` becomes `false`, and error lines and a warning go to the log. `All`, `Get`, `Health` and `Damage` keep working. <span class="tech">(The warning reads "extractable hooks incomplete, Extracted event is disabled".)</span>
 
 ### Save loads
 
-- The framework does not raise `Extracted` while a save is loading. A handler that should also ignore events raised while a save is being written can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- The framework does not raise `Extracted` while a save is loading. A handler that should also ignore events raised while a save is being written can check [`SaveData.Busy`](../api-core/savedata.md). It is `true` while a save is loading or being written.

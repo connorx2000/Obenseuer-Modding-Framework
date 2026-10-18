@@ -7,4 +7,4 @@ nav_order: 2
 
 # People
 
-The game's characters and NPCs: reading them, moving and controlling them, their appearance, schedules and relationships, plus mod NPCs.
+This group covers the game's characters and NPCs: reading them, moving and controlling them, and their appearance, schedules and relationships. It also covers [mod NPCs](../../glossary.md#mod-npc).

@@ -7,12 +7,12 @@ nav_order: 5
 
 # The Finished event
 
-`Finished` fires when a renovation is finished and installed.
+`Finished` fires when a renovation is finished and installed. Use it to run code at that moment.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Renovations</code> <span>a renovation is finished</span></p>
 
-Subscribe to `Renovations.Finished` to react when a renovation is installed. The `RenovationInfo` it gives you has `State` set to `Installed`.
+Subscribe to `Renovations.Finished` to react when a renovation is installed. The [`RenovationInfo`](reading-renovations.md) it gives you has `State` set to `Installed`.
 
 <div class="api-pair" markdown="1">
 
@@ -25,15 +25,15 @@ public static class Renovations
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Finished` | `RenovationInfo` | A renovation has just been finished. |
+| `Finished` | `RenovationInfo` | Right after a renovation is finished. |
 
 </div>
 </div>
 
 ## Things to know
 
-- `Finished` fires when the game puts a renovation into the building after the player's final payment. The `RenovationInfo` you get has the state `Installed`. <span class="tech">(It fires after `TenementUpgradeProgress.FinishUpgrade` has run.)</span>
+- `Finished` fires when the game puts a renovation into the building after the player's final payment. The `RenovationInfo` you get has the state `Installed`. See [Using events](../../guides/getting-started/using-events.md) for how to subscribe. <span class="tech">(It fires after `TenementUpgradeProgress.FinishUpgrade` has run.)</span>
 
 ## Limits
 
-- `Finished` does not fire for renovations the game puts in silently. The game does this when it sets up a scene, and such a renovation has no payment, task, or achievement. <span class="tech">(It does not run for `TenementUpgradeProgress.FinishUpgrade(true)`, which scene set-up uses through `TenementUpgradeStart`.)</span>
+- `Finished` does not fire for renovations the game puts in silently. The game does this when it sets up a [scene](../../glossary.md#scene) (one loaded game area). Such a renovation has no payment, task, or achievement. <span class="tech">(It does not run for `TenementUpgradeProgress.FinishUpgrade(true)`, which scene set-up uses through `TenementUpgradeStart`.)</span>

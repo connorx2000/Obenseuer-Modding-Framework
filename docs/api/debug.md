@@ -8,13 +8,15 @@ nav_order: 2
 
 # Debug
 
+The debug trace is a switch that makes the framework log what it does while the game runs. Turn it on to find out why a call failed or which events fired, or to collect a log for a bug report.
+
 Status: experimental.
 
 ## What it is
 
-The framework can keep a diary of what it does while the game runs. This is the debug trace. When you turn it on, the framework writes one line to a log file for each framework call it makes. It also logs each change it has made to a game method, each event it raises, and each save and load. Each line says what was called, what came back and how long it took. You do not write any code to use it. It is a switch.
+The framework can keep a diary of what it does while the game runs. This is the debug trace. When you turn it on, the framework writes one line to a [log](../guides/getting-started/logging.md) file for each framework call it makes. It also logs each change it has made to a game method, each event it raises, and each save and load. Each line says what was called, what came back and how long it took.
 
-The trace slows the game down, so leave it off for normal play.
+You do not write any code to use it. It is a switch. The trace slows the game down, so leave it off for normal play.
 
 ## When to use it
 
@@ -25,12 +27,14 @@ The trace slows the game down, so leave it off for normal play.
 
 ## Quick example
 
-This turns the trace on, reproduces a problem and turns the trace off again. You need no code and no build.
+These steps turn the trace on, reproduce a problem and turn the trace off again. They need no code and no build.
 
 1. Start the game and load a save.
-2. Open the game's developer console and type `core_debug on`.
+2. Open the game's [developer console](hud/consolecommands.md) (opened with F1) and type `core_debug on`.
 3. Do the thing that goes wrong in the game.
 4. Type `core_debug off`.
 5. Open `BepInEx\logs\ObenseuerCore.debug.log` in the game folder and read the lines from the time you did the thing.
 
-The console prints a line such as `debug on, 120 methods patched` when you turn it on, so you know the trace is running. In the log, each framework call your mod makes shows up as a line such as `Type.Method(args) -> result (0.123 ms)`.
+The log now holds the trace of the problem. [What the trace shows](debug/what-the-trace-shows.md) explains its lines.
+
+When you turn the trace on, the console prints a line such as `debug on, 120 methods patched`. That line confirms the trace is running. In the log, each framework call your mod makes shows up as a line such as `Type.Method(args) -> result (0.123 ms)`.

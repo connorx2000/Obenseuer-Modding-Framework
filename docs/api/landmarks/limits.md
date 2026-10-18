@@ -7,6 +7,8 @@ nav_order: 6
 
 # Limits
 
+The cases where `Landmarks` may not do what you expect, and the points that are not known yet. Check here when a marker or a saved landmark does not appear.
+
 - The framework tracks a landmark by its id text. It is not known whether two landmarks in the game can share one id.
 - If the map screen will not show a marker, the entry is still kept, and the call can still look successful. `Unlock` reads the loaded map back, so it gives back `true`. <span class="tech">(`AddLandMark` still keeps the entry and gives back `false` in that case.)</span>
 - `Unlock` does not check that the landmark belongs to the map that is loaded. Whether the marker then shows on the wrong map is not known.

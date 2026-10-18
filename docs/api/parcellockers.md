@@ -7,9 +7,18 @@ nav_order: 7
 
 # Parcel lockers
 
+This API reads the parcel lockers in the [scene](../glossary.md#scene) you are in, hands a waiting parcel to the player, and fills a locker with the player's packages. Use it when your mod needs to see or hand out the packages waiting in a locker.
+
 ## What it is
 
-A parcel locker is a bank of hatches in the world where the game puts the packages the player has received. This API lets your mod list the parcel lockers in the scene you are in, see which hatches are open and which hold a parcel, take a parcel out of a hatch for the player, and fill the hatches with the packages the player holds. A package that sits in a hatch has already left the player's received list, so `Mail.Inbox(MailKind.Package)` on the [economy page](economy.md) does not show it. This API is the only place that does.
+A parcel locker is a bank of hatches in the world where the game puts the packages the player has received. This API gives your mod these jobs:
+
+- List the parcel lockers in the scene you are in.
+- See which hatches are open and which hold a parcel.
+- Take a parcel out of a hatch for the player.
+- Fill the hatches with the packages the player holds.
+
+A package that sits in a hatch has already left the player's received list. So `Mail.Inbox(MailKind.Package)` on the [economy page](economy.md) does not show it. This API is the only place that does.
 
 ## When to use it
 
@@ -19,7 +28,7 @@ A parcel locker is a bank of hatches in the world where the game puts the packag
 
 ## Quick example
 
-This mod logs every parcel locker in the scene once a save is loaded, with the name of each parcel inside.
+This mod [logs](../guides/getting-started/logging.md) every parcel locker in the scene once a save is loaded, with the name of each parcel inside.
 
 ```csharp
 using ObenseuerCore;
@@ -60,16 +69,16 @@ ParcelLockers.Claim("some-id");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Parcel lockers
 
-Each bank of hatches is a `ParcelLockerInfo`, and each hatch in it is a `LockerInfo`. They are snapshots of the state at the moment you asked. A snapshot does not update by itself, so ask again for fresh values.
+Each bank of hatches is a `ParcelLockerInfo`, and each hatch in it is a `LockerInfo`. Both are snapshots of the state at the moment you asked. A snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ParcelLockers</code> <span>lists lockers and hands out parcels</span></p>
 
-Use it to list the parcel lockers in the scene you are in, read one by its `Id`, take a parcel out of a hatch, or put the packages the player holds into a locker.
+Lists the parcel lockers in the scene you are in, and reads one by its `Id`. Takes a parcel out of a hatch, or puts the packages the player holds into a locker.
 
 <div class="api-pair" markdown="1">
 
@@ -86,7 +95,7 @@ public static class ParcelLockers
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<ParcelLockerInfo>` | Every parcel locker in the scene you are in. |
-| `Get(id)` | `ParcelLockerInfo` | The parcel locker with this id. `null` when none has it. An unknown or empty id also gives `null`. |
+| `Get(id)` | `ParcelLockerInfo` | The parcel locker with this id. `null` when no locker has it, or the id is unknown or empty. |
 | `TakeParcel(id, index)` | `bool` | Gives the player the parcel in one hatch. `true` when the hatch is empty afterwards. |
 | `Claim(id)` | `bool` | Puts the packages the player holds into this locker. `true` when at least one went in. |
 
@@ -96,7 +105,7 @@ public static class ParcelLockers
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ParcelLockerInfo</code> <span>one bank of hatches</span></p>
 
-`ParcelLockers.All()` and `ParcelLockers.Get(id)` give you these. Pass the `Id` to `TakeParcel` or `Claim`, and read the hatches from `Lockers`.
+`ParcelLockers.All()` and `ParcelLockers.Get(id)` give you these. Pass the `Id` to `TakeParcel` or `Claim`. Read the hatches from `Lockers`.
 
 <div class="api-pair" markdown="1">
 
@@ -111,7 +120,7 @@ public sealed class ParcelLockerInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The locker's id: its save id, or its place in the scene when it has none. |
-| `Lockers` | `List<LockerInfo>` | Its hatches, in the game's order. It is empty when the game has no hatches for that locker. |
+| `Lockers` | `List<LockerInfo>` | Its hatches, in the game's order. Empty when the game has no hatches for that locker. |
 
 </div>
 </div>
@@ -154,27 +163,27 @@ public sealed class LockerInfo
 
 ### Limits
 
-- `TakeParcel` returns `false` for an unknown id, an index that is not one of the hatches, an empty hatch, while a save is loading or being written, when the game's mail system is not ready, when the game reports an error, and while money handlers are nested too deep. <span class="tech">(if the silent-take change fails, an error goes to the log and the game shows its normal pop-up)</span>
-- `Claim` returns `false` for an unknown id, while a save is loading or being written, when the game's mail system is not ready, when the player holds no package, and when the game reports an error.
+- `TakeParcel` returns `false` for an unknown id, an index that is not one of the hatches, or an empty hatch. It also returns `false` while a save is loading or being written, or when the game's mail system is not ready. The same goes when the game reports an error, and while money handlers are nested too deep. <span class="tech">(if the silent-take change fails, an error goes to the log and the game shows its normal pop-up)</span>
+- `Claim` returns `false` for an unknown id, and while a save is loading or being written. It returns `false` when the game's mail system is not ready, when the player holds no package, and when the game reports an error.
 - `Claim` does not check how far away the player is or where they are looking.
 - The locker's scene wiring is not covered. It is how the game connects a locker to other objects in the scene, and it holds nothing a mod needs. <span class="tech">(the package-amount relay (`onPackageAmount`) and the gizmos are not covered)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Source: `src/Api/ParcelLockers.cs`.
 
 Everything not listed in this reference is internal and may change without notice.
 
-- The framework adds one change to a game method, and only the first time you call `TakeParcel`, so the parcel can be handed over without a pop-up. This page calls that change a feature group. Its feature group is `obenseuer.moddingframework.parcellockers`, the name you will see in the log.
+- The framework adds one change to a game method, so the parcel can be handed over without a pop-up. It adds it only the first time you call `TakeParcel`. This page calls that change a feature group. Its feature group is `obenseuer.moddingframework.parcellockers`, the name you will see in the log.
 
 ### When you can call it
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on its main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time. On the main menu or with no save loaded, the reads give an empty list or `null`. Nothing throws.
-- There is no `IsAvailable` and no event. There is nothing in this API that can turn off.
+- There is no `IsAvailable` and no event. Nothing in this API can turn off.
 
 ### If something fails to set up
 
-- The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+- The framework changes some of the game's methods when it starts. A game update can break one of them. Then the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it and turns the group off. It writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 - If the silent-take change fails, `TakeParcel` still works, but the game shows its normal pop-up. An error goes to the log, and the rest of the feature group is not affected.

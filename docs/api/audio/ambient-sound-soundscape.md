@@ -7,12 +7,12 @@ nav_order: 8
 
 # Ambient sound (soundscape)
 
-The game plays a background ambient sound for the area the player is in. This is called a soundscape. These members read it and change it.
+The game plays a background ambient sound for the area the player is in. This is called a soundscape. These members read which one is playing and change it.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>ambient sound controls</span></p>
 
-Read `SoundscapeId` to see which ambient sound is playing, then use `SetSoundscape` or `ResetSoundscape` to change it.
+Read `SoundscapeId` to see which ambient sound is playing. Change it with `SetSoundscape` or `ResetSoundscape`.
 
 <div class="api-pair" markdown="1">
 
@@ -27,7 +27,7 @@ public static class Sounds
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetSoundscape(id)` | `bool` | Starts the ambient sound with this id now. Returns `false` when there is none. |
+| `SetSoundscape(id)` | `bool` | Starts the ambient sound with this id now. `false` when there is none. |
 | `ResetSoundscape()` | `bool` | Goes back to the game's ordinary ambient sound. |
 
 | Property | Type | What it means |
@@ -39,7 +39,7 @@ public static class Sounds
 
 ## Things to know
 
-- `SoundscapeId` is the id of the ambient sound the game is playing now, or `null` when there is none. <span class="tech">(It is `SoundscapeArea.id` of the controller's current soundscape.)</span>
+- `SoundscapeId` is the id of the ambient sound the game is playing now. It is `null` when there is none. <span class="tech">(It is `SoundscapeArea.id` of the controller's current soundscape.)</span>
 - `SetSoundscape(id)` starts the ambient sound with that id straight away. <span class="tech">(It calls `SoundscapeController.PlaySoundscape` for the area that `FindSoundscapeAreaById` finds.)</span>
 - `ResetSoundscape()` goes back to the game's global ambient sound. <span class="tech">(The day and night switch is in `SoundscapeGlobal`.)</span>
 

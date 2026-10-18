@@ -7,7 +7,7 @@ nav_order: 3
 
 # ItemDef
 
-`ItemDef` is a public class in `ObenseuerCore`. Every property can be read and none can be changed. Your mod cannot create one.
+`ItemDef` holds what the catalogue says about one item: its names, price, stacking, spoiling, equipment and more. It is a public class in `ObenseuerCore`. Every property can be read, none can be changed, and your mod cannot create one.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>identity and names</span></p>
@@ -37,7 +37,7 @@ public sealed class ItemDef
 | `DisplayName` | `string` | The title the player sees. The game does not translate item titles, so this is the same as `InternalName`. |
 | `Description` | `string` | The catalogue description. `""` when there is none. |
 | `Category` | `string` | The first category the item is in. `""` when it has none. |
-| `Categories` | `string[]` | Every category (tag) the item is in. This is a copy. |
+| `Categories` | `string[]` | Every category (tag) the item is in, as a copy. |
 | `VariantCategoryName` | `string` | The name of the group of variants the item belongs to. `""` when none. |
 | `VariantName` | `string` | The item's name inside that group. `""` when none. |
 
@@ -47,7 +47,7 @@ public sealed class ItemDef
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemDef</code> <span>price and stacking</span></p>
 
-Use these to show a price or to check how many fit in one stack. `Price` and `MaxStack` include the difficulty setting, and the base values do not.
+Use these to show a price or to check how many fit in one stack. `Price` and `MaxStack` include the [difficulty setting](../hud/gamedifficulty.md). The base values do not.
 
 <div class="api-pair" markdown="1">
 
@@ -101,7 +101,7 @@ public sealed class ItemDef
 | `SpoilsIntoId` | `int` | The id of the item it turns into when it spoils. `-1` when it does not turn into one. |
 | `LiquidContainer` | `bool` | `true` when the item holds a liquid, or is an empty container for one. |
 | `LiquidCapacity` | `float` | How much liquid it holds, in litres. `0` when it holds none. |
-| `EmptiedIntoId` | `int` | The id of the empty container left behind after the liquid is used. `-1` when there is none. |
+| `EmptiedIntoId` | `int` | The id of the empty container left after the liquid is used. `-1` when there is none. |
 | `FilledIntoId` | `int` | The id of the filled item this empty container becomes. `-1` when there is none. |
 | `Consumable` | `bool` | `true` when the item can be eaten, drunk, smoked or otherwise used up. |
 
@@ -136,8 +136,8 @@ public sealed class ItemDef
 | `MetaTypes` | `string[]` | The names of the extra data blocks the item carries, such as `ItemPerishabledata`. |
 | `EquipSlot` | `string` | Where the item is worn or held: `Head`, `Face`, `Watch`, `Backpack`, `Wieldable Primary` or `Wieldable Secondary`. `""` when none. |
 | `EquipType` | `string` | The game's kind of equipment: `Tool`, `Weapon`, `Backpack`, `Mask`, `Head`, `Watch` or `None`. `""` when the item cannot be equipped. |
-| `AmmoItemIds` | `int[]` | The ids of the items this ammo holder accepts. An empty array when none. This is a copy. |
-| `AmmoCategories` | `string[]` | The categories of the items this ammo holder accepts. An empty array when none. This is a copy. |
+| `AmmoItemIds` | `int[]` | The ids of the items this ammo holder accepts, as a copy. An empty array when none. |
+| `AmmoCategories` | `string[]` | The categories of the items this ammo holder accepts, as a copy. An empty array when none. |
 | `FuelBurnTime` | `int` | How many seconds the item burns as fuel. `0` when it is not fuel. |
 | `Electronic` | `bool` | `true` when the item is an electronic device, such as a phone. |
 | `ElectronicType` | `string` | What kind of device it is: `None`, `Call` or `Play`. `""` when `Electronic` is `false`. |
@@ -147,6 +147,6 @@ public sealed class ItemDef
 
 ## Things to know
 
-- There is no weight. The game data has no weight for items, so there is no `Weight` property.
+- There is no `Weight` property, because the game data has no weight for items.
 - `Price` and `MaxStack` change with the difficulty setting. The base values do not. <span class="tech">(`Price` is `Item.Value` and `MaxStack` is `Item.Stackable`.)</span>
-- Some properties are read from the item's extra data and the first matching action. An item without that data gets `""`, `0`, `false`, `-1` or an empty array, never `null`. <span class="tech">(`Perishable`, `IntegrityLossPerHour` and `SpoilsIntoId` come from `ItemPerishabledata`. `LiquidContainer`, `LiquidCapacity`, `EmptiedIntoId` and `FilledIntoId` come from `ItemLiquidData` and `ItemEmptyLiquidContainerData`. `Consumable` is true when any action is an `ItemConsumable`. `EquipType` comes from the item's `ItemEquipable` action, and `Electronic` and `ElectronicType` from its `ItemElectronic` action. The ammo, fuel and quality values come from `ItemAmmodata`, `ItemFueldata` and `ItemQualityData`.)</span>
+- Some properties are read from the item's extra data and from its first matching action. An item without that data gets `""`, `0`, `false`, `-1` or an empty array, never `null`. <span class="tech">(`Perishable`, `IntegrityLossPerHour` and `SpoilsIntoId` come from `ItemPerishabledata`. `LiquidContainer`, `LiquidCapacity`, `EmptiedIntoId` and `FilledIntoId` come from `ItemLiquidData` and `ItemEmptyLiquidContainerData`. `Consumable` is true when any action is an `ItemConsumable`. `EquipType` comes from the item's `ItemEquipable` action, and `Electronic` and `ElectronicType` from its `ItemElectronic` action. The ammo, fuel and quality values come from `ItemAmmodata`, `ItemFueldata` and `ItemQualityData`.)</span>

@@ -7,13 +7,15 @@ nav_order: 2
 
 # WorldWeather
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+`WorldWeather` reads the weather and changes it, both the global weather and the local weather zones of a [scene](../../glossary.md#scene). Use it to react when the weather changes, or to set the weather yourself.
 
-`WorldWeather` reads the weather and changes it. The game has a list of weather profiles, called the global weather. Each profile is a named weather with an index counted from `0`. `NameOf` and `IndexOf` turn one into the other.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
+
+The game has a list of weather profiles, called the global weather. Each profile is a named weather with an index counted from `0`. `NameOf` and `IndexOf` turn one into the other.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldWeather</code> <span>read and set the global weather</span></p>
-Use these to read the weather now, `Set` to change it, and `WeatherChanged` to hear when it changes.
+The properties read the weather now. `Set` changes it, and `WeatherChanged` tells you when it changes.
 
 <div class="api-pair" markdown="1">
 
@@ -60,8 +62,8 @@ public static partial class WorldWeather
 |---|---|---|
 | `NameOf(index)` | `string` | The name of a weather. `null` when the index is out of range. |
 | `IndexOf(name)` | `int` | The index of a weather by name. `-1` when not found. |
-| `Set(index, transitionSeconds)` | `bool` | Changes the global weather. Returns `true` when it worked. |
-| `SetThunder(active)` | `bool` | Turns thunder on or off. Returns `true` also when it already was that way. |
+| `Set(index, transitionSeconds)` | `bool` | Changes the global weather. `true` when it worked. |
+| `SetThunder(active)` | `bool` | Turns thunder on or off. `true` also when it already was that way. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -97,23 +99,23 @@ public sealed class WeatherChangedArgs
 - `WeatherChanged` fires after the game has changed the weather it is heading for. That includes changes made by the game's random timer, by your `Set`, by a save loading, and by any other game call. It does not fire for each frame of the blend. <span class="tech">(It is raised after `WeatherManager.ChangeWeather`.)</span>
 - `SetThunder` turns thunder on or off. No event is raised. <span class="tech">(It calls `WeatherManager.StartThunder` and `StopThunder`.)</span>
 - Forced thunder can stay in a save. A save made while thunder is forced can keep it. It lasts until the next `Set` of the weather, which sets thunder again from the profile's heavy rain and the game's thunder chance. <span class="tech">(The game's field carries `[fsProperty]`.)</span>
-- `IsAvailable` tells you whether `WeatherChanged` works. It is `false` when the framework could not set up the event, or when its feature group was turned off. Reads are not affected.
+- `IsAvailable` tells you whether `WeatherChanged` works. It is `false` when the framework could not set up the event. It is also `false` when its [feature group](../../glossary.md#feature-group) (a named set of framework changes) was turned off. Reads are not affected.
 
 ## Limits
 
 - `Set` throws an `ArgumentException` for a bad number. That is a negative index, or a transition that is negative, `NaN` or infinite. It does this even when no weather system is ready. Once a weather system is ready, it also throws for an index outside `0..Count-1`.
 - `Set` returns `false` for other problems. That is when no weather system is ready, when the profile is missing, and while a save is loading or being written.
-- If the game stumbles during `Set`, you may still get `true`. When the game call throws but the weather you asked for is now active, `Set` raises `WeatherChanged` itself and returns `true`. Otherwise it returns `false` and nothing is raised. The failure is logged. <span class="tech">(The game retargets the weather before the exception can happen, and the framework's change to `ChangeWeather` does not run after a throw.)</span>
+- If the game stumbles during `Set`, you may still get `true`. When the game call throws but the weather you asked for is now active, `Set` raises `WeatherChanged` itself and returns `true`. Otherwise it returns `false` and nothing is raised. The failure is [logged](../../guides/getting-started/logging.md). <span class="tech">(The game retargets the weather before the exception can happen, and the framework's change to `ChangeWeather` does not run after a throw.)</span>
 - Thunder alone does not always show lightning. Lightning flashes only while the sky is not overridden and no weather change is blending. `SetThunder(true)` alone shows no lightning in those states.
 - Fog is not available. The game has no fog setting to read. <span class="tech">(`AzureFogScattering` is a visual component only.)</span>
 
 ## Weather zones
 
-A weather zone is an area in a scene with its own local weather. While the player is in or near a zone, the game blends the zone's weather over the global weather. The distance over which the zone fades in is its blend distance. A scene can have no zones at all. Then `Zones()` is an empty list.
+A weather zone is an area in a [scene](../../glossary.md#scene) with its own local weather. While the player is in or near a zone, the game blends the zone's weather over the global weather. The distance over which the zone fades in is its blend distance. A scene can have no zones at all. Then `Zones()` is an empty list.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldWeather</code> <span>weather zones</span></p>
-Use `SetZone` to give one weather zone its own weather, and `ClearZones` to remove your mod's zones.
+`SetZone` gives one weather zone its own weather, and `ClearZones` removes your mod's zones.
 
 <div class="api-pair" markdown="1">
 
@@ -136,7 +138,7 @@ public static partial class WorldWeather
 |---|---|---|
 | `Zones()` | `List<WeatherZoneInfo>` | The weather zones the game has in this scene. |
 | `SetZone(modId, zoneId, weatherIndex, blendDistance)` | `bool` | Makes a zone use one of the global weathers. |
-| `ClearZones(modId)` | `bool` | Takes back every zone change your mod made. Returns `true` when it had made one. |
+| `ClearZones(modId)` | `bool` | Takes back every zone change your mod made. `true` when it had made one. |
 
 </div>
 </div>
@@ -173,14 +175,19 @@ public sealed class WeatherZoneInfo
 
 ### Things to know
 
-- `Zones()` lists the zones the game has registered, in the game's order. The game's own sky-override zone is left out, because the game rewrites it whenever the player enters or leaves one of the places that use it. Zones register about 0.1 seconds after a scene starts, so wait a moment after the scene load before you list them. <span class="tech">(The zones are `AzureWeatherZone` components. `Active` is true when the zone's collider is enabled and its object is active. The left-out zone is the one used by scenes with an overridden sky and by the shop controller.)</span>
-- `SetZone` makes a zone use one of the global weathers. `weatherIndex` is the same index as `Set` and `NameOf`. `blendDistance` is from 0 to `MaxZoneBlendDistance` metres. It does not change the global weather: `Set` and `WeatherChanged` are not affected, and only the player's sky and effects near the zone use the change.
+- `Zones()` lists the zones the game has registered, in the game's order. The game's own sky-override zone is left out. The reason: the game rewrites it whenever the player enters or leaves one of the places that use it. Zones register about 0.1 seconds after a scene starts, so wait a moment after the scene load before you list them. <span class="tech">(The zones are `AzureWeatherZone` components. `Active` is true when the zone's collider is enabled and its object is active. The left-out zone is the one used by scenes with an overridden sky and by the shop controller.)</span>
+- `SetZone` makes a zone use one of the global weathers. `weatherIndex` is the same index as `Set` and `NameOf`. `blendDistance` is from 0 to `MaxZoneBlendDistance` metres. It does not change the global weather: `Set` and `WeatherChanged` are not affected. Only the player's sky and effects near the zone use the change.
 - The newest `SetZone` call wins. Each mod keeps one change for each zone, and for a zone the newest call among all mods applies. When a second mod sets a zone that another mod already set, one warning names both mods.
 - `ClearZones(modId)` takes back that mod's changes. The change set before it applies again. When none is left, the zone goes back to the weather and blend distance it had before the first change.
-- `SetZone` and `ClearZones` work at any time. They work inside `Events.SceneLoaded` and while a save loads or is being written, because the changes are not saved and the game does not save a zone. <span class="tech">(`AzureWeatherZone` is not a savable component.)</span>
+- `SetZone` and `ClearZones` work at any time. They work inside [`Events.SceneLoaded`](../../api-core/events.md) and while a save loads or is being written. That is because the changes are not saved and the game does not save a zone. <span class="tech">(`AzureWeatherZone` is not a savable component.)</span>
 - A zone change never edits the game's weather files. The framework only points the zone at an existing weather. The global weather and other zones are not affected. <span class="tech">(A zone's profile and blend distance are plain data on the component. The framework swaps the zone's reference to an existing profile and never changes a profile asset.)</span>
 
 ### Limits
 
-- `SetZone` returns `false` when the input is not allowed. That is an unknown or empty zone id, a weather index that does not exist, a blend distance out of range or not a number, and no weather system. An invalid mod id throws an `ArgumentException`.
+- `SetZone` returns `false` when the input is not allowed: an unknown or empty zone id, a weather index that does not exist, or a blend distance out of range or not a number. It also returns `false` when there is no weather system. An invalid [mod id](../../glossary.md#mod-id) throws an `ArgumentException`.
 - Zone changes last for the session only. They are not saved. Every single-scene load puts the zones back and clears all changes, so set them again from your `Events.SceneLoaded` handler. An additive load (a neighbouring scene loaded alongside) does not clear them.
+
+**Common problems**
+
+- `Zones()` is an empty list: the scene has no zones, or the zones have not registered yet. Zones register about 0.1 seconds after a scene starts, so wait a moment after the scene load before you list them.
+- Your zone changes are gone after a single-scene load: every single-scene load puts the zones back and clears all changes. Set them again from your `Events.SceneLoaded` handler.

@@ -7,11 +7,15 @@ nav_order: 12
 
 # Tutorial
 
+`TutorialGuide` reads which step of the game's opening tutorial the player is on, and tells your mod when the step changes. Use it to time your mod's own messages around the tutorial.
+
 Status: experimental.
 
 ## What it is
 
-When a new game starts, the game teaches the player the basics in an opening tutorial: look around, move, use something, and open the menu. This API lets your mod see which of those steps the player is on and know when it changes. It can only read. It cannot start, skip or change the tutorial, and it cannot show the game's key-binding tutorial prompts.
+When a new game starts, the game teaches the player the basics in an opening tutorial: look around, move, use something, and open the menu. This API lets your mod see which of those steps the player is on and know when it changes.
+
+It can only read. It cannot start, skip or change the tutorial, and it cannot show the game's key-binding tutorial prompts.
 
 The class is called `TutorialGuide`, because `Tutorial` is already the name of a class in the game.
 
@@ -23,7 +27,7 @@ The class is called `TutorialGuide`, because `Tutorial` is already the name of a
 
 ## Quick example
 
-This mod writes a log line each time the opening tutorial moves to a new step. It also logs the step the player is on once a save is loaded.
+This mod writes a [log](../guides/getting-started/logging.md) line each time the opening tutorial moves to a new step. It also logs the step the player is on once a save is loaded.
 
 ```csharp
 using ObenseuerCore;
@@ -40,11 +44,11 @@ public sealed class TutorialWatch : FrameworkMod
 }
 ```
 
-`StepChanged` is an event: the framework calls your code each time it happens. `TutorialStep.None` means no opening step is running. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`StepChanged` is an event: the framework calls your code each time it happens. `TutorialStep.None` means no opening step is running. See [Using events](../guides/getting-started/using-events.md) for more on events and [`WhenReady`](core-helpers/events-whenready.md).
 
 ## Common tasks
 
-Wait for the opening tutorial to be over before your mod does something. When `Step` is `None`, no opening step is running.
+Wait for the opening tutorial to be over before your mod does something. When `Step` is `None`, no opening step is running. This example then shows a hint with [`Hud.ShowHint`](hud/hud.md).
 
 ```csharp
 if (TutorialGuide.Step == TutorialStep.None) Hud.ShowHint(Mod.Id, "Welcome", new[] { "The tutorial is over." });
@@ -64,13 +68,13 @@ if (!TutorialGuide.IsAvailable) Log.Warn("Tutorial step events are off in this g
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Tutorial steps
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TutorialGuide</code> <span>read the opening tutorial step and listen for changes</span></p>
-Use `Step` to read the opening tutorial step, and `StepChanged` to hear when it moves on.
+`Step` reads the opening tutorial step, and `StepChanged` tells you when it moves on.
 
 <div class="api-pair" markdown="1">
 
@@ -92,7 +96,7 @@ public static class TutorialGuide
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `StepChanged` | `TutorialStepArgs` | The tutorial has just moved to another step. |
+| `StepChanged` | `TutorialStepArgs` | The tutorial has moved to another step. |
 
 </div>
 </div>
@@ -148,7 +152,7 @@ public sealed class TutorialStepArgs
 </div>
 
 - `Step` is `None` before the tutorial starts, after it is over, and when there is no tutorial at all. There is no tutorial on the main menu, or when no save is loaded. <span class="tech">(It is `None` when `Tutorial.instance` is null. Otherwise it reads the game's opening-tutorial flags in the order look around, move, use, menu.)</span>
-- `Active` is `true` while a tutorial prompt is on the screen. The game turns it off when the prompt is hidden, so it is `false` between prompts, even while `Step` is not `None`. <span class="tech">(It reads the game's `Tutorial.TutorialActive` flag.)</span>
+- `Active` is `true` while a tutorial prompt is on the screen. The game turns it off when the prompt is hidden. So it is `false` between prompts, even while `Step` is not `None`. <span class="tech">(It reads the game's `Tutorial.TutorialActive` flag.)</span>
 - The game's other prompts make `Active` `true`, but they are not steps. These are the prompts for building, cleaning, reloading, the headlight, the inventory, the map, tasks and the tenement. `Step` does not change for them.
 - `StepChanged` fires once for each change of step. It can fire a little after the player did the action, because the game waits a short moment before it moves on. <span class="tech">(The game changes its flags inside a coroutine (`ChangeTutorial`) after a short wait. The framework checks the flags at the end of `Tutorial.Update`, so the event comes from there.)</span>
 - You do not get an event for a change that happened before you subscribed. Your first handler starts from the step the tutorial is on at that moment. <span class="tech">(When the first handler is added, the framework records the current `Step`. With no handler, the check is skipped.)</span>
@@ -160,14 +164,14 @@ public sealed class TutorialStepArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.tutorial.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 
 ### If something fails to set up
 
-The framework changes one of the game's methods when it starts, so it can tell your mod when the tutorial step changes. If a game update breaks it, the `StepChanged` event turns off, and the framework writes error lines and a warning to the log. The change belongs to a feature group, `obenseuer.moddingframework.tutorial`, the name you will see in the log.
+The framework changes one of the game's methods when it starts, so it can tell your mod when the tutorial step changes. If a game update breaks it, the `StepChanged` event turns off, and the framework writes error lines and a warning to the log. The change belongs to a [feature group](../glossary.md#feature-group) (a named set of framework changes), `obenseuer.moddingframework.tutorial`, the name you will see in the log.
 
 - `TutorialGuide.IsAvailable` tells you whether `StepChanged` works. It is `false` when the framework could not set up the change, or when the feature group was turned off. `Step` and `Active` do not depend on it, but `StepChanged` does not fire unless it is `true`. <span class="tech">(The framework also needs five of the game's private `Tutorial` fields. If any of them is missing, `IsAvailable` is `false`, and a read that cannot find its field falls back to `None` or `false`.)</span>
 

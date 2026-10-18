@@ -7,11 +7,21 @@ nav_order: 12
 
 # Scene state
 
+`SceneState` reads and changes the values that a [scene](../glossary.md#scene) (one loaded area of the game) keeps for its own scripting. Use it to find out how far a scene's logic has got, or to make the scene react.
+
 Status: experimental.
 
 ## What it is
 
-Each scene (a level of the game) keeps some values that its own scripting uses to remember things: switches that are true or false (branches), counters, state machines that are in one of several named states, sequences of steps, and timers. This API lists those values in the scene you are in and lets a mod change them. A scene's quest steps and doors are often built from these values, so changing one can set off other things in the scene. For the relays that pass signals between them, see [SceneLogic](scenelogic.md).
+Each [scene](../glossary.md#scene) keeps some values that its own scripting uses to remember things:
+
+- branches: switches that are true or false
+- counters
+- state machines: each one is in one of several named states
+- sequences of steps
+- timers
+
+This API lists those values in the scene you are in, and lets a mod change them. A scene's quest steps and doors are often built from these values. So changing one can set off other things in the scene. For the [relays](../glossary.md#relay) that pass signals between them, see [SceneLogic](scenelogic.md).
 
 ## When to use it
 
@@ -21,7 +31,7 @@ Each scene (a level of the game) keeps some values that its own scripting uses t
 
 ## Quick example
 
-This mod adds 1 to the first counter in the scene once a save is loaded, and logs the counter's value before and after.
+Once a save is loaded, this mod adds 1 to the first counter in the scene. It [logs](../guides/getting-started/logging.md) the counter's value before and after.
 
 ```csharp
 using ObenseuerCore;
@@ -44,7 +54,7 @@ public sealed class SceneCounter : FrameworkMod
 }
 ```
 
-`WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). Adding to a counter can set off the scene's own reactions, as it does in the game, so try this on a save you can lose.
+`WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). Adding to a counter can set off the scene's own reactions, as it does in the game. Try this on a save you can lose.
 
 ## Common tasks
 
@@ -75,14 +85,14 @@ SceneState.SetInterval(Mod.Id, "some-timer-id", 30f);
 
 ## Reference
 
-This is the full list of what the API gives you. Every value has an id: the id the level designers gave the object, or its place in the scene when it has none. These are the same ids that `SceneLogic` uses, and every change takes your mod's id as `modId` (see [Mod id](../glossary.md#mod-id)). Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Every value has an id. It is the id the level designers gave the object, or its place in the [scene](../glossary.md#scene) when it has none. These are the same ids that `SceneLogic` uses. Every change takes your mod's id as `modId` (see [Mod id](../glossary.md#mod-id)). Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Reading and changing the scene's values
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneState</code> <span>read and change the scene's values</span></p>
 
-This is the class to start from. The five list methods read the scene's values, and the other methods change one of them by its id.
+This is the class to start from. The five list methods read the scene's values. The other methods change one value by its id.
 
 <div class="api-pair" markdown="1">
 
@@ -108,10 +118,10 @@ public static class SceneState
 | Method | Returns | What it does |
 |---|---|---|
 | `Branches()` | `List<BranchInfo>` | Every true or false switch in the scene. |
-| `SetBranch(modId, id, value)` | `bool` | Sets a switch. Returns `true` when it is now the value you asked for. |
+| `SetBranch(modId, id, value)` | `bool` | Sets a switch. `true` when the switch now has the value you asked for. |
 | `Counters()` | `List<CounterInfo>` | Every counter in the scene. |
-| `SetCounter(modId, id, value)` | `bool` | Sets a counter to a value. Returns `false` when refused. |
-| `AddCounter(modId, id, amount)` | `bool` | Adds to a counter. Returns `false` when refused. |
+| `SetCounter(modId, id, value)` | `bool` | Sets a counter to a value. `false` when refused. |
+| `AddCounter(modId, id, amount)` | `bool` | Adds to a counter. `false` when refused. |
 | `States()` | `List<StateMachineInfo>` | Every state machine in the scene. |
 | `SetState(modId, id, stateName)` | `bool` | Moves a state machine to a named state. |
 | `Sequences()` | `List<SequenceInfo>` | Every sequence in the scene. |
@@ -150,7 +160,7 @@ public sealed class BranchInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CounterInfo</code> <span>a counter</span></p>
 
-`SceneState.Counters()` gives you one of these for each counter. `Max` is the value at which the counter fires its reactions, and `SetCounter` and `AddCounter` take its `Id`. <span class="tech">(It is filled from the game's `CounterRelay` objects.)</span>
+`SceneState.Counters()` gives you one of these for each counter. `Max` is the value at which the counter fires its reactions. `SetCounter` and `AddCounter` take its `Id`. <span class="tech">(It is filled from the game's `CounterRelay` objects.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -166,8 +176,8 @@ public sealed class CounterInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The counter's id. |
-| `Value` | `int` | Its value now. |
-| `Max` | `int` | The value at which it fires its reactions. |
+| `Value` | `int` | The counter's value now. |
+| `Max` | `int` | The value at which the counter fires its reactions. |
 
 </div>
 </div>
@@ -175,7 +185,7 @@ public sealed class CounterInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>StateMachineInfo</code> <span>something in one of several named states</span></p>
 
-`SceneState.States()` gives you one of these for each state machine. Pass one of its `Names` to `SetState` to move the machine to that state. <span class="tech">(It is filled from the game's `logic_state` objects.)</span>
+`SceneState.States()` gives you one of these for each state machine. To move the machine to a state, pass one of its `Names` to `SetState`. <span class="tech">(It is filled from the game's `logic_state` objects.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -191,8 +201,8 @@ public sealed class StateMachineInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The machine's id. |
-| `Current` | `string` | The name of the state it is in now. |
-| `Names` | `List<string>` | The names of all its states. |
+| `Current` | `string` | The name of the state the machine is in now. |
+| `Names` | `List<string>` | The names of all the machine's states. |
 
 </div>
 </div>
@@ -216,8 +226,8 @@ public sealed class SequenceInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The sequence's id. |
-| `Entries` | `int` | How many steps it has. |
-| `Loop` | `bool` | `true` when it starts again after the last step. |
+| `Entries` | `int` | The number of steps in the sequence. |
+| `Loop` | `bool` | `true` when the sequence starts again after the last step. |
 
 </div>
 </div>
@@ -242,33 +252,39 @@ public sealed class SceneTimerInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The timer's id. |
-| `Interval` | `float` | How many seconds it waits between ticks. |
-| `Running` | `bool` | `true` when it is running. |
-| `Disabled` | `bool` | `true` when the scene has switched it off. |
+| `Interval` | `float` | The number of seconds the timer waits between ticks. |
+| `Running` | `bool` | `true` when the timer is running. |
+| `Disabled` | `bool` | `true` when the scene has switched the timer off. |
 
 </div>
 </div>
 
 #### Things to know
 
-- The read calls give you a list of what is in the scene you are in. If a read fails inside the game, the failure is written to the log once and you get an empty list.
-- A change call returns `false` when it did nothing. That happens for an empty mod id, an id that is not in the scene, a value the call refuses, and while a save is loading or being written.
-- `SetBranch` flips the switch the way the game does, so everything that is wired to it reacts. The scene's tests and listeners run, and they can set off the scene's other reactions. It returns `true` when the switch has the value you asked for. <span class="tech">(It uses the game's own `logic_branch.IsTrue` setter.)</span>
-- `SetCounter` and `AddCounter` change a counter the way the game does. A counter that reaches its maximum fires its reactions, as it would in the game. `SetCounter` refuses a negative value, and writes that refusal to the log once. `AddCounter` needs an amount of at least 1. <span class="tech">(They use the game's own `CounterRelay.SetCounterValue` and `IncreaseCounter`. Its reactions are its relays.)</span>
+- The read calls give you a list of what is in the scene you are in. If a read fails inside the game, the failure is written to the log once, and you get an empty list.
+- A change call returns `false` when it did nothing. That happens for an empty mod id, an id that is not in the scene, and a value the call refuses. It also happens while a save is loading or being written.
+- `SetBranch` flips the switch the way the game does, so everything wired to it reacts. The scene's tests and listeners run, and they can set off the scene's other reactions. It returns `true` when the switch has the value you asked for. <span class="tech">(It uses the game's own `logic_branch.IsTrue` setter.)</span>
+- `SetCounter` and `AddCounter` change a counter the way the game does. A counter that reaches its maximum fires its reactions, as it would in the game. `SetCounter` refuses a negative value and writes that refusal to the log once. `AddCounter` needs an amount of at least 1. <span class="tech">(They use the game's own `CounterRelay.SetCounterValue` and `IncreaseCounter`. Its reactions are its relays.)</span>
 - A counter's value is saved with the player's save. The game keeps and saves it, so a change you make stays after a reload. <span class="tech">(`CounterRelay` saves its value.)</span>
 - `SetState` only changes which state the machine says it is in. It refuses a name the machine does not have (it returns `false`), and an empty name. It does not fire that state's own reactions. <span class="tech">(It calls `logic_state.ChangeState`, and does not fire the state's relay.)</span>
 - `StartSequence` starts the sequence from its first entry, and `StopSequence` stops it. Both return `true` when the sequence exists. They do not tell you whether it was running.
-- `StartTimer` starts the timer. `SetInterval` changes the number of seconds it waits, and does not restart it. The seconds must be above 0.
+- `StartTimer` starts the timer. `SetInterval` changes the number of seconds the timer waits, and does not restart it. The seconds must be above 0.
 - Writing a branch or a counter can set off the scene's reactions and move quests on. Use it with the same care as `SceneLogic.Fire`.
+
+**Common problems**
+
+- A change call returns `false`: the mod id is empty, the id is not in the scene, the call refused the value, or a save is loading or being written. Pass your mod's id as `modId`, and an `Id` from the matching list call.
+- `SetState` returns `false`: one of the causes in the bullet above, or the state name is empty or not one the machine has. Pass one of the machine's `Names`.
+- `SetCounter` or `AddCounter` returns `false`: one of the causes in the first bullet. `SetCounter` refuses a negative value, and `AddCounter` needs an amount of at least 1.
 
 ### What you can't do (yet)
 
-- You can't be told when one of these values changes. The game raises no event for them, so the only way to notice a change is to read the values again later. <span class="tech">(The framework would need a patch on every setter.)</span>
+- You can't be told when one of these values changes. The game raises no event for them. The only way to notice a change is to read the values again later. <span class="tech">(The framework would need a patch on every setter.)</span>
 - You can't tell whether a sequence is running. The game keeps that fact private.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.scenestate.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -276,12 +292,12 @@ Everything not listed in this reference is internal and may change without notic
 ### When you can call it
 
 - Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
-- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read you get an empty list, and a change call gives `false`.
+- It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is nothing to read, you get an empty list, and a change call gives `false`.
 - This API has no events.
 
 ### If something fails to set up
 
-This API does not change any of the game's methods, so there is no feature group to turn off. It has nothing to fail at start.
+This API does not change any of the game's methods, so there is no [feature group](../glossary.md#feature-group) to turn off. It has nothing to fail at start.
 
 ### Saving
 

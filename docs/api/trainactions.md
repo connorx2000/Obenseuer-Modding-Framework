@@ -7,9 +7,18 @@ nav_order: 15
 
 # Train actions
 
+`TrainActions` lets your mod drive the game's trains and join or separate their cars. Use it to start, stop or couple trains from your own code.
+
 ## What it is
 
-The game has trains that run on tracks. This API lets your mod drive them: turn an engine on or off, set how fast the train should go, apply the brakes, and join or separate two cars. You pick a train with its id, which you get from `Trains.All()` (see the [Trains API](trains.md)).
+The game has trains that run on tracks. This API lets your mod drive them:
+
+- Turn an engine on or off.
+- Set how fast the train should go.
+- Apply the brakes.
+- Join or separate two cars.
+
+You pick a train by its id, which you get from `Trains.All()` (see the [Trains API](trains.md)).
 
 ## When to use it
 
@@ -19,7 +28,7 @@ The game has trains that run on tracks. This API lets your mod drive them: turn 
 
 ## Quick example
 
-This mod waits until a save is loaded. It then turns on the engine of every train and sets its target speed to 10. It writes to the log which trains started.
+This mod waits until a save is loaded. It then turns on the engine of every train and sets its target speed to 10. It writes to the [log](../guides/getting-started/logging.md) which trains started.
 
 ```csharp
 using ObenseuerCore;
@@ -43,11 +52,13 @@ public sealed class TrainStart : FrameworkMod
 }
 ```
 
-`WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it.
+[`WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it. `Mod.Id` is your [mod id](../glossary.md#mod-id), the first argument of every call.
 
 ## Common tasks
 
-The snippets below use the ids of two cars (`frontCarId` and `rearCarId`) that you got from `Trains.All()`. Apply the brakes and let them go again.
+The snippets below use the ids of two cars (`frontCarId` and `rearCarId`) that you got from [`Trains.All()`](trains.md).
+
+Apply the brakes and let them go again.
 
 ```csharp
 TrainActions.Brake(Mod.Id, frontCarId, true);
@@ -66,11 +77,11 @@ TrainActions.SetEngine(Mod.Id, frontCarId, false);
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders; you can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainActions</code> <span>drive trains and join or split cars</span></p>
-Use these calls to switch a train's engine, set its target speed, brake it, and couple two trains or release a coupling at one end.
+Switches a train's engine, sets its target speed, brakes it, and couples two trains or releases a coupling at one end.
 
 <div class="api-pair" markdown="1">
 
@@ -98,7 +109,7 @@ public static class TrainActions
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainEnd</code> <span>the two ends of a car</span></p>
-`Couple` and `Release` take this to pick the end of a car to use. `Front` and `Back` are the framework's own values, and they select the game's `frontCoupler` or `backCoupler`.
+`Couple` and `Release` take this to pick which end of a car to use. `Front` and `Back` are the framework's own values. They select the game's `frontCoupler` or `backCoupler`.
 
 <div class="api-pair" markdown="1">
 
@@ -120,7 +131,7 @@ public enum TrainEnd
 
 ### Things to know
 
-- `SetEngine` turns an engine on or off. It returns `true` once the request has been made. A train that belongs to a minitrain (the small train the player rides) starts only after the game's own start-up delay. The lights and the dashboard follow, as they do when the player starts it. <span class="tech">(for a minitrain it uses the game's own `StartMinitrain` and `StopMinitrain`. Other trains use `TrackTrain.Toggle`.)</span>
+- `SetEngine` turns an engine on or off. It returns `true` once the request has been made. A train that belongs to a [minitrain](trains/the-minitrain.md) (the small train the player rides) starts only after the game's own start-up delay. The lights and the dashboard follow, as they do when the player starts it. <span class="tech">(for a minitrain it uses the game's own `StartMinitrain` and `StopMinitrain`. Other trains use `TrackTrain.Toggle`.)</span>
 - `SetTargetSpeed` sets how fast the train should go, and it can't go faster than the train allows. The speed is held between the train's own highest forward and highest reverse speed.
 - `Brake` applies or releases the brakes, and the game's brake outputs still fire. It returns `true` only when the brakes are really in the state you asked for. <span class="tech">(it calls the game's `ApplyBrakes`, so the game's braking outputs still fire.)</span>
 - `Couple` joins one end of a train to one end of another, and returns `true` when they are joined. It does what the game does when two cars touch and their couplers meet. It changes nothing and returns `false` unless all of these are true:
@@ -131,16 +142,23 @@ public enum TrainEnd
   - each car is moving no faster than its own coupler allows, when the coupler has a limit.
   - <span class="tech">(it calls the game's `TrainCoupler.Couple`. The couplers' triggers must be active and not in their crash cooldown. "Touching" means the bounds of the two triggers' colliders overlap. The speed limit is the absolute speed of each train against its own coupler trigger's `maxSpeed`, when that is above 0.)</span>
 - `Release` separates a car at one end, and returns `true` when that end is free. It splits the train and plays the uncoupling sound. It returns `false` when nothing is joined at that end. <span class="tech">(it calls the game's `TrainCoupler.Release`.)</span>
-- The game finishes the join after `Couple`. The wagon list, the engine that drives the string, and the way the cars face are all worked out by the game's own join and split. After a join, the game moves the car that is not driving until the ends meet. `Couple` only joins cars that are already touching, so that gap is small. A join made by your mod is saved the same way as one the player makes.
-- `Couple` returning `true` does not mean the join lasts. The game can release it on a later update if the gap is over the coupler's allowed distance. Read `FrontCoupledTo` or `BackCoupledTo` from `Trains.All()` to see whether the join is still there. <span class="tech">(the distance is the coupler's `maxDistance`, when that is above 0.)</span>
+- The game finishes the join after `Couple`. The game's own join and split work out the wagon list, the engine that drives the string, and the way the cars face. After a join, the game moves the car that is not driving until the ends meet. `Couple` only joins cars that are already touching, so that gap is small. A join made by your mod is saved the same way as one the player makes.
+- `Couple` returning `true` does not mean the join lasts. The game can release it on a later update if the gap is over the coupler's allowed distance. To see whether the join is still there, read `FrontCoupledTo` or `BackCoupledTo` from `Trains.All()`. <span class="tech">(the distance is the coupler's `maxDistance`, when that is above 0.)</span>
 - `Couple` can say yes to cars that only look close. The test uses a box around each coupler, so two boxes can overlap when the shapes inside them do not touch. The game then decides, as it does for its own couplers. <span class="tech">(it uses `Collider.bounds`, which are axis-aligned boxes.)</span>
-- `Couple` is a little stricter than the game. It checks each car against its own coupler's speed limit, using the absolute speed, so it refuses some joins the game allows, such as a train moving backward. <span class="tech">(the game's trigger tests the signed speed.)</span>
-- Your mod can interfere with a train the player is driving. It can start or stop that train, and it can join or separate a joint the player made. The framework keeps no record of who changed a train, so there is no owner to check.
+- `Couple` is a little stricter than the game. It checks each car against its own coupler's speed limit, using the absolute speed. So it refuses some joins the game allows, such as a train moving backward. <span class="tech">(the game's trigger tests the signed speed.)</span>
+- Your mod can interfere with a train the player is driving. It can start or stop that train, and it can join or separate a joint the player made. The framework keeps no record of who changed a train, so there is no [owner](../glossary.md#owner) to check.
 
 ### Limits
 
-- Every call returns `false` and does nothing when it can't do its job. That is for an empty mod id, an unknown or destroyed train, a speed that is not a real number, and while the game is loading or saving a save. `Couple` and `Release` also need a valid mod id: 1 to 64 characters of letters, digits, `.`, `_` or `-`. The other three accept any mod id that is not empty. <span class="tech">(the checks are `SaveData.Busy`, the train lookup in `TrainController.TrackTrains`, and for the speed `float.IsNaN` and `float.IsInfinity`.)</span>
+- Every call returns `false` and does nothing when it can't do its job. That is for an empty mod id, an unknown or destroyed train, or a speed that is not a real number. The same happens while the game is loading or saving a save. <span class="tech">(the checks are `SaveData.Busy`, the train lookup in `TrainController.TrackTrains`, and for the speed `float.IsNaN` and `float.IsInfinity`.)</span>
+- `Couple` and `Release` also need a valid [mod id](../glossary.md#mod-id): 1 to 64 characters of letters, digits, `.`, `_` or `-`. The other three accept any mod id that is not empty.
 - A train without fuel reports a target speed of 0 in the game, so setting a speed does not move it.
+
+**Common problems**
+
+- `Couple` returns `false` and nothing changes: one of the conditions listed under `Couple` in Things to know is not met, or one of the refusals listed under Limits applies.
+- Setting a speed does not move a train: a train without fuel reports a target speed of 0 in the game.
+- A join from `Couple` comes apart later: the game released it because the gap was over the coupler's allowed distance. Read `FrontCoupledTo` or `BackCoupledTo` from `Trains.All()` to check.
 
 ### What you can't do (yet)
 
@@ -150,7 +168,7 @@ public enum TrainEnd
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.trainactions.log`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -162,4 +180,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-This API does not change any game method, so there is no feature group to turn off, and nothing for the framework to set up. If the game fails while one of the calls runs, the framework writes one error to the log and the call returns `false`.
+This API does not change any game method. So there is no [feature group](../glossary.md#feature-group) to turn off, and nothing for the framework to set up. If the game fails while one of the calls runs, the framework writes one error to the log and the call returns `false`.

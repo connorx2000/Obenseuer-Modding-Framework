@@ -43,14 +43,27 @@ public static class ConsoleCommands
 
 ## Things to know
 
-- `Register` adds a command. The name is one word, with no spaces or quotes. `run` is your code, and it gets the words the player typed after the command name. A quoted phrase counts as one word, as the game splits them. `help` is the line that the console lists under `Mod commands:`, after the game's own list of commands.
+- `Register` adds a command:
+  - The name is one word, with no spaces or quotes.
+  - `run` is your code. It gets the words the player typed after the command name. A quoted phrase counts as one word, as the game splits them.
+  - `help` is the line the console lists under `Mod commands:`, after the game's own list of commands.
 - `Print` writes a line to the console. Use it from inside your command to show output.
-- `Open` opens the console, as F1 does. While the console is open the game does not count achievements. The player closes it with F1, or with the Pause Menu key while it is open. <span class="tech">(The game ignores achievement triggers while the console is open. It sets `Achievements.globalDisable` on open and clears it on close.)</span>
+- `Open` opens the console, as F1 does. While the console is open, the game does not count achievements. The player closes it with F1, or with the Pause Menu key while it is open. <span class="tech">(The game ignores achievement triggers while the console is open. It sets `Achievements.globalDisable` on open and clears it on close.)</span>
 - `IsOpen` is `true` while the console is open.
-- The console is available in every build of the game. The F1 key always works. `Open` and `Print` give back `false` only when the console is missing. <span class="tech">(The game's managed code has no `isDebugBuild` or `UNITY_EDITOR` check on the console.)</span>
+- The console is available in every build of the game, and the F1 key always works. `Open` and `Print` give back `false` only when the console is missing. <span class="tech">(The game's managed code has no `isDebugBuild` or `UNITY_EDITOR` check on the console.)</span>
 
 ## Limits
 
-- `Register` gives back `false` when `IsAvailable` is `false`, when the name is already a game command, or when another mod added the name first. In the last two cases one warning in the log names both sides, and the first one keeps the name. If the same mod adds its own name again, it just gets `false`, with no warning. <span class="tech">(The game has 52 command names of its own. `IsAvailable` is `false` until the framework has installed its console changes, so register from a plugin that starts after the framework.)</span>
-- `Print` gives back `false` when the console is not in the scene.
+- `Register` gives back `false` in these cases:
+  - `IsAvailable` is `false`.
+  - The name is already a game command.
+  - Another mod added the name first.
+
+  In the last two cases, one warning in the [log](../../guides/getting-started/logging.md) names both sides, and the first one keeps the name. If the same mod adds its own name again, it gets `false`, with no warning. <span class="tech">(The game has 52 command names of its own. `IsAvailable` is `false` until the framework has installed its console changes, so register from a plugin that starts after the framework.)</span>
+- `Print` gives back `false` when the console is not in the [scene](../../glossary.md#scene).
 - `Open` gives back `false` when the console, or the achievement system, is not in the scene.
+
+**Common problems**
+
+- `Register` gives back `false`: `IsAvailable` is `false`, the name is already a game command, or another mod added the name first. The same mod adding its own name again also gets `false`. For the two name cases, look for the warning in the log that names both sides.
+- `IsAvailable` is `false`: the framework has not installed its console changes yet, so register from a [plugin](../../glossary.md#plugin) that starts after the framework. It also stays `false` when the console setup failed (see [If something fails to set up](details.md#if-something-fails-to-set-up)).

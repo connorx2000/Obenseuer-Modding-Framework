@@ -8,6 +8,8 @@ nav_order: 1
 
 # Audio
 
+`Sounds` plays the game's own sounds and your own clips, reads the volume sliders and switches the ambient sound. Use it when your mod should make a sound or react to the player's volume settings.
+
 This page uses `AudioClip` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,12 @@ Status: experimental.
 
 ## What it is
 
-This API plays sound in the game. It can play the game's own sounds (the noise an item makes when you pick it up, and the game's sets of random sounds such as footsteps and scary noises). It can also play a sound of your own: a WAV file from your mod folder, or a sound your code builds from numbers. It reads the volume sliders from the options menu, lets you turn a volume up or down for the current session, and lets you change the background ambient sound of an area.
+This API plays sound in the game.
+
+- It plays the game's own sounds: the noise an item makes when you pick it up, and the game's sets of random sounds, such as footsteps and scary noises.
+- It plays a sound of your own: a WAV file from your mod folder, or a sound your code builds from numbers.
+- It reads the volume sliders from the options menu, and turns a volume up or down for the current session.
+- It changes the background ambient sound of an area.
 
 The game has no music player, so you can't play or stop the game's music tracks with this API. See [What you can't do (yet)](audio/what-you-can-t-do-yet.md#what-you-cant-do-yet).
 
@@ -29,7 +36,7 @@ The game has no music player, so you can't play or stop the game's music tracks 
 
 ## Quick example
 
-This mod builds a half-second beep in code and plays it once a save is loaded. The clip is made from 16-bit samples, then played through the game's `Effects` mixer group at half volume.
+This mod builds a half-second beep in code and plays it once a save is loaded. The clip is made from 16-bit samples. It plays through the game's `Effects` mixer group (one of the game's volume channels) at half volume.
 
 ```csharp
 using ObenseuerCore;
@@ -56,4 +63,4 @@ public sealed class Beep : FrameworkMod
 }
 ```
 
-`WhenReady` runs your code once a save is loaded (see [Framework helpers](core-helpers/events-whenready.md#eventswhenready)). `PlayClip` returns `true` when the sound started. A project that uses `AudioClip` needs a reference to `UnityEngine.AudioModule.dll`, because that is where Unity keeps audio.
+`WhenReady` runs your code once a save is loaded (see [Framework helpers](core-helpers/events-whenready.md#eventswhenready)). [`PlayClip`](audio/playing-your-own-clip.md) returns `true` when the sound started. A project that uses [`AudioClip`](../glossary.md#audioclip) needs a reference to `UnityEngine.AudioModule.dll`, because that is where Unity keeps audio.

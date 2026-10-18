@@ -7,11 +7,18 @@ nav_order: 11
 
 # Televisions
 
+`Televisions` lets your mod find the television sets in the [scene](../glossary.md#scene) you are in, switch them on or off, and react when one is switched. Use it for scenes you build or for mods that respond to a set being used.
+
 Status: experimental.
 
 ## What it is
 
-A television is a set in the world that the player can switch on and off. This API lets your mod list the televisions in the scene you are in, see whether each one is switched on, switch one on or off, and get told when any television is switched on or off, by the player or by another mod.
+A television is a set in the world that the player can switch on and off. This API gives your mod these jobs:
+
+- List the televisions in the scene you are in.
+- See whether each one is switched on.
+- Switch one on or off.
+- Get told when any television is switched on or off, by the player or by another mod.
 
 It does not give you the power supply of a set or its screen picture.
 
@@ -23,7 +30,7 @@ It does not give you the power supply of a set or its screen picture.
 
 ## Quick example
 
-This mod writes a log line every time a television is switched on or off. Once a save is loaded, it also logs every television in the scene and whether it is on.
+This mod writes a [log](../guides/getting-started/logging.md) line every time a television is switched on or off. Once a save is loaded, it also logs every television in the scene and whether it is on.
 
 ```csharp
 using ObenseuerCore;
@@ -44,11 +51,11 @@ public sealed class TvWatch : FrameworkMod
 }
 ```
 
-`Changed` is an event: the framework calls your code each time it happens. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+`Changed` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
-Switch every television in the scene off. `SetOn` returns `true` when the set is in the state you asked for afterwards, and `false` when it could not do it.
+Switch every television in the scene off. `SetOn` returns `true` when the set is in the state you asked for afterwards. It returns `false` when it could not do it.
 
 ```csharp
 foreach (TelevisionInfo television in Televisions.All())
@@ -66,11 +73,11 @@ Log.Info(on + " televisions are on.");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Televisions</code> <span>lists, reads and switches sets</span></p>
-Use it to find the televisions in the loaded scene and to switch one on or off with `SetOn`.
+Use it to find the televisions in the loaded scene. `SetOn` switches one on or off.
 
 <div class="api-pair" markdown="1">
 
@@ -104,7 +111,7 @@ public static class Televisions
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TelevisionInfo</code> <span>a snapshot of one television</span></p>
-`All()` gives you one of these for each television, and `Get(id)` gives you one for a single id. It is a snapshot, so ask again to see a change. <span class="tech">(It reads the game's `TelevisionNoise`.)</span>
+`All()` gives you one of these for each television. `Get(id)` gives you one for a single id. It is a snapshot, so ask again to see a change. <span class="tech">(It reads the game's `TelevisionNoise`.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -126,7 +133,7 @@ public sealed class TelevisionInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TelevisionChangedArgs</code> <span>what Changed tells you</span></p>
-`Changed` gives you this each time a television turns on or off, and `On` is its new state. The framework hooks the game's own `TurnOn` and `TurnOff`, so a switch the player makes raises it too.
+`Changed` gives you this each time a television turns on or off. `On` is its new state. The framework hooks the game's own `TurnOn` and `TurnOff`, so a switch the player makes raises it too.
 
 <div class="api-pair" markdown="1">
 
@@ -149,12 +156,12 @@ public sealed class TelevisionChangedArgs
 ### Things to know
 
 - `All()` and `Get` only see televisions that are switched on in the scene you are in. A television in another scene, or one the game has hidden, is not listed. <span class="tech">(They search the active objects of the active scene for `TelevisionNoise`.)</span>
-- A television id is a piece of text that names one set. `All()` and `Get` give it to you. It is stable as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the set's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Television[1]`.)</span>
+- A television id is a piece of text that names one set (see [object id](../glossary.md#object-id)). `All()` and `Get` give it to you. It is stable as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the set's save GUID when it has one, otherwise its scene path, such as `Scene:Root[0]/Child[2]/Television[1]`.)</span>
 - `Get(id)` gives you a snapshot, not a live view. The values do not change by themselves, so call `Get` again for fresh values.
-- `SetOn(id, on)` does what the player does when they use the set. It plays the switch sound, as the player's use does. The set also triggers anything the map has wired to it, such as a relay. Asking for the state it is already in does nothing and also returns `true`. <span class="tech">(It calls the game's `TurnOn(true)` or `TurnOff(true)`. Switching on or off triggers the set's `onTurnOn` or `onTurnOff` outputs.)</span>
+- `SetOn(id, on)` does what the player does when they use the set. It plays the switch sound, as the player's use does. The set also triggers anything the map has wired to it, such as a [relay](../glossary.md#relay). Asking for the state it is already in does nothing and also returns `true`. <span class="tech">(It calls the game's `TurnOn(true)` or `TurnOff(true)`. Switching on or off triggers the set's `onTurnOn` or `onTurnOff` outputs.)</span>
 - A mod that switches many sets at once plays that many switch sounds.
 - `Changed` fires when a set goes from off to on or from on to off. It fires no matter who did it: the player, your mod, or another mod or map script. A call that changes nothing does not fire. <span class="tech">(It is raised after `TelevisionNoise.TurnOn(bool, bool)` and `TurnOff(bool, bool, bool, bool)` when `isOn` differs from its value before the call. Every public `TurnOn` and `TurnOff` overload goes through one of these two. The game's load code only sets `isOn` and calls `Refresh()`, and `Start` calls them with the state the set already has.)</span>
-- `Changed` can also fire while a save is loading or being written. If your handler should ignore those, check `SaveData.Busy`, which is `true` during a load or a save.
+- `Changed` can also fire while a save is loading or being written. If your handler should ignore those, check [`SaveData.Busy`](../api-core/savedata.md#savedatabusy), which is `true` during a load or a save.
 - `IsAvailable` tells you whether `Changed` works. It is `false` when the framework could not set up the event. If a field it needs is missing, the reads give an empty list, `null` or `false`, and `SetOn` gives `false`.
 - `On` is the switch, not whether the picture is showing. If a set loses power while it is on, `On` stays `true`, and no `Changed` fires for the power cut. <span class="tech">(The game's `PowerOff` calls `TurnOff` with `powerOff: true`, which leaves `isOn` as it was.)</span>
 
@@ -167,7 +174,7 @@ public sealed class TelevisionChangedArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Files: `src/Api/Televisions.cs`, `src/Api/TelevisionsPatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -183,10 +190,16 @@ The framework changes some of the game's methods when it starts, so it can tell 
 ### What to check for and what comes back
 
 - Nothing here throws an error. A null or empty id finds no set, so `Get` gives `null` and `SetOn` gives `false`.
-- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null` or `false`), and the first failure of each member goes to the log as an error. Later failures of that member are not logged again.
+- If the game itself fails while the framework works, you get an empty answer instead of an error. The answer is the plain default (an empty list, `null` or `false`). The first failure of each member goes to the log as an error. Later failures of that member are not logged again.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. A game update can break one of them. Then the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it and turns the group off. It writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the television event can't be set up, only `Changed` stops. The framework needs the game's `TurnOn(bool, bool)` and `TurnOff(bool, bool, bool, bool)` on `TelevisionNoise` and the three private fields `isOn`, `locked` and `powerOn`. If any of them is missing, the feature group `obenseuer.moddingframework.televisions` turns off and `IsAvailable` is `false`. <span class="tech">(The reads and `SetOn` use reflection on those three fields, so a game update that renames one breaks them as well.)</span>
+
+**Common problems**
+
+- `SetOn` returns `false`: the set is locked, has no power, or is not there, or a save is loading or being written. A null or empty id finds no set. `SetOn` also gives `false` when a field it needs is missing, or when the game itself fails. Pass an id that `All()` or `Get` gave you.
+- `Changed` runs while a save is loading or being written: the event can fire then. Check `SaveData.Busy` in your handler and ignore the event when it is `true`.
+- `Changed` never fires and `IsAvailable` is `false`: the television event could not be set up, and the feature group `obenseuer.moddingframework.televisions` is off. Look for the error lines in the group's log file in `BepInEx\logs`.

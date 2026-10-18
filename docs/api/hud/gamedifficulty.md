@@ -7,12 +7,12 @@ nav_order: 6
 
 # GameDifficulty
 
-The game has difficulty settings the player picks when starting: how fast needs run down, what prices are, and so on. `GameDifficulty.Current()` lets you read them. `GameDifficulty.SetFactor` lets your mod make one of them stronger or weaker for the session, whatever difficulty the player chose.
+The game has difficulty settings the player picks when starting, such as how fast needs run down and what prices are. `GameDifficulty.Current()` reads them. `GameDifficulty.SetFactor` makes one of them stronger or weaker for the session, whatever difficulty the player chose.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameDifficulty</code> <span>read the difficulty and set factors</span></p>
 
-This is the class you start from. `Current()` reads the player's difficulty, and `SetFactor` changes one setting for the session, whatever difficulty the player chose.
+This is the class you start from. `Current()` reads the player's difficulty. `SetFactor` changes one setting for the session, on top of the player's choice.
 
 <div class="api-pair" markdown="1">
 
@@ -32,7 +32,7 @@ public static class GameDifficulty
 | `Current()` | `DifficultySettings` | The player's difficulty. `null` when the game has not loaded it yet. |
 | `SetFactor(modId, multiplier, factor)` | `bool` | Sets a factor from 0 to 4. `true` when it was set. |
 | `Clear(modId)` | `bool` | Removes every factor this mod set. |
-| `FactorOf(multiplier)` | `float` | The factor now in force. `1` when none. |
+| `FactorOf(multiplier)` | `float` | The factor now in force. `1` when there is none. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -44,7 +44,7 @@ public static class GameDifficulty
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DifficultySettings</code> <span>the player's difficulty at the moment you asked</span></p>
 
-`GameDifficulty.Current()` gives you this, the player's difficulty at the moment you asked. It only reads, so changing a value here does nothing.
+`GameDifficulty.Current()` gives you this: the player's difficulty at the moment you asked. It only reads, so changing a value here does nothing.
 
 <div class="api-pair" markdown="1">
 
@@ -172,19 +172,30 @@ public enum DifficultyLevel
 
 ## Things to know
 
-- The numbers in `DifficultySettings` are multipliers. `1` is the normal amount, `0` is switched off, and `2` is double. Each one is used in the game as its own rule says, and some are divided instead of multiplied. `RenovationSpeed` is divided by the game's code. <span class="tech">(The values come from `DifficultyInfo.GetMultiplierValue`.)</span>
+- The numbers in `DifficultySettings` are multipliers. `1` is the normal amount, `0` is switched off, and `2` is double. The game uses each one as its own rule says, and some are divided instead of multiplied. The game's code divides by `RenovationSpeed`. <span class="tech">(The values come from `DifficultyInfo.GetMultiplierValue`.)</span>
 - `Current()` only reads. You can't change the player's difficulty from here. The game's own difficulty change is not offered, and neither is any write to the player's difficulty values. `Current()` does not include your factors. Use `FactorOf` to see the factor in force. <span class="tech">(The game's `ChangeDifficulty` and `ChangeDifficultyByName` are not offered. `Current` shows the difficulty values themselves, and your factors are applied to the value the game's difficulty code returns.)</span>
 - The class is called `GameDifficulty`, not `Difficulty`, so it does not clash with the game's own `Difficulty` name.
-- `SetFactor` multiplies one setting for this session. The factor is from 0 to 4. A factor of 2 on `NeedsSpeed` doubles the game's own needs multiplier, whatever difficulty the player chose. It gives back `false` for an invalid mod id, an unknown setting or a factor out of range. It works at any time, even while a save is loading, because nothing here is saved.
+- `SetFactor` multiplies one setting for this session. The factor is from 0 to 4. A factor of 2 on `NeedsSpeed` doubles the game's own needs multiplier, whatever difficulty the player chose. It gives back `false` for an invalid [mod id](../../glossary.md#mod-id), an unknown setting or a factor out of range. It works at any time, even while a save is loading, because nothing here is saved.
 - `RenovationSpeed` is a speed. A factor of 2 makes renovations twice as fast, and 0.5 makes them take twice as long. It scales the time left that the game shows, and the countdown of orders being built. <span class="tech">(The game divides by it. Its `TimeSecondsLeft` setter subtracts `(int)(elapsed * multiplier)`, where the multiplier is the player's own renovation speed value, so the speed factor is only exact when that value is a whole number. With a fractional value, the result is rounded down each tick. The game counts whole seconds and keeps the fraction of each tick, so a factor of 0.5 runs the countdown at half speed and a factor of 1.5 at one and a half times speed. Only the game's own countdown (`TenementController.UpdateProgesses`) is scaled: a saved value that loads, and a value a mod writes to the time left, are not. The fraction starts at 0 after a factor change or a scene load, and is not saved.)</span>
 - Whole-number results are rounded after your factor. That is `Prices`, `RespawningTime` and `RenovationResourceCosts`. A price or a resource cost the game gave as 1 or more stays at 1 or more.
-- A factor of 0 makes respawns instant on `RespawningTime`, and stops the need on `NeedsSpeed`, `AddictionNeedsSpeed` or `AddictionRecoverySpeed`. <span class="tech">(For `RespawningTime`, the game's respawn timers get 0 seconds.)</span>
+- A factor of 0 makes respawns instant on `RespawningTime`. On `NeedsSpeed`, `AddictionNeedsSpeed` or `AddictionRecoverySpeed`, it stops the need. <span class="tech">(For `RespawningTime`, the game's respawn timers get 0 seconds.)</span>
 - On `RentIncome`, `RenovationCost`, `RenovationResourceCosts` or `TraderWealth`, a factor of 0 brings that amount to zero. A renovation resource cost stays at 1 or more. A factor of 0 on the other settings turns them off.
-- When several mods set the same setting, the newest call wins. Each mod keeps one factor for each setting. If a second mod sets a setting that another mod already set, one warning in the log names both mods. `Clear(modId)` removes all of your mod's factors, and then the factor set before yours applies again.
-- Factors last for the session only, and a new scene load clears them. They are not saved and do not touch the player's difficulty, settings or save. Set them again from your `Events.SceneLoaded` handler. `FactorsAvailable` is `false` when the difficulty setup failed in this build of the game. <span class="tech">(A Single scene load clears them. The feature group is `obenseuer.moddingframework.difficulty`.)</span>
-- Numbers the game worked out while your factor was in force are saved, even though the factor is not. A trader's money is worked out once when it restocks, and a respawn time is worked out when a spawner starts waiting. A restock or a respawn timer that started under your factor keeps that result after `Clear` and after a save and load. <span class="tech">(Trader money is stored with the trader. The respawn time comes from `GetRespawningTime` and is stored in `timetospawn`.)</span>
+- When several mods set the same setting, the newest call wins. Each mod keeps one factor for each setting. If a second mod sets a setting that another mod already set, one warning in the [log](../../guides/getting-started/logging.md) names both mods. `Clear(modId)` removes all of your mod's factors, and then the factor set before yours applies again.
+- Factors last for the session only, and a new [scene](../../glossary.md#scene) load clears them. They are not saved and do not touch the player's difficulty, settings or save. Set them again from your [`Events.SceneLoaded`](../../api-core/events.md) handler. `FactorsAvailable` is `false` when the difficulty setup failed in this build of the game. <span class="tech">(A Single scene load clears them. The feature group is `obenseuer.moddingframework.difficulty`.)</span>
+- Numbers the game worked out while your factor was in force are saved, even though the factor is not:
+  - A trader's money is worked out once, when it restocks.
+  - A respawn time is worked out when a spawner starts waiting.
+
+  A restock or a respawn timer that started under your factor keeps that result after `Clear` and after a save and load. <span class="tech">(Trader money is stored with the trader. The respawn time comes from `GetRespawningTime` and is stored in `timetospawn`.)</span>
 
 ## Limits
 
-- `Prices` and `RenovationSpeed` refuse a factor of 0. The game never lets prices be 0, and the renovation speed is something the game divides by.
+- `Prices` and `RenovationSpeed` refuse a factor of 0. The game never lets prices be 0, and the game divides by the renovation speed.
 - `StackSize` has no factor. The game reads it when an item is created, and a smaller stack would leave stacks that are already too big.
+
+**Common problems**
+
+- `SetFactor` gives back `false`: the mod id is invalid, the setting is unknown, or the factor is outside 0 to 4. A factor of 0 on `Prices` or `RenovationSpeed` is also refused. `FactorsAvailable` being `false` means the difficulty setup failed, and `SetFactor` then gives back `false` (see [If something fails to set up](details.md#if-something-fails-to-set-up)).
+- Your factor is gone after a new scene loads: a new scene load clears every factor. Set it again from your `Events.SceneLoaded` handler.
+- Another mod's factor is in force instead of yours: it set the same setting later, and the newest call wins. Look for the warning in the log that names both mods.
+- `Current()` does not show your factor: it never includes factors. Use `FactorOf` to see the factor in force.

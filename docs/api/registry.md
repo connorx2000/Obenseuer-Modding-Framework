@@ -8,13 +8,21 @@ nav_order: 12
 
 # Registry
 
+[`ItemRegistry`](registry/items.md) and [`RecipeRegistry`](registry/recipes.md) add new items to the game, and the recipes that make them. Use them when your mod brings its own food, tools or other items.
+
 Status: experimental.
 
 ## What it is
 
-The registry is how a mod adds its own food, tools and other items to the game, and the recipes that make them. You give each item or recipe a mod id and a key. The framework turns that pair into a number that never changes, copies the look and behaviour of an existing item or recipe (the template), and adds the copy to the game's lists when they load. It also handles custom icons, custom 3D models, and what happens to a save when a mod that added items is removed.
+Each item or recipe your mod adds gets a [mod id](../glossary.md#mod-id) (the id for your config, log, save data and keybinds) and a key. The framework then does three jobs:
 
-Warning: if a save holds items or recipes from a mod that is not installed, the items stay in the save as placeholders (see [Missing items](registry/missing-items.md#missing-items)), and the recipes stop working until the mod comes back. Keep the mod installed for that save, or clear its missing stacks with `ItemRegistry.RemoveMissingItems`.
+- It turns that pair into a number that never changes.
+- It copies the look and behaviour of an existing item or recipe, the [template](../glossary.md#template) (the existing item or recipe it copies).
+- It adds the copy to the game's lists when they load.
+
+It also handles custom icons and custom 3D models. It also covers what happens to a save when a mod that added items is removed.
+
+Warning: a save can hold items or recipes from a mod that is not installed. The items stay in the save as placeholders (see [Missing items](registry/missing-items.md#missing-items)). The recipes stop working until the mod comes back. Keep the mod installed for that save, or clear its missing stacks with `ItemRegistry.RemoveMissingItems`.
 
 On this page:
 
@@ -31,7 +39,9 @@ On this page:
 
 ## Quick example
 
-This mod adds "Spicy Sewer Jerky", a copy of Salted Pork, and a Stove recipe for it. The numbers 19990 (Salted Pork) and 10064 (the Fried rat recipe) are the templates it copies. This one is a BepInEx plugin, because items and recipes must be added while the game starts, in the plugin's `Awake` method, before the game loads its item list. See [Adding content](../guides/content.md) for the full walkthrough.
+This mod adds "Spicy Sewer Jerky", a copy of Salted Pork, and a Stove recipe for it. It copies two templates: item 19990 (Salted Pork) and recipe 10064 (the Fried rat recipe).
+
+Items and recipes must be added while the game starts, before the game loads its item list. So this mod is a [plugin](../glossary.md#plugin) for [BepInEx](../glossary.md#bepinex) (the mod loader), and it adds them in the plugin's `Awake` method. The full walkthrough is in [Adding content](../guides/content.md).
 
 ```csharp
 using System.Collections.Generic;
@@ -69,6 +79,9 @@ public class SpicyJerky : BaseUnityPlugin
 }
 ```
 
-`Awake` is the method BepInEx calls when it loads your plugin. `BepInDependency` makes BepInEx load the framework first. On BepInEx 5, write `"0.11.0"` instead of `">=0.11.0"`, because BepInEx 5 cannot read a version range, and drop `using BepInEx.Unity.Mono;` (see [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too)).
+`Awake` is the method BepInEx calls when it loads your plugin. `BepInDependency` makes BepInEx load the framework first. On BepInEx 5, make two changes (see [Supporting BepInEx 5 too](../guides/getting-started/packaging.md#supporting-bepinex-5-too)):
+
+- Write `"0.11.0"` instead of `">=0.11.0"`, because BepInEx 5 cannot read a version range.
+- Drop `using BepInEx.Unity.Mono;`.
 
 The item shows Salted Pork's icon and model. The recipe appears at a Stove and uses Rat Meat, Bell Pepper and Tablesalt, one each. `Define` returns -1 when it is refused, and throws an error for an invalid definition.

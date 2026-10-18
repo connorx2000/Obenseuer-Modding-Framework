@@ -7,12 +7,12 @@ nav_order: 4
 
 # Damage and breakdown intercepts
 
-An intercept lets your mod look at damage before the player takes it, and change it or cancel it. A breakdown is the game's mental-health breakdown, where the player may harm themselves, drink or take mushrooms. These calls are on `Survival`, and they are described here because they work on the player.
+An [intercept](../../glossary.md#interceptor) (a handler that runs before the game acts) lets your mod see, change or cancel damage before the player takes it. A breakdown is the game's mental-health breakdown, where the player may harm themselves, drink or take mushrooms. These calls are on [`Survival`](../../api-core/survival.md), and this page describes them because they work on the player.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Survival</code> <span>damage intercepts and the breakdown event</span></p>
 
-Use `InterceptDamage` to change or cancel damage before the player takes it, and subscribe to `Breakdown` to change or cancel a breakdown action the game is about to try.
+Use `InterceptDamage` to change or cancel damage before the player takes it. Subscribe to `Breakdown` to change or cancel a breakdown action the game is about to try.
 
 <div class="api-pair" markdown="1">
 
@@ -27,8 +27,8 @@ public static partial class Survival
 
 | Method | Returns | What it does |
 |---|---|---|
-| `InterceptDamage(modId, handler)` | `bool` | Adds your handler. Returns `false` when `IsAvailable` is `false`. |
-| `RemoveDamage(modId, handler)` | `bool` | Removes your handler. Returns `true` when it was removed. |
+| `InterceptDamage(modId, handler)` | `bool` | Adds your handler. `false` when `IsAvailable` is `false`. |
+| `RemoveDamage(modId, handler)` | `bool` | Removes your handler. `true` when it was removed. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -69,7 +69,7 @@ public sealed class DamageArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreakdownArgs</code> <span>a breakdown action the game is about to try</span></p>
 
-`Survival.Breakdown` hands you one of these for each action the game tries. `Kind` says which action is starting, and setting `Cancel` stops that action.
+`Survival.Breakdown` hands you one of these for each action the game tries. `Kind` says which action is starting. Setting `Cancel` stops that action.
 
 <div class="api-pair" markdown="1">
 
@@ -121,13 +121,13 @@ public enum BreakdownKind
 ### Damage intercepts
 
 - `InterceptDamage` runs your handler before the player takes the damage. <span class="tech">(It runs before the game's `PlayerStatsHealth.Damage` applies the amount.)</span>
-- Handlers run in the order they were added and share one `DamageArgs`, so a later handler sees the `Amount` that the earlier ones set.
+- Handlers run in the order they were added and share one `DamageArgs`. A later handler sees the `Amount` that the earlier ones set.
 - A handler that throws an error is logged to its mod's log, and the other handlers still run.
 - `RemoveDamage(modId, handler)` removes one handler of that mod, and `RemoveAll(modId)` removes all of them. Wrong arguments throw errors, the same as for the other `Survival` calls.
 - Adding the same handler again for the same mod does nothing and returns `true`. The handler keeps its first place and still runs once.
 - Handlers match by the delegate itself, so a new lambda that captures variables counts as a new handler. Keep the delegate in a field, so you can add it once and remove it later.
-- `Survival.OnCrossed` (same mod, stat, threshold and callback; `RemoveCrossed(modId, callback)` removes it) and `Survival.Consumables.Intercept` (`Consumables.Remove(modId, handler)` removes it) follow the same rules.
-- With several mods, handlers run in the order they were added, across mods. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect. `Amount` is the value the last handler wrote, and it is ignored when the damage is cancelled. `Consumables.Intercept` handlers run the same way.
+- `Survival.OnCrossed` follows the same rules (same mod, stat, threshold and callback; `RemoveCrossed(modId, callback)` removes it). So does `Survival.Consumables.Intercept` (`Consumables.Remove(modId, handler)` removes it).
+- With several mods, handlers run in the order they were added, across mods. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`. Setting it back to `false` has no effect. `Amount` is the value the last handler wrote, and it is ignored when the damage is cancelled. `Consumables.Intercept` handlers run the same way.
 - `Cancel` means the player takes no damage. There is then no sound, shake, death or `Damaged` event. An `Amount` that is not a real number, is infinite or is below 0 is treated as 0. <span class="tech">(The game returns at once for zero damage.)</span>
 - Only damage above 0 is intercepted. Damage of 0 or less passes through untouched. Handlers do not run while a save is loading or being written. A `PlayerState.Damage` call that you make from inside a handler is not intercepted again.
 - `Survival.Damaged` reports the loss after your change. A damage amount you made smaller or larger is reported at that new size.
@@ -135,16 +135,23 @@ public enum BreakdownKind
 
 ### Breakdowns
 
-- `Breakdown` fires each time the game tries a breakdown action, not once per breakdown. The game rolls a number, and the roll decides what it tries and in which order.
-- If the roll is above 99, it tries Suicide, then Alcohol, then SelfHarm. Above 60 and up to 99 it raises SelfHarm once, and cancelling it does nothing. Above 30 and up to 60 it tries Mushrooms, then Alcohol, then SelfHarm. At 30 or less it tries Alcohol, then SelfHarm. <span class="tech">(It is raised from `PlayerStatsMentalHealth.UpdateStats`.)</span>
-- Each cancel moves the game on to its next option, and the mood drop after the breakdown still applies.
+- `Breakdown` fires each time the game tries a breakdown action, not once per breakdown. The game rolls a number, and the roll decides what it tries and in which order. <span class="tech">(It is raised from `PlayerStatsMentalHealth.UpdateStats`.)</span>
+  - Above 99: it tries Suicide, then Alcohol, then SelfHarm.
+  - Above 60 and up to 99: it raises SelfHarm once, and cancelling it does nothing.
+  - Above 30 and up to 60: it tries Mushrooms, then Alcohol, then SelfHarm.
+  - At 30 or less: it tries Alcohol, then SelfHarm.
+- Each cancel moves the game on to its next option. The mood drop after the breakdown still applies.
 - A cancelled `Suicide` means no `Survival.PlayerDied`, because the death is skipped.
 - `Consumables.Consumed` still fires for mushroom and alcohol uses that are not cancelled.
 - With several `Breakdown` handlers, any `Cancel` wins, the same as for damage. `Breakdown` has no `modId`, so you remove your handler with `-=`.
-- The survival changes are split into six feature groups. Their names are `obenseuer.moddingframework.survival.consumables`, `.needs`, `.death`, `.damage`, `.breakdown` and `.depression`. A missing change turns off only its group. `Survival.IsAvailable` is `false` while any group is missing, but each member and event needs only the groups it uses, and `Get` and `Set` need none.
+- The survival changes are split into six [feature groups](../../glossary.md#feature-group) (named sets of framework changes). Their names are `obenseuer.moddingframework.survival.consumables`, `.needs`, `.death`, `.damage`, `.breakdown` and `.depression`. A missing change turns off only its group. `Survival.IsAvailable` is `false` while any group is missing. Each member and event needs only the groups it uses, and `Get` and `Set` need none.
 
 ## Limits
 
-- Some damage can't be intercepted, because the game does not use its normal damage call for it. These are the bleed tick and the negative regeneration branch, the direct death calls in the health code, the suicide from depression, the SMV death in the mushroom code, and the direct write in the mushroom code. <span class="tech">(The game does not call `PlayerStatsHealth.Damage` for them. They are in `PlayerStatsHealth`, `Depression.Suicide` and `PlayerStatsMushrooms`.)</span>
+- Some damage can't be intercepted, because the game does not use its normal damage call for it. These are the bleed tick and the negative regeneration branch, the direct death calls in the health code, and the suicide from depression. The SMV death in the mushroom code and the direct write in the mushroom code can't be intercepted either. <span class="tech">(The game does not call `PlayerStatsHealth.Damage` for them. They are in `PlayerStatsHealth`, `Depression.Suicide` and `PlayerStatsMushrooms`.)</span>
 - `Mushrooms` and `Alcohol` fire even when the player has none. The game makes this check before it looks in the inventory, so your handler can't tell an attempt from a real use. Cancelling returns `false`, the same as an empty inventory.
 - `Breakdown` does not fire while a save is loading or being written, or when the game's breakdown or depression part is missing.
+
+**Common problems**
+
+- A handler added as a new lambda that captures variables is not matched when you remove it: it counts as a new handler. Keep the delegate in a field, so you can add it once and remove it later.

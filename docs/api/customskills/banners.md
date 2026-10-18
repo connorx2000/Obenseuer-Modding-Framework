@@ -7,7 +7,7 @@ nav_order: 4
 
 # Banners
 
-The banner is the message that slides in when a skill goes up. `QueueBanner` lets you show your own text in it. The framework queues banners because the game can only show one at a time.
+The banner is the message that slides in when a skill goes up. [`QueueBanner`](skills.md) shows your own text in it. The framework queues banners because the game can only show one at a time.
 
 ## Things to know
 
@@ -19,7 +19,11 @@ The banner is the message that slides in when a skill goes up. `QueueBanner` let
 
 ## Limits
 
-- `QueueBanner` returns `false`, and queues nothing, in four cases. There are already 5 of your text banners waiting, a save is loading or being written, the skill feature was turned off, or the banner is not on screen to use. In the last case it also writes one line to the log.
+- `QueueBanner` returns `false`, and queues nothing, in four cases:
+  - There are already 5 of your text banners waiting.
+  - A save is loading or being written.
+  - The skill feature was turned off.
+  - The banner is not on screen to use. In this case it also writes one line to the [log](../../guides/getting-started/logging.md).
 - There is a limit on how many banners can wait. Skill banners and text banners have 5 places each, so one kind cannot push out the other. If a sixth skill banner is queued, the oldest waiting skill banner is dropped. A queued text banner is never dropped to make room, so `QueueBanner` returns `false` when 5 are already waiting. The game's own banners are never dropped. <span class="tech">(The limits are `CustomSkillsMath.BannerQueue.MaxCustom` (5, for skill banners from `Add`) and `MaxQueued` (5, for text banners from `QueueBanner`).)</span>
 - Waiting banners are dropped when a save loads.
 - If the banner cannot be found, your banners are dropped and the game's banners are left alone. The framework finds the banner's code once when it starts. If a game update moves it, custom banners are dropped and one line goes to the log. <span class="tech">(`ShowNotification` is found once by reflection and cached. When it is missing, the two game prefixes are not installed. When no banner UI is on screen, a banner is dropped and logged once.)</span>

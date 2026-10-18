@@ -7,9 +7,18 @@ nav_order: 8
 
 # Sleep events
 
+`SleepEvents` tells your mod about the random events the game can run while the player sleeps, and lets you cancel the roll for one sleep. Use it to react to those events or to keep a sleep free of them.
+
 ## What it is
 
-When the player sleeps, or passes out, the game can roll a random event while they are out: a thief steals something, they are beaten, the police take them away, they have a nightmare, and so on. This API lets your mod see which event the game ran, look at the events that could happen before the game rolls, cancel the roll for that sleep, and check whether an event is running. It also tells you what the game thinks about how safe the player's sleeping place is.
+When the player sleeps, or passes out, the game can roll a random event while they are out. A thief steals something, they are beaten, the police take them away, they have a nightmare, and so on. This API gives your mod these jobs:
+
+- See which event the game ran.
+- Look at the events that could happen, before the game rolls.
+- Cancel the roll for that sleep.
+- Check whether an event is running.
+
+It also tells you what the game thinks about how safe the player's sleeping place is.
 
 ## When to use it
 
@@ -19,7 +28,7 @@ When the player sleeps, or passes out, the game can roll a random event while th
 
 ## Quick example
 
-This mod cancels the random event for any sleep where the game could beat the player, and it logs every event that does happen. It cancels the whole roll, not just the beating.
+This mod cancels the random event for any sleep where the game could beat the player. It also writes a [log](../guides/getting-started/logging.md) line for every event that does happen. It cancels the whole roll, not only the beating.
 
 ```csharp
 using ObenseuerCore;
@@ -39,7 +48,7 @@ public sealed class SafeSleep : FrameworkMod
 }
 ```
 
-`Intercept` and `Occurred` are events: the framework calls your code each time they happen. `Intercept` happens just before the game picks a random event, and `Occurred` happens just after the game runs one.
+`Intercept` and `Occurred` are events: the framework calls your code each time they happen. `Intercept` is an [interceptor](../glossary.md#interceptor) (a handler that can stop the game). It happens right before the game picks a random event. `Occurred` happens right after the game runs one. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -83,7 +92,7 @@ These read the game's current state. They never change anything.
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the state of sleep</span></p>
 
-This is the class to start from. `InProgress`, `PlayerInSafeArea` and `SafetyFactor` read the game's sleep state, and the `Occurred` and `Intercept` events below are where you hear about a sleep event or act on its roll.
+Start here. `InProgress`, `PlayerInSafeArea` and `SafetyFactor` read the game's sleep state. The `Occurred` and `Intercept` events below tell you about a sleep event or let you act on its roll.
 
 <div class="api-pair" markdown="1">
 
@@ -144,7 +153,7 @@ public enum SleepEventKind
 | Value | Meaning |
 |---|---|
 | `None` | Nothing happens. |
-| `Wakeup` | The player simply wakes up. |
+| `Wakeup` | The player only wakes up. |
 | `StealRandomItems` | A thief takes some of the player's items, picked at random. |
 | `StealMoney` | A thief takes some OC and some RM. |
 | `StealOS` | A thief takes some OC. |
@@ -156,7 +165,7 @@ public enum SleepEventKind
 | `Quarantine` | The game names it but does nothing for it. |
 | `CoveredWithJunk` | Junk items are added to the player's inventory. |
 | `InfectSMV` | The player's mushroom infection (SMV) gets worse and hygiene drops. |
-| `GetCaughtFromCrime` | The player is caught for a crime: stolen goods are removed, and prison follows if the player's crimes call for an arrest. |
+| `GetCaughtFromCrime` | The player is caught for a crime. Stolen goods are removed, and prison follows if the player's crimes call for an arrest. |
 | `Nightmare` | Scary sounds play, and the player may wake up early. |
 | `CrazyNeighbor` | A crazy neighbour may take things, add junk, infect the player or make them dirty. |
 | `Invoice` | A bill is added to the player's inventory. |
@@ -166,12 +175,12 @@ public enum SleepEventKind
 
 ### Knowing what happened
 
-`Occurred` tells you which event the game just ran.
+`Occurred` tells you which event the game has run.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the event that ran</span></p>
 
-The `Occurred` event tells you which sleep event the game just ran, through its `Kind`.
+The `Occurred` event tells you which sleep event the game has run, through its `Kind`.
 
 <div class="api-pair" markdown="1">
 
@@ -184,7 +193,7 @@ public static class SleepEvents
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Occurred` | `SleepEventOccurredArgs` | The game has just run a sleep event. |
+| `Occurred` | `SleepEventOccurredArgs` | The game has run a sleep event. |
 
 </div>
 </div>
@@ -192,7 +201,7 @@ public static class SleepEvents
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEventOccurredArgs</code> <span>what the Occurred event tells you</span></p>
 
-The `Occurred` event gives you one of these. `Kind` is the event the game just ran.
+The `Occurred` event gives you one of these. `Kind` is the event the game has run.
 
 <div class="api-pair" markdown="1">
 
@@ -205,7 +214,7 @@ public sealed class SleepEventOccurredArgs
 
 | Property | Type | What it means |
 |---|---|---|
-| `Kind` | `SleepEventKind` | The event the game just ran. |
+| `Kind` | `SleepEventKind` | The event the game has run. |
 
 </div>
 </div>
@@ -217,7 +226,7 @@ public sealed class SleepEventOccurredArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEvents</code> <span>the roll before it happens</span></p>
 
-The `Intercept` event fires just before the game rolls a random event for a sleep, and lets you cancel that roll.
+The `Intercept` event fires right before the game rolls a random event for a sleep. It lets you cancel that roll.
 
 <div class="api-pair" markdown="1">
 
@@ -238,7 +247,7 @@ public static class SleepEvents
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SleepEventInterceptArgs</code> <span>what the Intercept event tells you</span></p>
 
-The `Intercept` event gives you one of these. Set `Cancel` to `true` to stop the random event for this sleep, and read `Candidates` to see what the game could have rolled.
+The `Intercept` event gives you one of these. Read `Candidates` to see what the game could roll. Set `Cancel` to `true` to stop the random event for this sleep.
 
 <div class="api-pair" markdown="1">
 
@@ -261,13 +270,13 @@ public sealed class SleepEventInterceptArgs
 ### Things to know
 
 - `InProgress` is `true` while a sleep event is playing out, and also while the thief or prank sound is playing. So it can be `true` for an event that only played a sound. It is `false` on the main menu, while a save is loading, and with no save loaded. <span class="tech">(It reads `SleepEventController.eventInProgress`. That flag is set while a sleep event runs a coroutine (arrest, get caught, nightmare, crazy neighbour) and while the steal or prank sound coroutine plays.)</span>
-- `SafetyFactor` is a number that says how safe the player's sleeping place is, where `1` is fully safe. In a safe area it is `1`. Outside one the game's sleep prompt says "Unsafe" below 0.5 and "Safeish" from 0.5 up. It is `0` when the game has no sleep controller yet, or when the level's logic object is missing and the player is not in a safe area. <span class="tech">(It is `SleepEventController.playerSafetyFactor`, the same value the game's own getter returns. The level's logic object is `info_game_logic`.)</span>
+- `SafetyFactor` is a number that says how safe the player's sleeping place is, where `1` is fully safe. In a safe area it is `1`. Outside one, the game's sleep prompt says "Unsafe" below 0.5 and "Safeish" from 0.5 up. It is `0` when the game has no sleep controller yet. It is also `0` when the level's logic object is missing and the player is not in a safe area. <span class="tech">(It is `SleepEventController.playerSafetyFactor`, the same value the game's own getter returns. The level's logic object is `info_game_logic`.)</span>
 - A bed can make a sleep safe by its own setting, so `PlayerInSafeArea` being `false` does not mean the bed is unsafe. `PlayerInSafeArea` is `false` when the game has no sleep controller yet.
-- The kinds follow the game's own list in the same order. The framework turns one into the other by its number. <span class="tech">(The values follow `SleepEventController.SleepEvents`.)</span>
-- `StealOS` takes a random 1 to 33 percent of the player's OC (Open Sewer Coins), `StealRM` takes the same share of their RM (Real Money), and `StealMoney` takes from both. See [OC](../glossary.md#oc) and [RM](../glossary.md#rm).
+- The kinds follow the game's own list, in the same order. The framework turns one into the other by its number. <span class="tech">(The values follow `SleepEventController.SleepEvents`.)</span>
+- `StealOS` takes a random 1 to 33 percent of the player's [OC](../glossary.md#oc) (Open Sewer Coins). `StealRM` takes the same share of their [RM](../glossary.md#rm) (Real Money), and `StealMoney` takes from both.
 - `Occurred` fires right after the game has started the event. For events that play out over time, the effect has only begun when you are told. For example, an arrest is still on its way when `Occurred` fires.
 - `Occurred` also fires for an event that finds nothing to do. A `Steal` when the player has nothing to take still raises it, because the game still runs the event. <span class="tech">(It is raised after `SleepEventController.ExecuteEvent` returns. `ExecuteEvent` runs only from the sleep timer (`WaitingController.CheckEvent`, called by `PlayerStatsTiredness`).)</span>
-- `Intercept` fires just before the game picks a random event, when a sleep starts. That includes a passout. It also fires when the player is in a safe area or `Candidates` is empty, even though the game rolls no event in those cases. <span class="tech">(It is raised from a prefix on `SleepEventController.CalculateEvent`, which runs only when a sleep or passout starts, not from save-restore code.)</span>
+- `Intercept` fires right before the game picks a random event, when a sleep starts. That includes a passout. It also fires when the player is in a safe area or `Candidates` is empty, even though the game rolls no event in those cases. <span class="tech">(It is raised from a prefix on `SleepEventController.CalculateEvent`, which runs only when a sleep or passout starts, not from save-restore code.)</span>
 - Setting `Cancel` to `true` makes the game roll no random event for that sleep. The sleep goes on as if the roll had found nothing. The check for a crime arrest that happens after the roll is not affected.
 - If several mods listen, any `Cancel` wins. Once one handler sets it, the later handlers still run and see `Cancel` as `true`. Setting it back to `false` does nothing.
 - `Candidates` is a copy. Changing the list does not change what the game rolls.
@@ -282,9 +291,16 @@ public sealed class SleepEventInterceptArgs
 - You can't change how safe the player's place is. The safety number and the safe-area flag can only be read, not changed.
 - You can't cancel a crime arrest after sleep.
 
+**Common problems**
+
+- Changing `Candidates` does not change the roll: the list is a copy. Set `Cancel` to `true` to stop the whole roll instead.
+- Setting `Cancel` back to `false` does not bring the roll back: once any handler sets it, that `Cancel` wins.
+- The player is still arrested after you cancelled the roll: the crime arrest check after the roll is not affected by `Cancel`, and a crime arrest after sleep can't be cancelled.
+- `PlayerInSafeArea` is `true` after the player has left the safe area: it is the last value a safe-area trigger gave the game, and the game does not clear it when the player leaves.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.sleepevents.log`. Source files: `src/Api/SleepEvents.cs` and `src/Api/SleepEventsPatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -297,6 +313,10 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-The framework changes two of the game's methods when it starts, so it can tell your mod about sleep events. If a game update breaks one of them, only that feature turns off, and the framework writes error lines and a warning to the log. The rest of the framework keeps working. This page has two feature groups.
+The framework changes two of the game's methods when it starts, so it can tell your mod about sleep events. If a game update breaks one of them, only that feature turns off. The framework then writes error lines and a warning to the log. The rest of the framework keeps working. This page has two [feature groups](../glossary.md#feature-group) (named sets of the framework's changes).
 
 - `Occurred` uses the feature group `obenseuer.moddingframework.sleepevents`, and `Intercept` uses `obenseuer.moddingframework.sleepevents.intercept`. If the method behind one cannot be changed, only that group is turned off and only its event stops. The other event keeps firing, and `IsAvailable` is `false`. `InProgress`, `PlayerInSafeArea` and `SafetyFactor` keep working, because they read the game's state directly. <span class="tech">(The changed methods are `SleepEventController.ExecuteEvent` (a postfix, which runs after the original) and `SleepEventController.CalculateEvent` (a prefix, which runs before it). If an install throws, both groups are turned off.)</span>
+
+**Common problems**
+
+- `Occurred` or `Intercept` never fires and `IsAvailable` is `false`: the game method behind that event could not be changed, so its feature group is turned off. If an install throws, both groups are turned off. Look for the error lines and the warning in the feature group's log in `BepInEx\logs`. The other event keeps firing, and `InProgress`, `PlayerInSafeArea` and `SafetyFactor` keep working.

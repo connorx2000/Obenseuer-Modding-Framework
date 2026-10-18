@@ -7,11 +7,11 @@ nav_order: 4
 
 # Changing prices
 
-`SetPriceFactors` and `ClearPriceFactors` scale one trader's prices.
+`SetPriceFactors` and `ClearPriceFactors` scale one trader's prices. Use them to make a trader more expensive or cheaper for a while.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>scales one trader's prices</span></p>
-Use `SetPriceFactors` to scale one trader's prices, and `ClearPriceFactors` to remove your mod's scale.
+`SetPriceFactors` scales one trader's prices. `ClearPriceFactors` removes your mod's scale.
 
 <div class="api-pair" markdown="1">
 
@@ -25,7 +25,7 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetPriceFactors(modId, shopId, buy, sell)` | `bool` | Scales one trader's prices. Returns `true` when set. |
+| `SetPriceFactors(modId, shopId, buy, sell)` | `bool` | Scales one trader's prices. `true` when set. |
 | `ClearPriceFactors(modId, shopId)` | `bool` | Removes your factors from one trader. |
 
 </div>
@@ -33,12 +33,18 @@ public static class Traders
 
 ## Things to know
 
-- A price factor scales a trader's prices. `buy` scales what the player pays when buying from the trader. `sell` scales what the player gets when selling to the trader. A factor of 1.25 means 25 percent more. A factor must be above 0 and at most 4.
-- Each mod has its own factors, and all mods' factors are multiplied together. `TraderInfo.BuyFactor` and `SellFactor` show the result.
-- Factors apply everywhere the game and the framework show or charge a price. That is the game's own trade screen, `Shops.PriceOf`, `Shops.Stock`, the `Shops.PriceQuery` event, and `Traders.Buy` and `Traders.Sell`.
-- Price factors are not saved, and every normal level load clears them. Set them again from an `Events.SceneLoaded` handler, as the quick example does. `SetPriceFactors` and `ClearPriceFactors` also work inside `Events.SceneLoaded` and while a save is loading or being written. <span class="tech">(every Single scene load clears them)</span>
+- A price factor scales a trader's prices. `buy` scales what the player pays when buying from the trader. `sell` scales what the player gets when selling to the trader.
+- A factor of 1.25 means 25 percent more. A factor must be above 0 and at most 4.
+- Each mod has its own factors, and all mods' factors are multiplied together. [`TraderInfo.BuyFactor`](reading-a-trader.md) and `SellFactor` show the result.
+- Factors apply everywhere the game and the framework show or charge a price. That is the game's own trade screen, [`Shops.PriceOf`](../economy/shops.md), `Shops.Stock`, the `Shops.PriceQuery` event, and `Traders.Buy` and `Traders.Sell`.
+- Price factors are not saved, and every normal level load clears them. Set them again from an `Events.SceneLoaded` handler, as the [quick example](../traders.md#quick-example) does. `SetPriceFactors` and `ClearPriceFactors` also work inside `Events.SceneLoaded` and while a save is loading or being written. <span class="tech">(every Single scene load clears them)</span>
 - `PriceFactorsAvailable` is `false` when price factors don't work. Then `SetPriceFactors` returns `false`. <span class="tech">(it is true when the price hook (`Trade.GetItemStackPrice`) is installed)</span>
 
 ## Limits
 
-- A price never goes below 1 OC for each unit (or the same amount in RM). That is the game's own lowest price, so a factor or a `Shops.PriceQuery` handler can't make an item free.
+- A price never goes below 1 [OC](../../glossary.md#oc) (Open Sewer Coins) for each unit, or the same amount in [RM](../../glossary.md#rm) (Real Money). That is the game's own lowest price, so a factor or a `Shops.PriceQuery` handler can't make an item free.
+
+**Common problems**
+
+- Your price factors are gone after a level loads: every normal level load clears them. Set them again from an `Events.SceneLoaded` handler.
+- `SetPriceFactors` returns `false`: `PriceFactorsAvailable` is `false`, or one of the write refusals listed under [What to check for and what comes back](details.md#what-to-check-for-and-what-comes-back) applies.

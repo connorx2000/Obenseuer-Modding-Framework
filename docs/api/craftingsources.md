@@ -7,6 +7,8 @@ nav_order: 1
 
 # Crafting sources
 
+`CraftingSources` lets your mod give crafting stations extra containers to take ingredients from, such as a chest standing next to the station. Use it for a storage mod or a container your mod adds to the world.
+
 This page uses `Vector3`, `Transform` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -25,7 +27,7 @@ A storage mod is the usual case: with it, a station can use the items in a chest
 
 ## Quick example
 
-This mod lets every crafting station use the containers within 6 metres of it. It keeps a list of the containers in the scene and refreshes it whenever a scene loads. The provider function only reads that list, so it stays cheap.
+This mod lets every crafting station use the containers within 6 metres of it. It keeps a list of the containers in the [scene](../glossary.md#scene) and refreshes it whenever a scene loads. The provider function only reads that list, so it stays cheap.
 
 ```csharp
 using System.Collections.Generic;
@@ -62,7 +64,7 @@ public sealed class NearbyStorage : FrameworkMod
 }
 ```
 
-This example offers every container in range. A real mod would pick only the containers it wants to offer. `Storage` is the game's class for a container with item slots. `Mod.Id` is your mod's id (see the [glossary](../glossary.md#mod-id)). `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+This example offers every container in range. A real mod would pick only the containers it wants to offer. `Storage` is the game's class for a container with item slots. `Mod.Id` is your mod's id (see the [glossary](../glossary.md#mod-id)). [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -90,7 +92,7 @@ Text in brackets at the end of a note is extra detail you can skip on a first re
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingSources</code> <span>adding and removing your containers</span></p>
 
-Call `Register` with your mod id and a function that gives the containers near a station, and `Unregister` to remove it.
+Call `Register` with your [mod id](../glossary.md#mod-id) and a function that gives the containers near a station, and `Unregister` to remove it.
 
 <div class="api-pair" markdown="1">
 
@@ -104,8 +106,8 @@ public static class CraftingSources
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Register(modId, provider)` | `bool` | Adds your function. It is `true` when it was added. |
-| `Unregister(modId)` | `bool` | Removes your function. It is `false` when your mod had none. |
+| `Register(modId, provider)` | `bool` | Adds your function. `true` when it was added. |
+| `Unregister(modId)` | `bool` | Removes your function. `false` when your mod had none. |
 
 </div>
 </div>
@@ -116,9 +118,9 @@ public static class CraftingSources
 - Your function returns the containers near that station. Use `CraftingStationInfo.Position` to find them, and `CraftingStationInfo.Id` names the station. <span class="tech">(`CraftingStationInfo.Id` is the station's GUID.)</span>
 - Registering again with the same mod id replaces your function. It keeps its place in the order.
 - `Unregister` removes your function. It returns `false` when your mod had none.
-- A station looks in its own slots first, then in your containers. If several mods register, their containers come next, one mod after the other, in the order the mods registered and in the order each function returns them.
+- A station looks in its own slots first, then in your containers. If several mods register, their containers come next, one mod after the other. The order is the order the mods registered, and within one mod the order its function returns them.
 - A container is counted once, even if it is returned twice. That holds whether one function returns it twice or two functions both return it. The station's own input and output containers are never counted as extra.
-- Your containers are used wherever a station decides what it can make. That means the list of recipes the station shows as craftable, the "how many can I make" count used by the grow amount and the process amount, and the decision to start a craft. The craft itself takes its ingredients from the same containers the check counted. <span class="tech">(Crafting covers `Craft`, `StartProcess`, `StartGrow` and `OpenLid`.)</span>
+- Your containers are used wherever a station decides what it can make. That means the list of recipes the station shows as craftable, and the decision to start a craft. It also means the "how many can I make" count used by the grow amount and the process amount. The craft itself takes its ingredients from the same containers the check counted. <span class="tech">(Crafting covers `Craft`, `StartProcess`, `StartGrow` and `OpenLid`.)</span>
 - A craft that the containers can no longer support is refused before anything is taken. If the start check fails, the station refuses without a message and refreshes its recipe list. If the containers change after the start check, the craft stops with an `InvalidOperationException` before any item is removed.
 - Items are taken from the real containers. After a craft takes from one of your containers, the framework refreshes that container's slots so they show the change.
 - Keep your function cheap, because it runs often. A station's recipe list makes one check for every recipe, so your function can run dozens of times when the list is rebuilt. Return containers you already know. Do not search the whole scene inside it.
@@ -127,21 +129,27 @@ public static class CraftingSources
 
 ### Limits
 
-- `Register` returns `false` when the framework could not set up crafting. Then no function is used at all. It throws an `ArgumentException` for a mod id that is not valid (1 to 64 letters, digits, `.`, `_` or `-`), and an `ArgumentNullException` for a null function.
+- `Register` returns `false` when the framework could not set up crafting. Then no function is used at all. It throws an `ArgumentException` for a mod id that is not valid (1 to 64 letters, digits, `.`, `_` or `-`). It throws an `ArgumentNullException` for a null function.
 - Two things do not use your containers. The ingredient ticks in the recipe info panel only look at the station's own slots. The dishwasher never uses extra containers. <span class="tech">(`Dishwasher` is skipped on purpose. The invoice payment machine is not affected either, because it is not one of the crafting station classes this API changes (`manufacturing`, `manufacturingProcess`, `Growing`).)</span>
-- While a save is loading or being written, your containers are not used. The station then uses only its own slots, as the game does without the framework. <span class="tech">(This is `SaveData.Busy`.)</span>
-- Your function is skipped for one call if it throws an error or returns `null`. The error is logged once under your mod id, and the other functions still run.
+- While a [save](../guides/getting-started/save-data.md) is loading or being written, your containers are not used. The station then uses only its own slots, as the game does without the framework. <span class="tech">(This is `SaveData.Busy`.)</span>
+- Your function is skipped for one call if it throws an error or returns `null`. The error is [logged](../guides/getting-started/logging.md) once under your mod id, and the other functions still run.
 - The recipe list can be out of date while the station panel is open. It refreshes when the station's own slots change, when the panel opens, and after each craft. A change in one of your containers while the panel is open does not refresh it. The start check still refuses a craft that is no longer possible and refreshes the list at that point.
 - A craft that starts a timed process can fail after its start outputs have fired. The game triggers the process's start outputs after the start check and before it takes the items. If those outputs empty or change your containers, the take check refuses after the outputs have fired, and nothing is taken. The framework can't check earlier without changing those outputs. <span class="tech">(This is `manufacturingProcess.StartProcess`.)</span>
 
+**Common problems**
+
+- `Register` returns `false`: the framework could not set up crafting, and no function is used. See If something fails to set up, below.
+- A station ignores your containers while a save loads or saves: that is expected. The station uses only its own slots until the save is done.
+- Your containers are skipped for a call, and the log has one error under your mod id: your function threw an error or returned `null` for that call. The other functions still run.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Files: `src/Api/CraftingSources.cs`, `src/Api/CraftingSourcesPatches.cs`, `src/Api/CraftingSourcesSelfTest.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-The framework changes some of the game's methods when it starts, so a station can use your containers. All of those changes belong to one feature group, `obenseuer.moddingframework.craftingsources`, the name you will see in the log. Errors from your own function are logged under your mod id.
+The framework changes some of the game's methods when it starts, so a station can use your containers. All of those changes belong to one [feature group](../glossary.md#feature-group), `obenseuer.moddingframework.craftingsources`, the name you will see in the log. Errors from your own function are logged under your mod id.
 
 ### When you can call it
 
@@ -149,6 +157,6 @@ The framework changes some of the game's methods when it starts, so a station ca
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the feature group that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the crafting changes can't be set up, `Register` returns `false` and no function is used. The feature group `obenseuer.moddingframework.craftingsources` turns off and error lines and a warning go to the log. <span class="tech">(The game methods involved are `CraftingBase.CompareRecipeToItems`, `CountItems`, `RemoveItems` and `UpdateSlots`, plus `manufacturing.Craft`, `manufacturingProcess.StartProcess` and `Growing.StartGrow`.)</span>

@@ -11,7 +11,7 @@ nav_order: 7
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldTime</code> <span>the time in the game, in one read</span></p>
-`WorldClock.Now` gives you one of these, with the year, month, day, weekday, hour and minute in one read.
+`WorldClock.Now` gives you one of these: the year, month, day, weekday, hour and minute together.
 
 <div class="api-pair" markdown="1">
 
@@ -43,7 +43,7 @@ public struct WorldTime
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldClock</code> <span>read the calendar, set the time and date</span></p>
-Use `Now` to read the time, `SetTimeOfDay` to set the hour and minute, and `SetDate` to set the date.
+`Now` reads the time, `SetTimeOfDay` sets the hour and minute, and `SetDate` sets the date.
 
 <div class="api-pair" markdown="1">
 
@@ -80,20 +80,24 @@ public static class WorldClock
 ## Things to know
 
 - `WorldTime` is a read-only snapshot. `Now` fills it from the same calls as the separate reads, so it equals reading them one by one. When `IsAvailable` is `false`, `Now` is all zero (`Weekday` is `Sunday`). <span class="tech">(`Day` is `GameTime.Day`, `Weekday` is `GameTime.DayOfWeek`, `Hour` and `Minute` are `GameTime.Hour` and `GameTime.Minute`.)</span>
-- `WorldClock` has no minute event. `TimeControl.MinutePassed` fires once for each game minute, and `Events.HourPassed` once for each game hour.
-- Use `GameTime` to read the time of day and the day counter. `WorldClock` adds the calendar reads and the two setters that `GameTime` does not have.
-- `SetTimeOfDay` only moves the clock forward. The minute is placed in the middle of its minute so it reads back as that minute. <span class="tech">(It calls the game's `TimeOfDayAzure.SetTimeline`, which takes hours from 0 to 24.)</span>
+- `WorldClock` has no minute event. [`TimeControl.MinutePassed`](../timecontrol/clock-speed-timers-and-the-minute-event.md) fires once for each game minute, and [`Events.HourPassed`](../../api-core/events.md) once for each game hour.
+- Use [`GameTime`](../../api-core/gametime.md) to read the time of day and the day counter. `WorldClock` adds the calendar reads and the two setters that `GameTime` does not have.
+- `SetTimeOfDay` only moves the clock forward. The minute is placed in the middle of its minute, so it reads back as that minute. <span class="tech">(It calls the game's `TimeOfDayAzure.SetTimeline`, which takes hours from 0 to 24.)</span>
 - `SetTimeOfDay` returns `false` when the time is earlier than the game's current time, seconds included, because the game does not move the day back. Use a later time, or wait for the next day. It also returns `false` while a save is loading or being written, and when the game's timeline value cannot be read.
-- Moving the clock backwards with the game's own calls makes the game think midnight passed, and it then advances its timers by the difference it sees. `SetTimeOfDay` refuses an earlier time, so it never does this. <span class="tech">(The calls are `TimeOfDayAzure.SetTimeline` and the developer console.)</span>
-- `SetDate` sets the calendar date only. It throws an `ArgumentException` for a year outside 1 to 9999, a month outside 1 to 12, or a day outside 3 to the last day of the month. It works forwards and backwards. <span class="tech">(It calls the game's `TimeOfDayAzure.SetDate`, the call the game itself makes on a save load. The game's calendar throws on year 0 and clamps a bad day.)</span>
-- `SetDate` changes nothing but the calendar. The time of day, the game's day counter (`GameTime.Day`) and every timer stay as they are, and it raises no `Events.DayPassed`.
-- Things that depend on the weekday or the day of the month react at the next minute. The weekday follows the date. NPC schedules, rent day (Sunday), and the weekly, biweekly and monthly subscription, invoice and bank payment checks all notice the new date. A low day of the month can make a payment come due. The date is saved with the game. <span class="tech">(`PlayerSubscription.CheckDateAndTrigger` compares the day of the month with the days since its last check.)</span>
+- Moving the clock backwards with the game's own calls makes the game think midnight passed. It then advances its timers by the difference it sees. `SetTimeOfDay` refuses an earlier time, so it never does this. <span class="tech">(The calls are `TimeOfDayAzure.SetTimeline` and the developer console.)</span>
+- `SetDate` sets the calendar date only. It works forwards and backwards. It throws an `ArgumentException` for a value out of range. The ranges are year 1 to 9999, month 1 to 12, and day 3 to the last day of the month. <span class="tech">(It calls the game's `TimeOfDayAzure.SetDate`, the call the game itself makes on a save load. The game's calendar throws on year 0 and clamps a bad day.)</span>
+- `SetDate` changes nothing but the calendar. The time of day, the game's day counter (`GameTime.Day`) and every timer stay as they are. It raises no `Events.DayPassed`.
+- Things that depend on the weekday or the day of the month react at the next minute. The weekday follows the date. [NPC schedules](../npc-schedules.md), rent day (Sunday), and the weekly, biweekly and monthly subscription, invoice and bank payment checks all notice the new date. A low day of the month can make a payment come due. The date is saved with the game. <span class="tech">(`PlayerSubscription.CheckDateAndTrigger` compares the day of the month with the days since its last check.)</span>
 - Setting the time does not fire `Events.HourPassed` or `Events.DayPassed` by itself. Those follow the game's own clock.
-- `GameTime.IsDaytime` is the game's own rule for day. Day is the hours 6 to 20, so 6:00 to 20:59. The game's plants use the same rule. The answer depends on the hour alone, not on the sun's position, and it can lag `GameTime.Hour` slightly. <span class="tech">(It is `TimeOfDayAzure.IsItDay`. It reads the cached `currentTimeAndDay`, which is refreshed once per in-game minute and not while time updates are disabled.)</span>
+- `GameTime.IsDaytime` is the game's own rule for day. Day is the hours 6 to 20, so 6:00 to 20:59. The game's plants use the same rule. The answer depends on the hour alone, not on the sun's position. It can lag `GameTime.Hour` slightly. <span class="tech">(It is `TimeOfDayAzure.IsItDay`. It reads the cached `currentTimeAndDay`, which is refreshed once per in-game minute and not while time updates are disabled.)</span>
 
 ## Limits
 
-- `SetDate` returns `false` in some cases: while a save is loading or being written, when the clock is not available, and while the game has time updates off, which is just after a scene starts. A date set then would be taken for a new day.
+- `SetDate` returns `false` while a save is loading or being written, and when the clock is not available. It also returns `false` while the game has time updates off, which is right after a scene starts. A date set then would be taken for a new day.
 - Days 1 and 2 of a month can't be set. The game never holds those days: when a day change lands on day 1, the game moves the date to day 3. So the date checks that compare the day of the month with a stored one have never run on those days. <span class="tech">(`TimeOfDayAzure.IncreaseDayCounter` does the move. The checks are in `PlayerSubscription`.)</span>
 - Timers, perishables, mail and crops do not follow the calendar date. They use the game's day counter, the hour and the minute, which `SetDate` does not touch.
 - You can't set the game's day counter. The game has no setter for it, only a call that adds a day and fires the day event. <span class="tech">(`dayCounter` has only `IncreaseDayCounter`.)</span>
+
+**Common problems**
+
+- `SetTimeOfDay` returns `false`: the time is earlier than the game's current time, seconds included. Use a later time, or wait for the next day. It also returns `false` while a save is loading or being written, or when the game's timeline value cannot be read.

@@ -7,13 +7,13 @@ nav_order: 2
 
 # Reading a trader
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you for reading a trader. Text in brackets at the end of a note is extra detail for experienced modders; you can skip it on a first read.
 
 `Traders.Get(shopId)` gives a `TraderInfo`, a snapshot of one trader at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>reads and checks traders</span></p>
-Use `Get` to read one trader by its shop id.
+`Get` reads one trader by its shop id.
 
 <div class="api-pair" markdown="1">
 
@@ -62,9 +62,9 @@ public sealed class TraderInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The trader's shop id. |
-| `Open` | `bool` | `true` when the trader is open. You can only read this. |
+| `Open` | `bool` | `true` when the trader is open. Read-only. |
 | `Money` | `float` | How much money the trader has to pay the player with. |
-| `Currency` | `MoneyCurrency` | The currency that money is in, OC or RM. |
+| `Currency` | `MoneyCurrency` | The currency of that money, OC or RM. |
 | `BuyFactor` | `float` | All mods' buy price factors multiplied together. `1` when none. |
 | `SellFactor` | `float` | All mods' sell price factors multiplied together. `1` when none. |
 | `BuysStolen` | `bool` | `true` when the trader buys stolen goods. |
@@ -76,10 +76,10 @@ public sealed class TraderInfo
 
 ## Things to know
 
-- A trader is found by its shop id, the same id that `Shops.All()` and `Shops.Stock` use. <span class="tech">(it is the `GUID` of the `Trade`; `Get` gives `null` for an empty or unknown id, and when `IsAvailable` is `false`)</span>
-- `Money` is in the trader's own currency, which is OC or RM. OC is Open Sewer Coins and RM is Real Money (see the [glossary](../../glossary.md#oc)).
-- You can only read `Open`. The game opens and closes a trader by the clock, and it would undo anything your mod set, so there is no way to set it. <span class="tech">(the game sets `Trade.open` from the trader's opening hours every in-game minute when `autoOpenClose` is on; the game's own buy and sell checks do not read it. See [Shop hours](../shophours.md) to read the opening times)</span>
-- `BuysStolen`, `AllowedCategories` and `ForbiddenCategories` say what the trader will take from the player. `Sell` follows them.
+- A trader is found by its shop id, the same id that [`Shops.All()`](../economy/shops.md) and `Shops.Stock` use. <span class="tech">(it is the `GUID` of the `Trade`; `Get` gives `null` for an empty or unknown id, and when `IsAvailable` is `false`)</span>
+- `Money` is in the trader's own currency, which is OC or RM. [OC](../../glossary.md#oc) is Open Sewer Coins and [RM](../../glossary.md#rm) is Real Money.
+- `Open` is read-only. The game opens and closes a trader by the clock. It would undo anything your mod set, so there is no way to set it. <span class="tech">(the game sets `Trade.open` from the trader's opening hours every in-game minute when `autoOpenClose` is on; the game's own buy and sell checks do not read it. See [Shop hours](../shophours.md) to read the opening times)</span>
+- `BuysStolen`, `AllowedCategories` and `ForbiddenCategories` say what the trader will take from the player. [`Sell`](buying-from-and-selling-to-a-trader.md) follows them.
 
 ## Limits
 

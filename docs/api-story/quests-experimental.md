@@ -7,7 +7,7 @@ nav_order: 3
 
 # Quests (experimental)
 
-The game gives the player tasks, and each task has steps, called objectives. `Quests` lets your mod list them, check how far the player is, move a task or a step on, and add progress to a step that counts things (for example "collect 5 cans"). It tells you when a task or step changes.
+The game gives the player tasks, and each task has steps, called objectives. `Quests` lets your mod list them, check how far the player is, and move a task or a step on. It can add progress to a step that counts things (for example "collect 5 cans"), and it tells you when a task or step changes.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Quests</code> <span>list, check and move tasks and steps</span></p>
@@ -46,8 +46,8 @@ public static class Quests
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `TaskChanged` | `TaskChangedArgs` | A task started or changed state. `args.TaskId` and `args.State` tell you which, and to what. |
-| `ObjectiveChanged` | `ObjectiveChangedArgs` | A step started or changed state. `args.TaskId`, `args.ObjectiveId` and `args.State` tell you which, and to what. |
+| `TaskChanged` | `TaskChangedArgs` | A task started or changed state. `args.TaskId` says which task, and `args.State` says what state it has now. |
+| `ObjectiveChanged` | `ObjectiveChangedArgs` | A step started or changed state. `args.TaskId` and `args.ObjectiveId` say which step, and `args.State` says what state it has now. |
 
 </div>
 </div>
@@ -72,7 +72,7 @@ public sealed class QuestInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The task's id (see Ids below). |
+| `Id` | `string` | The task's id. The section Ids, below, says where it comes from. |
 | `Title` | `string` | The task's name. |
 | `Description` | `string` | The text the player reads. |
 | `State` | `TaskState` | Where the task is. |
@@ -103,7 +103,7 @@ public sealed class ObjectiveInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The step's id (see Ids below). |
+| `Id` | `string` | The step's id. The section Ids, below, says where it comes from. |
 | `Title` | `string` | The step's name. |
 | `Description` | `string` | The text the player reads. |
 | `State` | `ObjectiveState` | Where the step is. |
@@ -144,7 +144,7 @@ public enum TaskState
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ObjectiveState</code> <span>where one step of a task is</span></p>
 
-`ObjectiveInfo.State` holds this. `SetObjective` accepts `Failed`, `Finished` and `Abandoned`, and the game sets `Hidden`.
+`ObjectiveInfo.State` holds this. `SetObjective` accepts `Failed`, `Finished` and `Abandoned`. The game sets `Hidden`.
 
 <div class="api-pair" markdown="1">
 
@@ -172,7 +172,7 @@ public enum ObjectiveState
 
 ## Putting it together
 
-Logs a line each time a task changes, then closes a step. The ids here are placeholders, so on a real save the call returns `false` and nothing changes. Use ids from the game.
+This mod [logs](../guides/getting-started/logging.md) a line each time a task changes. Once a save is loaded ([`Events.WhenReady`](../api/core-helpers/events-whenready.md)), it closes a step. The ids here are placeholders, so on a real save the call returns `false` and nothing changes. Use ids from the game.
 
 <div class="api-example" markdown="1">
 
@@ -208,31 +208,43 @@ public sealed class QuestWatch : FrameworkMod
 
 ### Ids
 
-- A task id is the game's own id for the task. It is the task's `id` field. If that is empty it is the task's addressable asset path, and if that is empty too it is the task's title. A step id works the same way. `QuestInfo.Id` and `ObjectiveInfo.Id` give you these values. <span class="tech">(They are `TaskInfo.Id` and `TaskObjective.Id`.)</span>
-- An id must match exactly one task (or one step). If it matches none or several, the call is refused. A task whose title is the same as another task's title is refused as well, because the game treats such tasks as the same task. <span class="tech">(The game compares tasks with `TaskInfo.Compare`.)</span>
+- A task id is the game's own id for the task: its `id` field. If that is empty, the id is the task's addressable asset path. If that is empty too, it is the task's title. A step id works the same way. `QuestInfo.Id` and `ObjectiveInfo.Id` give you these values. <span class="tech">(They are `TaskInfo.Id` and `TaskObjective.Id`.)</span>
+- An id must match exactly one task (or one step). If it matches none or several, the call is refused. A task with the same title as another task is refused as well, because the game treats such tasks as the same task. <span class="tech">(The game compares tasks with `TaskInfo.Compare`.)</span>
 
 ### Reading
 
-- `All()` lists every task the player has started, including finished and failed ones. It never calls the game's own lookup that finishes a step as a side effect, so reading cannot change the player's progress. <span class="tech">(It never calls `GetTaskAndObjective`, which finishes the objective it looks up.)</span>
+- `All()` lists every task the player has started, including finished and failed ones. Reading cannot change the player's progress: it never calls the game's own lookup that finishes a step as a side effect. <span class="tech">(It never calls `GetTaskAndObjective`, which finishes the objective it looks up.)</span>
 - `Get(taskId)` returns `null` for an empty, unknown or ambiguous id, and when the API is not available.
 - `Reached(taskId, objectiveId)` is `true` when the player has got to that step. That means the game recorded the step as active, failed or abandoned, or as finished with its completion requirements met. The record stays after the step closes. It is `false` for an empty id, an unknown id, and when the API is not available.
-- `Reached` does not check that the ids point to one task and one step. It reads the game's own record, which stores the pair as `taskId + "_" + objectiveId`, so ids that contain `_` can collide. Avoid `_` in ids you choose yourself.
+- `Reached` does not check that the ids point to one task and one step. It reads the game's own record, which stores the pair as `taskId + "_" + objectiveId`. Ids that contain `_` can therefore collide. Avoid `_` in ids you choose yourself.
 
 ### Changing
 
 - `SetTask(taskId, state)` closes a task. It accepts `Failed`, `Finished` and `Abandoned`, and the task must be active. It returns `true` when the task has the new state after the call.
-- `SetTask(taskId, Finished)` does not run the task's rewards or start the tasks that follow it. It only marks the task finished and moves it to the finished list. Each step that is still active is marked abandoned, and the game then runs those steps' own "abandoned" follow-ups. <span class="tech">(The game's `TaskController.EditTaskStatus` only changes the task's status and moves it to the finished list. Its follow-ups for an abandoned step are the objective's abandon actions.)</span>
+- `SetTask(taskId, Finished)` does not run the task's rewards or start the tasks that follow it. It only marks the task finished and moves it to the finished list. Each step that is still active is marked abandoned. The game then runs those steps' own "abandoned" follow-ups. <span class="tech">(The game's `TaskController.EditTaskStatus` only changes the task's status and moves it to the finished list. Its follow-ups for an abandoned step are the objective's abandon actions.)</span>
 - `SetObjective(taskId, objectiveId, state)` closes a step. It accepts `Failed`, `Finished` and `Abandoned`, and the step must be active. `Finished` also needs the game's completion requirements for that step to pass. It returns `true` when the step has the new state after the call.
-- `AddProgress(taskId, objectiveId, amount)` adds to a step's counter. `amount` must be above 0, and the step must be active and have a counter. The amount is cut to the room left on the counter, so the counter never goes past its target. When the add reaches the target, the step completes through the game, unless it is set not to complete by its counter. In that case its completion requirements must pass first, or the call returns `false` and changes nothing. It returns `true` when the counter or the status changed.
+- `AddProgress(taskId, objectiveId, amount)` adds to a step's counter. `amount` must be above 0, and the step must be active and have a counter. The amount is cut to the room left on the counter, so the counter never goes past its target. It returns `true` when the counter or the status changed.
+- When an `AddProgress` call reaches the target, the step completes through the game, unless the step is set not to complete by its counter. In that case its completion requirements must pass first, or the call returns `false` and changes nothing.
 - Your event handlers run after the game's change has finished, so they may call writers.
 
 ### Events
 
-- `TaskChanged` fires when a new task starts (`Active`), or a task moves to `Failed`, `Finished` or `Abandoned`. The same goes for `ObjectiveChanged` and steps: it fires when a step starts (`Active`) or its state changes.
+- `TaskChanged` fires when a new task starts (`Active`), or a task moves to `Failed`, `Finished` or `Abandoned`. `ObjectiveChanged` does the same for steps: it fires when a step starts (`Active`) or its state changes.
 - Events come in the order the game made the changes, the nested ones first. For a new task with a step, `ObjectiveChanged(Active)` comes before `TaskChanged(Active)`. A task closed by `SetTask` raises one `TaskChanged` with the closed state. A task that is created and closed in one game call raises only the closing event.
 - An event carries the state at the moment of the change. Call `Get` to see the state now.
 
 ## Limits
 
-- Writers are refused while the game is itself changing a task. If you call a writer from inside one of the game's own task changes, including one made from another mod's patch, you get `false`. It is logged once as "called while a quest hook is running" (the log's name for a task change the game is making). <span class="tech">(The game calls are `EditTask`, `EditTaskStatus` and `EditTaskObjective`.)</span>
+- Writers are refused while the game is itself changing a task. If you call a writer from inside one of the game's own task changes, you get `false`. That includes a change made from another mod's [patch](../guides/getting-started/patching.md). The refusal is logged once as "called while a quest hook is running", the log's name for a task change the game is making. <span class="tech">(The game calls are `EditTask`, `EditTaskStatus` and `EditTaskObjective`.)</span>
 - Writers also need the task panel and the notifications to exist. The game uses them when a task starts. <span class="tech">(They need `TaskPanel.instance` and `Notifications.instance`.)</span>
+
+**Common problems**
+
+- `SetTask`, `SetObjective` or `AddProgress` returns `false` and nothing changes: the ids are placeholders, or they do not match exactly one task (or one step). Use the ids the game gives you in `QuestInfo.Id` and `ObjectiveInfo.Id`. Other causes are listed below:
+  - The task's title is the same as another task's title.
+  - The state is not `Failed`, `Finished` or `Abandoned`, or the task or step is not active.
+  - `SetObjective` with `Finished`: the step's completion requirements do not pass.
+  - `AddProgress`: `amount` is 0 or less, or the step has no counter. When the add reaches the target of a step set not to complete by its counter, its completion requirements must pass.
+  - The task panel or the notifications do not exist.
+  - The call came from inside one of the game's own task changes (see the next bullet).
+- A writer returns `false` and the log says "called while a quest hook is running": you called it from inside one of the game's own task changes. Call it from an event handler instead. Handlers run after the change has finished.

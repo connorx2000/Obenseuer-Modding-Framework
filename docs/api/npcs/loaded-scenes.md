@@ -7,15 +7,15 @@ nav_order: 3
 
 # NPCs in the loaded scenes
 
+`Npcs.InScene()` finds every NPC object in the loaded [scenes](../../glossary.md#scene). Use it for NPCs that `Npcs.All()` does not list, or to see which NPCs are really there.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-`Npcs.InScene()` finds every NPC object in loaded scenes.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Npcs</code> <span>the scene search</span></p>
 
-Use `InScene()` to find every NPC object in the loaded scenes, including the ones the game has no record of.
+`InScene()` finds every NPC object in the loaded scenes, including the ones the game has no record of.
 
 <div class="api-pair" markdown="1">
 
@@ -36,7 +36,7 @@ public static class Npcs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneNpcInfo</code> <span>one NPC object</span></p>
 
-`Npcs.InScene()` gives you one of these for each NPC object, whether it is switched on or off. Use `Present` to see whether the NPC is really there, and `IsDirector` to see whether `Npcs.All()` lists it too.
+`Npcs.InScene()` gives you one of these for each NPC object, whether it is switched on or off. `Present` tells you whether the NPC is really there. `IsDirector` tells you whether [`Npcs.All()`](finding-npcs.md) lists it too.
 
 <div class="api-pair" markdown="1">
 
@@ -61,20 +61,20 @@ public sealed class SceneNpcInfo
 | `Scene` | `string` | The scene the object is in. |
 | `Path` | `string` | Where the object is in its scene, like `Root/Child`. |
 | `Handle` | `string` | A name that is kept across sessions. |
-| `IsDirector` | `bool` | It is `true` when `All()` lists the NPC. |
-| `Id` | `int` | The character number, or `-1` if there is none. |
+| `IsDirector` | `bool` | `true` when `All()` lists the NPC. |
+| `Id` | `int` | The character number. `-1` if there is none. |
 | `Name` | `string` | The first name, or the object's name if there is none. |
-| `DisplayName` | `string` | The full name, or `null` if there is none. |
+| `DisplayName` | `string` | The full name. `null` if there is none. |
 | `Position` | `Vector3` | The position when `InScene()` ran. |
-| `Active` | `bool` | It is `true` when the object is switched on. |
-| `Present` | `bool` | It is `true` when the NPC is really there, even if it is switched off. |
+| `Active` | `bool` | `true` when the object is switched on. |
+| `Present` | `bool` | `true` when the NPC is really there, even if it is switched off. |
 
 </div>
 </div>
 
 ## Putting it together
 
-Logs NPCs with no game record and counts those really present.
+This mod logs the NPCs that have no game record, and counts the NPCs that are really present.
 
 <div class="api-example" markdown="1">
 
@@ -103,16 +103,16 @@ public sealed class SceneNpcs : FrameworkMod
 
 | Step | What it does |
 |---|---|
-| `Npcs.InScene()` | Searches loaded scenes once. |
-| `npc.IsDirector` | It is `false` when the NPC has no record. |
+| `Npcs.InScene()` | Searches the loaded scenes once. |
+| `npc.IsDirector` | `false` when the NPC has no record. |
 
 </div>
 
 ## Things to know
 
-- `InScene()` is slow; call it on an event or timer.
+- `InScene()` is slow. Call it on an event or a timer.
 - NPCs with no record appear here but not in `All()`. Objects with no NPC component appear in neither.
-- The game switches off NPCs beyond 20 metres or off camera; they still count as `Present` unless they are sent away.
+- The game switches off NPCs beyond 20 metres or off camera. They still count as `Present` unless they are sent away.
 
 ## Limits
 

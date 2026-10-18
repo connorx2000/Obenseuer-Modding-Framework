@@ -7,7 +7,9 @@ nav_order: 11
 
 # Recycling
 
-The bottle recycling machine takes bottles and cans from the player and owes them coins for it. The player collects the coins from the machine's screen. This API lists the machines in the scene you are in, reads and changes how many OC (Open Sewer Coins) a machine owes the player, and tells your mod when the player returns bottles. It does not hand the coins out. See the limits below.
+`Recycling` covers the bottle recycling machines in the [scene](../glossary.md#scene) you are in. It lists the machines and reads or changes how many [OC](../glossary.md#oc) (Open Sewer Coins) a machine owes the player. It also tells your mod when the player returns bottles.
+
+The bottle recycling machine takes bottles and cans from the player and owes them coins for it. The player collects the coins from the machine's screen. This API does not hand the coins out. The Limits part, below, says why.
 
 ## When to use it
 
@@ -17,7 +19,7 @@ The bottle recycling machine takes bottles and cans from the player and owes the
 
 ## Quick example
 
-This mod logs each bottle return: how many items the player returned and how many OC that added to what the machine owes.
+This mod [logs](../guides/getting-started/logging.md) each bottle return: how many items the player returned, and how many OC that added to what the machine owes.
 
 ```csharp
 using ObenseuerCore;
@@ -66,7 +68,7 @@ This is the full list of what the API gives you. A machine is named by an id, a 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Recycling</code> <span>recycling machines in the scene</span></p>
 
-Use it to list the machines in the scene, read and set what a machine owes the player, and hear when bottles are returned.
+Lists the machines in the scene, reads and sets what a machine owes the player, and tells you when bottles are returned.
 
 <div class="api-pair" markdown="1">
 
@@ -101,7 +103,7 @@ public static class Recycling
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RecycledArgs</code> <span>one bottle return</span></p>
 
-`Recycling.Recycled` hands you one of these for each return the machine accepts. `Money` is the OC that return really added, and `Amount` is the number of items.
+`Recycling.Recycled` hands you one of these for each return the machine accepts. `Money` is the OC that return really added. `Amount` is the number of items.
 
 <div class="api-pair" markdown="1">
 
@@ -125,10 +127,10 @@ public sealed class RecycledArgs
 
 ### Things to know
 
-- The id is the machine's saved name, or its place in the scene when it has none. The place looks like `SceneName:Root[0]/Child[2]` and changes if objects in the scene are reordered. <span class="tech">(It is the object's `GUID` when it has one, otherwise the scene path.)</span>
-- `All()` lists the machines in the scene you are in, and it is slow, so do not call it every frame. It searches the scene each time. A machine that is switched off in the scene is not listed. An empty list means there are none, or that something went wrong. <span class="tech">(It lists the scene id of every active `BottleRecycling` with `FindObjectsByType`. A machine with no id is skipped.)</span>
+- The id is the machine's saved name, or its place in the scene when it has none. The place looks like `SceneName:Root[0]/Child[2]`. It changes if objects in the scene are reordered. <span class="tech">(It is the object's `GUID` when it has one, otherwise the scene path.)</span>
+- `All()` lists the machines in the scene you are in. It is slow, so do not call it every frame: it searches the scene each time. A machine that is switched off in the scene is not listed. An empty list means there are none, or that something went wrong. <span class="tech">(It lists the scene id of every active `BottleRecycling` with `FindObjectsByType`. A machine with no id is skipped.)</span>
 - `Owed(id)` is the OC the player can still collect from that machine. It gives `-1` when no machine has that id or no save is loaded. <span class="tech">(It reads `BottleRecycling.bottleRecyclingMoney`.)</span>
-- `SetOwed(id, owed)` sets that amount directly. A negative amount returns `false` and changes nothing. It also returns `false` when no machine has that id, and while a save is loading or being written.
+- `SetOwed(id, owed)` sets that amount directly. A negative amount returns `false` and changes nothing. It also returns `false` when no machine has that id, and while a [save](../guides/getting-started/save-data.md) is loading or being written.
 - Otherwise `SetOwed` returns `true`. It does not pay out anything and does not make the machine's screen show a payout. <span class="tech">(It writes `bottleRecyclingMoney`. The panel adds to this field when bottles are returned and pays it out one OC at a time, so a change made here is used the next time the panel counts. `SetOwed` does not fire the machine's `onGiveMoney` relay, which belongs to the payout.)</span>
 - `Recycled` fires once for each return the machine accepts. `Amount` is how many items were in that return. `Money` is how many OC the return really added. A mushroom return, which the game gives a random value, reports the value the game actually added. <span class="tech">(It is raised after the game has added the value to `bottleRecyclingMoney`. `Money` is the change in that field across the game's call.)</span>
 - `Recycled` does not fire when the machine refuses an item, and it does not fire when your mod calls `SetOwed`. A save loading or being written does not raise it either.
@@ -137,13 +139,19 @@ public sealed class RecycledArgs
 
 ### Limits
 
-- You can't make a machine pay out. The game only pays out while the machine's screen is open, and a mod can't open that screen without opening the game menu. To change what the player gets, use `Owed` and `SetOwed`. <span class="tech">(`BottleRecyclingPanel.GiveCoins` is public, but it pays through `StartGiveMoney`, which reads the panel's `currentBottleRecycling` field. The game sets that field only in `Open`, which also opens the game menu, and clears it in `Close`. The game never sets it by itself with the menu closed.)</span>
+- You can't make a machine pay out. The game only pays out while the machine's screen is open. A mod can't open that screen without opening the game menu. To change what the player gets, use `Owed` and `SetOwed`. <span class="tech">(`BottleRecyclingPanel.GiveCoins` is public, but it pays through `StartGiveMoney`, which reads the panel's `currentBottleRecycling` field. The game sets that field only in `Open`, which also opens the game menu, and clears it in `Close`. The game never sets it by itself with the menu closed.)</span>
 - You can't read or change what each kind of bottle is worth. `Recycled` tells you what the game added, and that is all. <span class="tech">(The panel's category table in `BottleAdd` has no framework call to read or change it.)</span>
-- You can't trigger the machine's payout relay. <span class="tech">(The framework has no call for the machine's `onGiveMoney` relay.)</span>
+- You can't trigger the machine's payout [relay](../glossary.md#relay). <span class="tech">(The framework has no call for the machine's `onGiveMoney` relay.)</span>
+
+**Common problems**
+
+- `Owed` returns `-1`: no machine has that id, or no save is loaded. Take the id from `Recycling.All()`.
+- `SetOwed` returns `false`: the amount is negative, no machine has that id, or a save is loading or being written.
+- `Recycled` never fires and `IsAvailable` is `false`: the framework could not set up the event, or the feature group was turned off. The Details section, below, explains this.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.recycling.log`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -161,6 +169,6 @@ The framework changes one game method when it starts, so it can tell your mod wh
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework does three things. It removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, and turns the group off. It also writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the framework cannot change the game's bottle return step, `Recycled` stops and the rest keeps working. One warning goes to the log, and `IsAvailable` becomes `false`. <span class="tech">(The framework adds a prefix and a postfix to `BottleRecyclingPanel.BottleAdd`, the private method the panel runs for each returned item.)</span>

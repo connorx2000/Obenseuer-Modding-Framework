@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`Mailboxes`](reading-mailboxes.md): log the count each box shows, take the player's waiting mail, and look up one box by its id.
+
 Log the mail count each box shows.
 
 ```csharp
@@ -14,7 +16,7 @@ foreach (MailboxInfo box in Mailboxes.All())
     Log.Info(box.Id + " (" + box.Mode + "): " + box.Count);
 ```
 
-Take the player's waiting mail. This works on a receive box and gives the player everything in their inbox.
+Take the player's waiting mail. This works on a receive box and gives the player everything in their inbox. `TakeMail` returns `true` when the inbox is empty afterwards.
 
 ```csharp
 foreach (MailboxInfo box in Mailboxes.All())

@@ -8,6 +8,8 @@ nav_order: 7
 
 # NPC appearance
 
+[`NpcAppearance`](npcappearance/meshes-and-materials.md) changes how a character standing in the [scene](../glossary.md#scene) looks, and undoes those changes again. Use it when your mod needs to hide a part, swap a material or reshape an [NPC](npcs.md).
+
 This page uses `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,14 @@ Status: experimental. Every member on this page is experimental.
 
 ## What it is
 
-This API changes how a character who is standing in the scene looks. You can switch a part of the body or clothing on or off, swap the materials (the surface looks) of a part, set the body and face sliders of a character built from sliders, or set the blend shapes of a character with a baked look. Every change is tied to your mod id. `Restore` and `Clear` put the character back the way it was.
+This API changes how a character who is standing in the [scene](../glossary.md#scene) looks. It can:
+
+- switch a part of the body or clothing on or off;
+- swap the materials (the surface looks) of a part;
+- set the body and face sliders of a character built from sliders;
+- set the blend shapes (settings that bend a part) of a character with a baked look.
+
+Every change is tied to your [mod id](../glossary.md#mod-id) (the id for your config, log, save data and keybinds). `Restore` and `Clear` put the character back the way it was.
 
 ## When to use it
 
@@ -26,7 +35,7 @@ This API changes how a character who is standing in the scene looks. You can swi
 
 ## Quick example
 
-This mod waits until a save is loaded. Then it logs the body parts and the kind of body of the first character it finds in the scene.
+This mod waits until a save is loaded. Then it writes the body parts and the kind of body of the first character it finds in the scene to the [log](../guides/getting-started/logging.md).
 
 ```csharp
 using ObenseuerCore;

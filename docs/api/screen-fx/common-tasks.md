@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual screen effects. Calls that take `Mod.Id` hold the effect for your mod as its [owner](../../glossary.md#owner) (the mod id that holds a change).
+
 Shake the camera for half a second. The second number is how far the camera moves each frame, in world units.
 
 ```csharp
@@ -20,14 +22,14 @@ ScreenFx.FadeToBlack(Mod.Id, 0.1f);
 ScreenFx.FadeIn(Mod.Id, 0.1f);
 ```
 
-Tint the edges of the screen red, and clear it later.
+Tint the edges of the screen red, and clear the tint later.
 
 ```csharp
 ScreenFx.Vignette(Mod.Id, new Color(0.8f, 0f, 0f, 1f), 0.6f);
 ScreenFx.ClearVignette(Mod.Id);
 ```
 
-Blur the picture, and clear it later.
+Blur the picture, and clear the blur later.
 
 ```csharp
 ScreenFx.Blur(Mod.Id, 0.5f);

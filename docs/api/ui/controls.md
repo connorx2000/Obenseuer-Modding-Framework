@@ -7,10 +7,12 @@ nav_order: 4
 
 # Controls
 
+`ModUi` builds the kit's controls in any area you give it, not only in a window. The controls that you can change later give you an object, and you call `Set` on it. `Set` never calls your change code back.
+
 This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-You build controls with `ModUi`, by giving it the area to put the control in. The control can be built in any area, not only in a window. The controls that you can change later give you an object, and you call `Set` on it. `Set` never calls your change code back.
+The [UI and HTML views guide](../../guides/ui.md) uses these controls in its examples.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModUi</code> <span>builds the controls</span></p>
@@ -46,7 +48,7 @@ public static class ModUi
 | `Title(parent, text)` | `TextMeshProUGUI` | Adds a heading. |
 | `Text(parent, text, muted)` | `TextMeshProUGUI` | Adds a line of text. `muted` makes it dim. |
 | `Card(parent, title)` | `RectTransform` | Adds a titled panel. |
-| `Scroll(parent)` | `RectTransform` | Adds a scrolling area. It gives you its content area. |
+| `Scroll(parent)` | `RectTransform` | Adds a scrolling area and gives you its content area. |
 | `Button(parent, text, style, onClick)` | `UnityEngine.UI.Button` | Adds a button. |
 | `Slider(parent, text, min, max, value, onChange, decimals)` | `ModSlider` | Adds a slider. |
 | `Toggle(parent, text, value, onChange)` | `ModToggle` | Adds an on and off switch. |
@@ -56,7 +58,7 @@ public static class ModUi
 | `Swatches(parent, colors, index, onChange)` | `ModSwatches` | Adds a row of colour chips. |
 | `Tabs(parent, names, onSelect)` | `ModTabs` | Adds a tab bar with a page for each tab. |
 | `Segmented(parent, names, index, onSelect)` | `ModSegmented` | Adds a row of equal choices. |
-| `ModelPreview(parent, target, framing)` | `ModelPreview` | Adds a 3D view of a model. |
+| `ModelPreview(parent, target, framing)` | `ModelPreview` | Adds a 3D view of a model. See [The model preview](the-model-preview.md). |
 | `Place(rect, anchorMin, anchorMax, offsetMin, offsetMax)` | `void` | Sets where a control sits. |
 | `Stack(parent)` | `RectTransform` | Adds an area that stacks its children top to bottom. |
 | `Row(parent)` | `RectTransform` | Adds an area that lines its children up side by side. |
@@ -104,7 +106,7 @@ public sealed class ModSlider
 
 | Property | Type | What it means |
 |---|---|---|
-| `Rect` | `RectTransform` | The control's area, to place it yourself. |
+| `Rect` | `RectTransform` | The control's area, for placing it yourself. |
 
 | Method | Returns | What it does |
 |---|---|---|
@@ -311,7 +313,7 @@ public enum PreviewFraming
 
 ## Things to know
 
-- `ModUi` finds out which mod a control belongs to by looking up from its parent: first a `ModWindow`, then the desk or full-screen app that hosts it. If there is none, the framework's main log is used.
+- `ModUi` finds out which mod a control belongs to by looking up from its parent. It looks first for a [`ModWindow`](windows.md), then for the desk or full-screen app that hosts it. If there is none, the framework's main log is used.
 - If your code for a control throws an error under a window, the window closes with the reason `Fault`. Anywhere else the error is logged, and the rest of the screen keeps working.
 - Build the controls once and keep what they give you.
 - `Slider`, `Toggle`, `Stepper`, `TextField` and `KeyBinding` put a label on the left and the control on the right of a row. The row is 52 pixels tall.
@@ -321,3 +323,7 @@ public enum PreviewFraming
 - `Card` is a titled panel. `Card(parent, null)`, or an empty title, builds a panel with no title. It adds its own size fitter only when its parent has no layout group.
 - `Stack` and `Row` give an area with the kit's usual padding and gap, for you to fill. `Scroll` gives the content area of a scroll page.
 - Clicking a button, a segment, a tab, a stepper, a toggle's label or a colour chip does not leave it selected. This stops Enter and Space from repeating the click. <span class="tech">(These controls clear the EventSystem selection when they are clicked and have their navigation set to none.)</span>
+
+**Common problems**
+
+- The window closes when the player uses a control: your code for that control threw an error, and the window closed with the reason `Fault`. The error is in the log of the mod that owns the control, as `ui callback failed: ...` (see [Details](details.md)).

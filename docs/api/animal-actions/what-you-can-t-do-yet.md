@@ -7,4 +7,6 @@ nav_order: 4
 
 # What you can't do (yet)
 
-- You can't make an animal follow the player. See the note under "Tame and wild" above.
+One thing the [Animal actions](../animal-actions.md) API does not offer yet.
+
+- You can't make an animal follow the player. See the note on [Tame and wild](tame-and-wild.md).

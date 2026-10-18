@@ -8,9 +8,19 @@ nav_order: 4
 
 # Economy
 
+The Economy API covers money in the game: the wallet, shops, prices, banks, mail, player shops and legal services. Use it when your mod pays, charges or reacts to the player's spending.
+
 ## What it is
 
-This page covers everything about money in the game. The player has two kinds of money: OC (Open Sewer Coins, the everyday coins) and RM (Real Money). See the [glossary](../glossary.md#oc). A mod can read and change the wallet, watch shops and vending machines, set prices, work with bank accounts and loans, send and read mail, run the player's own shops, and queue legal services.
+The player has two kinds of money: [OC](../glossary.md#oc) (Open Sewer Coins, the everyday coins) and [RM](../glossary.md#rm) (Real Money). A mod can do these jobs:
+
+- Read and change the wallet.
+- Watch shops and vending machines.
+- Set prices.
+- Work with bank accounts and loans.
+- Send and read mail.
+- Run the player's own shops.
+- Queue legal services.
 
 ## When to use it
 
@@ -22,7 +32,7 @@ This page covers everything about money in the game. The player has two kinds of
 
 ## Quick example
 
-This mod waits until a save is loaded, then logs the wallet. After that it logs every change to either balance, whatever caused it (a shop, the bank, a reward from another mod).
+This mod waits until a save is loaded, then writes the wallet to the [log](../guides/getting-started/logging.md). After that it logs every change to either balance, whatever caused it (a shop, the bank, a reward from another mod).
 
 ```csharp
 using ObenseuerCore;
@@ -44,4 +54,4 @@ public sealed class WalletWatch : FrameworkMod
 }
 ```
 
-`Cash.Oc` is the OC balance as a whole number and `Cash.Rm` is the RM balance. `MoneyChanged` is an event: the framework calls your code each time it happens, once for each currency whose balance changed. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+[`Cash.Oc`](economy/money-cash.md) is the OC balance as a whole number. `Cash.Rm` is the RM balance. `MoneyChanged` is an event: the framework calls your code each time it happens, once for each currency whose balance changed. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

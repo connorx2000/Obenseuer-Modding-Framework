@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short examples for the usual jobs with [`FurnitureRegistry`](defining-furniture.md): wall placement, blueprints, flatpacks, mail and loot.
+
 Make the furniture mount on the wall instead of standing on the floor.
 
 ```csharp
@@ -17,7 +19,7 @@ shelf.Placement = FurniturePlacement.Wall;
 string shelfId = FurnitureRegistry.Define(Mod.Id, "shelf", shelf);
 ```
 
-Teach the player the blueprint for your furniture. The blueprint needs 2 planks (item 35010) and 4 nails (item 35050), and it must be defined while your mod loads.
+Teach the player the [blueprint](../../glossary.md#blueprint) (a crafting plan for mod furniture) for your furniture. This blueprint needs 2 planks (item 35010) and 4 nails (item 35050). It must be defined while your mod loads.
 
 ```csharp
 string furnitureId = FurnitureRegistry.IdFor(Mod.Id, "table");
@@ -28,7 +30,7 @@ FurnitureRegistry.DefineBlueprint(furnitureId, blueprint);
 FurnitureRegistry.GiveBlueprint(furnitureId);
 ```
 
-Give the player two flatpacks of your furniture.
+Give the player two [flatpacks](../../glossary.md#flatpack) (the packed form of mod furniture) of your furniture.
 
 ```csharp
 string furnitureId = FurnitureRegistry.IdFor(Mod.Id, "table");
@@ -36,14 +38,14 @@ bool given = FurnitureRegistry.GiveFlatpack(furnitureId, 2);
 Log.Info("Flatpacks given: " + given);
 ```
 
-Mail the player the blueprint as a letter.
+Send the player the blueprint as a letter by [mail](../economy/mail.md).
 
 ```csharp
 string furnitureId = FurnitureRegistry.IdFor(Mod.Id, "table");
 FurnitureRegistry.MailBlueprint(furnitureId, "Oak Table plans", MailKind.Letter);
 ```
 
-Make flatpacks of your furniture turn up where the game rolls loot from the "Toolbox" category.
+Make flatpacks of your furniture turn up where the game rolls [loot](../loot/how-picking-works.md) from the "Toolbox" category. The rules for this call are on [World spawning](world-spawning.md).
 
 ```csharp
 string furnitureId = FurnitureRegistry.IdFor(Mod.Id, "table");

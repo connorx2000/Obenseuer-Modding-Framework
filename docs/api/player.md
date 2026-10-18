@@ -8,6 +8,8 @@ nav_order: 6
 
 # Player
 
+The Player API lets your mod read and change the player character, and react to what happens to them. Use it to heal, hurt, reward or move the player, or to show a message when their state changes.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,9 +17,18 @@ Status: experimental.
 
 ## What it is
 
-The player is you in the game: a character with health, hunger, thirst and tiredness, who sleeps, waits, learns skills, gets drunk, holds subscriptions and travels between places. This part of the framework lets a mod read that state and change some of it. It also tells the mod when things happen, such as the player waking up, gaining a skill level or starting a status effect.
+The player is you in the game. It is a character with health, hunger, thirst and tiredness. The player sleeps, waits, learns skills, gets drunk, holds subscriptions and travels between places. This part of the framework lets a mod read that state and change some of it. It also tells the mod when things happen, such as the player waking up, gaining a skill level or starting a status effect.
 
-It covers the player's state (health, position, sleeping and waiting, god mode), the places where the player can wait, the time picker of a bed, damage intercepts, skills, status effects, subscriptions, fast travel and the camera. Most calls read or change the live game, so they are refused while a save is loading or being written. In that case they give back a harmless default, so a mod can call them at any time.
+It covers these parts:
+
+- The player's state: health, position, sleeping and waiting, god mode.
+- The places where the player can wait.
+- The time picker of a bed.
+- Damage intercepts.
+- Skills, status effects and subscriptions.
+- Fast travel and the camera.
+
+Most calls read or change the live game, so they are refused while a save is loading or being written. A refused call gives back a harmless default, so a mod can call them at any time.
 
 On this page:
 
@@ -46,7 +57,7 @@ On this page:
 
 ## Quick example
 
-This heals the player by 20 when you press F8, and writes a log line whenever any skill goes up. The skill event also fires for gains the game itself makes. Healing is gradual: the game adds the health back over a short time, not at once.
+This mod heals the player by 20 when you press F8. It also writes a [log](../guides/getting-started/logging.md) line whenever any skill goes up, including gains the game makes itself. Healing is gradual: the game adds the health back over a short time, not at once.
 
 ```csharp
 using ObenseuerCore;
@@ -77,4 +88,4 @@ public sealed class PlayerBasics : FrameworkMod
 }
 ```
 
-`PlayerState.Heal` returns `false` when there is no living player or a save is loading or being written, so the line is only logged when the heal was accepted. See [Your first mod](../guides/getting-started/first-mod.md) for how to build and run a mod like this.
+[`PlayerState.Heal`](player/playerstate.md) returns `false` when there is no living player or a save is loading or being written. The line is therefore only logged when the heal was accepted. [`Skills.SkillIncreased`](player/skills.md) is the event behind the skill line. See [Your first mod](../guides/getting-started/first-mod.md) for how to build and run a mod like this.

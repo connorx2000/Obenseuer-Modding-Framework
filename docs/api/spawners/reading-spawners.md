@@ -7,6 +7,8 @@ nav_order: 2
 
 # Reading spawners
 
+`Spawners.All()` and `Spawners.Get(id)` find the spawners in the [scene](../../glossary.md#scene) you are in, and `SpawnerInfo` tells you how each one respawns. This page lists those calls, the `SpawnerInfo` properties and the wait-time presets.
+
 This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 Each spawner is a `SpawnerInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
@@ -14,7 +16,7 @@ Each spawner is a `SpawnerInfo`, a snapshot of its state at the moment you asked
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>find spawners in the scene</span></p>
 
-This is the class to start from. `All()` and `Get(id)` give you the spawners in the scene you are in, as `SpawnerInfo` values.
+Start here. `All()` and `Get(id)` give you the spawners in the scene you are in, as `SpawnerInfo` values.
 
 <div class="api-pair" markdown="1">
 
@@ -42,7 +44,7 @@ public static class Spawners
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SpawnerInfo</code> <span>a snapshot of one spawner</span></p>
 
-`All()` and `Get(id)` give you one of these. Pass its `Id` to the other `Spawners` calls, and read `SecondsToSpawn` to see how long the game has until the next spawn.
+`All()` and `Get(id)` give you one of these. Pass its `Id` to the other `Spawners` calls. `SecondsToSpawn` shows how long the game has until the next spawn.
 
 <div class="api-pair" markdown="1">
 
@@ -65,7 +67,7 @@ public sealed class SpawnerInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | Names this spawner. See the first note below. |
-| `TypeName` | `string` | What kind of spawner it is, for example `CollectibleItemSpawner`. |
+| `TypeName` | `string` | The kind of spawner, for example `CollectibleItemSpawner`. |
 | `RespawnEnabled` | `bool` | `true` when the spawner respawns things. |
 | `Chance` | `float` | The chance of a spawn each time, from 0 to 1. |
 | `SpawnedCount` | `int` | How many things it has spawned that still exist. |
@@ -73,7 +75,7 @@ public sealed class SpawnerInfo
 | `UseCustomSpawnTime` | `bool` | `true` when it uses `MinRespawnTime` and `MaxRespawnTime`. |
 | `MinRespawnTime` | `int` | The shortest custom wait, in game seconds. |
 | `MaxRespawnTime` | `int` | The longest custom wait, in game seconds. |
-| `SecondsToSpawn` | `int` | The game's countdown to the next spawn, in seconds. You can only read it. |
+| `SecondsToSpawn` | `int` | The game's countdown to the next spawn, in seconds. Read only. |
 
 </div>
 </div>
@@ -81,7 +83,7 @@ public sealed class SpawnerInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RespawnTime</code> <span>the wait-time presets</span></p>
 
-`SpawnerInfo.SpawnTime` gives you one of these, and `SetRespawnTiming` takes one. The ranges below are before the game adjusts them for its difficulty setting.
+`SpawnerInfo.SpawnTime` gives you one of these, and `SetRespawnTiming` (see [Changing respawn settings](changing-respawn-settings.md)) takes one. The ranges below are before the game adjusts them for its difficulty setting.
 
 <div class="api-pair" markdown="1">
 
@@ -111,11 +113,15 @@ public enum RespawnTime
 
 ## Things to know
 
-- A spawner's `Id` names one spawner in the scene you are in. If the game gave the spawner a save id, that is the id. If not, the id is the spawner's place in the scene, and it changes if someone edits the objects around it. <span class="tech">(the id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`.)</span>
+- A spawner's `Id` names one spawner in the scene you are in. If the game gave the spawner a save id, that is the id. If not, the id is the spawner's place in the scene. That id changes if someone edits the objects around it. <span class="tech">(the id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`.)</span>
 - `All()` and `Get` only see the scene you are in. Spawners that are switched off, and spawners in other scenes, are not listed. A null or unknown id finds nothing. <span class="tech">(both use `FindObjectsByType`, which skips inactive objects.)</span>
-- `RespawnTime` is a preset wait, and the game then adjusts it for its difficulty setting. The ranges in the table above are the wait before that adjustment, so the real wait can be longer or shorter. A custom wait (`UseCustomSpawnTime` set to `true`) is a random number of game seconds between your minimum and maximum, and the difficulty setting does not change it. <span class="tech">(`SpawnSettings.SetSpawnTime` passes a preset's wait through `currentDifficultyInfo.GetRespawningTime`. The custom wait is `Random.Range(minRespawnTime, maxRespawnTime)` with no scaling. `EveryDay` stores the current day (`daySpawned`) instead of a countdown. The framework does not change that scaling.)</span>
-- `MinRespawnTime` and `MaxRespawnTime` are used only when `UseCustomSpawnTime` is `true`. That is how the game uses them as well.
+- `RespawnTime` is a preset wait, and the game then adjusts it for its difficulty setting. The ranges in the table above are the wait before that adjustment, so the real wait can be longer or shorter. A custom wait (`UseCustomSpawnTime` set to `true`) is a random number of game seconds between your minimum and maximum. The difficulty setting does not change it. <span class="tech">(`SpawnSettings.SetSpawnTime` passes a preset's wait through `currentDifficultyInfo.GetRespawningTime`. The custom wait is `Random.Range(minRespawnTime, maxRespawnTime)` with no scaling. `EveryDay` stores the current day (`daySpawned`) instead of a countdown. The framework does not change that scaling.)</span>
+- `MinRespawnTime` and `MaxRespawnTime` are used only when `UseCustomSpawnTime` is `true`. The game uses them the same way.
 
 ## Limits
 
 - `SpawnedCount` counts the things the spawner has made that still exist. If a game update renames the field the framework reads it from, the count shows `0`. <span class="tech">(it counts the non-null entries of the protected `objects` list, read through reflection.)</span>
+
+**Common problems**
+
+- `Get` returns `null`: the spawner is switched off or in another scene, the id is null or unknown, or no save is loaded. An id made from the spawner's place in the scene also changes when someone edits the objects around it. Take the id from `All()` in the scene you are in.

@@ -7,23 +7,25 @@ nav_order: 1
 
 # Common tasks
 
-Each of these runs after a save has loaded, for example inside `Events.WhenReady(() => { ... })`. The item id 10001 is the Empty Glass Bottle.
+Short snippets for the usual inventory jobs: pay with items, list stacks, read a hand, look into a container and react when one opens.
 
-Take items only if the player has all of them. `Take` already refuses when the whole amount is not held, so the `Has` check is only there to let you show your own message first.
+Each snippet runs after a save has loaded, for example inside [`Events.WhenReady(() => { ... })`](../core-helpers/events-whenready.md). The item id 10001 is the Empty Glass Bottle.
+
+Take items only if the player has all of them. [`PlayerInventory.Take`](player-inventory.md) already refuses when the whole amount is not held. The `Has` check is only there so you can show your own message first.
 
 ```csharp
 int id = 10001;
 if (PlayerInventory.Has(id, 3) && PlayerInventory.Take(id, 3)) Log.Info("The player paid 3 bottles.");
 ```
 
-Look at every stack the player carries, including its quality.
+List every stack the player carries, with its quality. Each stack is an [`ItemStackInfo`](item-stacks.md).
 
 ```csharp
 foreach (ItemStackInfo stack in PlayerInventory.Items())
     Log.Info(stack.ItemId + " x" + stack.Count + " quality " + stack.Quality);
 ```
 
-See what is in the right hand (`-1` means nothing).
+See what is in the right hand. `-1` means the hand is empty.
 
 ```csharp
 int right = PlayerInventory.GetHeldItemId(false);
@@ -38,7 +40,7 @@ if (chest != null)
         Log.Info(stack.ItemId + " x" + stack.Count);
 ```
 
-Move one item from a container to the player. `Containers.Take` destroys the items, so give them to the player first.
+Move one item from a container to the player. [`Containers.Take`](containers.md) destroys the items, so give them to the player first.
 
 ```csharp
 if (chest != null && PlayerInventory.Give(10001, 1)) Containers.Take(chest, 10001, 1);

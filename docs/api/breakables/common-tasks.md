@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-Count the broken breakables in the scene the player is in. The list only holds objects that are switched on in that scene.
+Short snippets for the usual jobs with [`Breakables`](listing-and-breaking-objects.md): count the broken objects, break one, repair one, and break a [lock](locks.md). Each snippet stands alone.
+
+Count the broken breakables in the [scene](../../glossary.md#scene) the player is in. The list only holds objects that are switched on in that scene.
 
 ```csharp
 int broken = 0;

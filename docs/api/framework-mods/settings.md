@@ -7,7 +7,7 @@ nav_order: 3
 
 # Settings
 
-A setting is a value the player can change in the Mods menu and that is saved between sessions. You make one with `Config.Bind`.
+A setting is a value the player can change in the Mods menu and that is saved between sessions. You make one with `Config.Bind`. The [Config](../../guides/getting-started/config.md) guide builds a mod with three settings; this page lists the members behind it.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModConfig</code> <span>your mod's settings</span></p>
@@ -26,7 +26,7 @@ public sealed class ModConfig
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Bind<T>(section, key, defaultValue, description)` | `ModSetting<T>` | Creates a setting, or reads the saved value of one that already exists. `section` groups it in the file, `key` names it, and `description` is shown to the player. |
+| `Bind<T>(section, key, defaultValue, description)` | `ModSetting<T>` | <details>{::nomarkdown}<summary>{:/nomarkdown}Creates a setting, or reads the saved value of one that already exists.{::nomarkdown}</summary>{:/nomarkdown}`section` groups it in the file, `key` names it, and `description` is shown to the player.</details> |
 | `Bind<T>(string section, string key, T defaultValue, string description, T min, T max) where T : IComparable` | `ModSetting<T>` | The same, with a smallest and largest value. An int or float setting then shows as a slider. |
 
 </div>
@@ -35,7 +35,7 @@ public sealed class ModConfig
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModSetting&lt;T&gt;</code> <span>one setting</span></p>
 
-`Bind` gives you this. Read `Value` to use the setting, and set `Value` to change it and save it.
+`Bind` gives you this. Read `Value` to use the setting. Set `Value` to change it and save it.
 
 <div class="api-pair" markdown="1">
 
@@ -63,5 +63,14 @@ public sealed class ModSetting<T>
 ## Things to know
 
 - The settings file is created the first time you call `Bind`. If you bind the same section and key again, you get the value that was saved, not the default.
-- The Mods menu picks the right control for the type. A number with a smallest and largest value is a slider. A `bool` is a toggle, an enum is a button that cycles through its values, and a `string` is a text field.
+- The [Mods menu](mods-menu.md) picks the right control for the type:
+  - a number with a smallest and largest value is a slider;
+  - a `bool` is a toggle;
+  - an enum is a button that cycles through its values;
+  - a `string` is a text field.
 - `Changed` runs when the value changes, whether the player changed it in the Mods menu or your code did. If one of your handlers throws an error, the framework logs it once, and the other handlers still run.
+
+**Common problems**
+
+- A setting keeps its old value after you change the default in your code: `Bind` returns the saved value, not the default. [Changing a default in a new version](../../guides/getting-started/config.md#changing-a-default-in-a-new-version) shows how to upgrade the saved value.
+- A setting does not show in the Mods menu: it appears only once your mod has loaded and created it. See [My settings do not show in the Mods menu](../../faq.md#my-settings-do-not-show-in-the-mods-menu) in the FAQ.

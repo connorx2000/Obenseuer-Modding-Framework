@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`PowerDevices`](listing-and-switching-devices.md): read fuel, read one device, switch a device on, and check the events. The switch snippet reuses `id` from the snippet before it.
+
 Show the fuel left in every device that burns fuel. The numbers are seconds of burn time.
 
 ```csharp
@@ -32,7 +34,7 @@ bool on = PowerDevices.SetOn(id, true);
 Log.Info(on ? "The device is switched on." : "Could not switch it on.");
 ```
 
-Check whether the events work.
+Check whether the events work. If `IsAvailable` is `false`, see [Details](details.md#if-something-fails-to-set-up).
 
 ```csharp
 if (!PowerDevices.IsAvailable) Log.Warn("Power events are off.");

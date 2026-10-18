@@ -7,11 +7,15 @@ nav_order: 8
 
 # Shop hours
 
+`ShopHours` reads the opening hours of the game's traders and says whether a trader is open now. Use it when your mod shows opening hours or sends the player to a trader.
+
 Status: experimental.
 
 ## What it is
 
-Traders in the game open and close at set hours, and the player sees "(Trade)" or "(Closed)" next to a trader's name. This API reads those opening hours for each day of the week and tells you whether a trader is open right now. It only reads. It can't change opening hours or open or close a shop.
+Traders in the game open and close at set hours. The player sees "(Trade)" or "(Closed)" next to a trader's name. This API reads those opening hours for each day of the week and tells you whether a trader is open right now.
+
+It only reads. It can't change opening hours, and it can't open or close a shop.
 
 ## When to use it
 
@@ -21,7 +25,7 @@ Traders in the game open and close at set hours, and the player sees "(Trade)" o
 
 ## Quick example
 
-This mod, once a save is loaded, logs for each trader whether it is open now and whether its opening hours say it should be.
+Once a save is loaded, this mod [logs](../guides/getting-started/logging.md) two things for each trader: whether it is open now, and whether its opening hours say it should be.
 
 ```csharp
 using ObenseuerCore;
@@ -71,7 +75,7 @@ if (ShopHours.IsOpen(shopId) != ShopHours.IsScheduledOpen(shopId))
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Opening hours
 
@@ -80,7 +84,7 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopHours</code> <span>reads opening hours and whether a shop is open</span></p>
 
-This is the class to start from. `Hours(shopId)` gives the opening hours for each day, and `IsOpen` and `IsScheduledOpen` tell you whether a trader is open to the player now and whether its clock says it should be.
+This is the class to start from. `Hours(shopId)` gives the opening hours for each day. `IsOpen` tells you whether a trader is open to the player now. `IsScheduledOpen` tells you whether its clock says it should be.
 
 <div class="api-pair" markdown="1">
 
@@ -105,7 +109,7 @@ public static class ShopHours
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ShopDayInfo</code> <span>the opening hours for one day</span></p>
 
-`ShopHours.Hours(shopId)` gives you seven of these, Monday first. `Opens` and `Closes` are the hours, and the shop is closed all day when they are the same.
+`ShopHours.Hours(shopId)` gives you seven of these, Monday first. `Opens` and `Closes` are the hours. The shop is closed all day when they are the same.
 
 <div class="api-pair" markdown="1">
 
@@ -129,21 +133,26 @@ public sealed class ShopDayInfo
 
 ### Things to know
 
-- Vending machines have no opening hours. For a vending machine, `Hours` is empty and `IsOpen` and `IsScheduledOpen` are both `true`. <span class="tech">(the shop id is `ShopInfo.Id`, the `GUID` of a `Trade` (a trader) or a `VendingMachine`)</span>
+- Vending machines have no opening hours. For a vending machine, `Hours` is empty, and `IsOpen` and `IsScheduledOpen` are both `true`. <span class="tech">(the shop id is `ShopInfo.Id`, the `GUID` of a `Trade` (a trader) or a `VendingMachine`)</span>
 - `Hours` always lists seven days, Monday first. <span class="tech">(Monday is the game's weekday 0)</span>
 - If `Opens` and `Closes` are the same hour, the shop is closed all day.
 - If `Opens` is before `Closes`, the shop is open from `Opens` until `Closes`.
-- If `Opens` is after `Closes`, the shop is open late into the night, and the night part counts for the same weekday row. A row does not carry on into the next day. For example, Monday with `Opens` 20 and `Closes` 4 means open on Monday from midnight until 04:00 and again from 20:00. <span class="tech">(the game applies both windows, `Opens` until midnight and midnight until `Closes`, to the same weekday row)</span>
-- `IsOpen` is what the player sees, "(Trade)" or "(Closed)". `IsScheduledOpen` is only what the opening hours say at the current game time, so the two can disagree. The game can hold a trader open or closed apart from the clock, for example while the player is standing close by, and for a short moment right after a scene starts. <span class="tech">(`IsOpen` reads `Trade.open`; `IsScheduledOpen` reads `OpeningTimes.IsOpen()`; they differ when the trader has `autoOpenClose` off or the player is near, and in the first half second after a scene starts)</span>
+- If `Opens` is after `Closes`, the shop is open late into the night. The night part counts for the same weekday row, and a row does not carry on into the next day. For example, Monday with `Opens` 20 and `Closes` 4 means open on Monday from midnight until 04:00 and again from 20:00. <span class="tech">(the game applies both windows, `Opens` until midnight and midnight until `Closes`, to the same weekday row)</span>
+- `IsOpen` is what the player sees, "(Trade)" or "(Closed)". `IsScheduledOpen` is only what the opening hours say at the current game time, so the two can disagree. The game can hold a trader open or closed apart from the clock. Examples are while the player is standing close by, and a short moment right after a scene starts. <span class="tech">(`IsOpen` reads `Trade.open`; `IsScheduledOpen` reads `OpeningTimes.IsOpen()`; they differ when the trader has `autoOpenClose` off or the player is near, and in the first half second after a scene starts)</span>
 
 ### Limits
 
 - You can only read opening hours. You can't change a shop's opening hours or open and close a shop. The framework only reads what the game has.
-- A shop that is not found gives the plain default. An unknown id, an empty id, or a shop that is not in the scene you are in gives an empty list or `false`. A `null` id throws an `ArgumentException`. <span class="tech">(the lookup covers only the active scene)</span>
+- A shop that is not found gives the plain default. An unknown id, an empty id, or a shop that is not in the [scene](../glossary.md#scene) you are in gives an empty list or `false`. A `null` id throws an `ArgumentException`. <span class="tech">(the lookup covers only the active scene)</span>
+
+**Common problems**
+
+- `Hours` gives an empty list for a trader: the id is unknown or empty, or the shop is not in the scene you are in. It also happens when there is nothing to read yet, for example on the main menu or while a save is loading. A failure in the game itself gives the same result. Pass an `Id` from `Shops.All()` for a shop in the current scene, once a save is loaded, as the quick example does with `WhenReady`.
+- `Hours` is empty but `IsOpen` is `true`: the shop is a vending machine, which has no opening hours.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.shophours.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -155,4 +164,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-- There is nothing to set up here. The framework does not change any game method for shop hours, so there is no feature group for this page, no events and no `IsAvailable`.
+- There is nothing to set up here. The framework does not change any game method for shop hours. So there is no [feature group](../glossary.md#feature-group) for this page, no events and no `IsAvailable`.

@@ -7,6 +7,8 @@ nav_order: 3
 
 # Computer files
 
+`ComputerContents` finds the computers in the [scene](../glossary.md#scene) you are in and reads the files and emails on each one. Use it when your mod needs to react to something the player can read on a computer.
+
 This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -14,7 +16,7 @@ Status: experimental.
 
 ## What it is
 
-Some computers in the game hold things you can read: files in the recycle bin and emails in the inbox. This API lets your mod find the computers in the scene you are in and read the title, sender and text of each file and email. It only reads. It can't add or change anything on a computer.
+Some computers in the game hold things you can read: files in the recycle bin and emails in the inbox. This API lets your mod find the computers in the current scene and read the title, sender and text of each file and email. It only reads. It can't add or change anything on a computer.
 
 The class is called `ComputerContents` because `ComputerFiles` is already the name of a class in the game.
 
@@ -26,7 +28,7 @@ The class is called `ComputerContents` because `ComputerFiles` is already the na
 
 ## Quick example
 
-This mod logs every computer in the scene and the sender and subject of each email in its inbox. It waits until a save is loaded, because there are no computers to read before that.
+This mod writes a [log](../guides/getting-started/logging.md) line for every computer in the scene, with the sender and subject of each email in its inbox. It waits until a save is loaded, because there are no computers to read before that.
 
 ```csharp
 using ObenseuerCore;
@@ -50,7 +52,7 @@ public sealed class ComputerPeek : FrameworkMod
 }
 ```
 
-`Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+[`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -62,7 +64,7 @@ foreach (ComputerInfo computer in ComputerContents.All())
         Log.Info(computer.Title + ": " + file.Title + " (" + file.Body.Length + " characters)");
 ```
 
-Get the id of a computer you already have as a game object. The result is `null` when the object is not a computer.
+Get the id of a computer you already have as a [game object](../glossary.md#gameobject). The result is `null` when the object is not a computer.
 
 ```csharp
 void ShowId(UnityEngine.GameObject computerObject)
@@ -79,7 +81,7 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerContents</code> <span>find computers and read their files and emails</span></p>
 
-Call `All()` to find the computers in the scene, then `Files` or `Emails` with a computer's `Id` to read what is on it.
+Call `All()` to find the computers in the [scene](../glossary.md#scene), then `Files` or `Emails` with a computer's `Id` to read what is on it.
 
 <div class="api-pair" markdown="1">
 
@@ -156,7 +158,7 @@ public sealed class ComputerDocInfo
 ### Things to know
 
 - A computer id is a piece of text that names one computer. `All()` and `IdOf` give it to you. It is stable as long as the scene does not change. Do not keep it for a computer that the game creates while it runs. <span class="tech">(The id is the computer's world GUID when the game gave it one. Most computers have none, so the usual id is the scene path, such as `Scene:Root[0]/Child[2]/Computer[1]`, with each node followed by its position among its siblings.)</span>
-- `All()` only lists computers that are switched on in the scene you are in. A computer in another scene, or one the game has switched off, is not listed, and `Files` and `Emails` return an empty list for it. <span class="tech">(It searches the active objects of the active scene for `InteractableComputer`.)</span>
+- `All()` only lists computers that are switched on in the scene you are in. A computer in another scene, or one the game has switched off, is not listed. `Files` and `Emails` return an empty list for it. <span class="tech">(It searches the active objects of the active scene for `InteractableComputer`.)</span>
 - `Files` and `Emails` give you copies, in the order the game keeps them. Each call reads what the computer holds right now.
 - For a file, `Sender` is an empty text, and `Body` is empty when the file is not a text file. For an email, `Title` is the subject, `Sender` is the sender's name and `Body` is the message. <span class="tech">(For a file, `Title` is `ComputerFile.fileName` and `Body` is `textFile.content`. For an email they are `Email.title`, `from` and `content`.)</span>
 - A missing computer gives an empty list, and a missing id throws an error. An id that matches no computer, or a computer that is not loaded, gives an empty list. A `null` id throws an `ArgumentException`. An empty text is not an error: it matches nothing and gives an empty list.
@@ -164,7 +166,7 @@ public sealed class ComputerDocInfo
 
 ### Limits
 
-- You can only read. You can't add, change or delete files or emails. The game builds each computer's screen once, when the computer starts. Adding a file or email later would show the old rows a second time next to the new ones, and nothing the framework could add would be saved. <span class="tech">(The lists are `InteractableComputer.emails` and `recycleBinFiles`, set in the Unity editor and marked `[fsIgnore]`, so they are not saved. The game copies them to the screen once, in the computer's `Start`. `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` each replace the list and build a row for every entry, so a second call shows the old rows twice. The framework does not wrap them. The wallpaper is a separate case: see [Computer desk](computerdesk.md).)</span>
+- You can only read. You can't add, change or delete files or emails. The game builds each computer's screen once, when the computer starts. Adding a file or email later would show the old rows a second time next to the new ones. Nothing the framework could add would be saved. <span class="tech">(The lists are `InteractableComputer.emails` and `recycleBinFiles`, set in the Unity editor and marked `[fsIgnore]`, so they are not saved. The game copies them to the screen once, in the computer's `Start`. `ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` each replace the list and build a row for every entry, so a second call shows the old rows twice. The framework does not wrap them. The wallpaper is a separate case: see [Computer desk](computerdesk.md).)</span>
 
 ## Details
 
@@ -175,9 +177,15 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the [main thread](../glossary.md#main-thread).
 
 ### What to check for and what comes back
 
-- This API changes nothing in the game, so it has no `IsAvailable` and no feature group. The framework changes no game method for it, and it has no events.
+- This API changes nothing in the game, so it has no `IsAvailable` and no [feature group](../glossary.md#feature-group). The framework changes no game method for it, and it has no events.
 - If the game itself fails while the framework reads, you get an empty answer instead of an error. The answer is an empty list, or `null` for `IdOf`. The failure goes to the log at debug level only.
+
+**Common problems**
+
+- `All()` returns an empty list: no save is loaded yet, the computers are in another scene or switched off, or the game failed during the read. Run your code from `Events.WhenReady`.
+- `Files` or `Emails` returns an empty list for a computer that holds entries: the id matches no computer, or it is an empty text. Other causes are a computer in another scene or switched off, and a game failure during the read. Take the id from `All()` or `IdOf` in the scene you are in.
+- `Files` or `Emails` throws an `ArgumentException`: the id you passed is `null`. An empty text is not an error and gives an empty list.

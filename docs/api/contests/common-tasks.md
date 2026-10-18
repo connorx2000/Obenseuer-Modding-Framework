@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-List the contests that are running, who is in them and how much the opponent has left. A tolerance of `-1` means there is nothing to read. `LastResult()` is the last contest that finished since the game was started, or null before the first.
+Short snippets for the usual jobs with [`Contests`](reading-contests.md): list the running contests, give one up, and scale a rat fight's winnings.
+
+List the contests that are running, who is in them and how much the opponent has left. A tolerance of `-1` means there is nothing to read. `LastResult()` is the last contest that finished since the game was started, or null before the first. [`Events.WhenReady`](../core-helpers/events-whenready.md) waits until a save is loaded before it runs your code.
 
 ```csharp
 Events.WhenReady(() =>
@@ -30,7 +32,7 @@ End the player's drinking or sauna contest as a loss, the same as holding the in
 if (!Contests.GiveUp()) Log.Info("No contest to give up.");
 ```
 
-Double the winnings of a rat fight when it starts, and take every factor your mod set back with `Clear`.
+Double the winnings of a rat fight when it starts, with a [payout factor](rat-fight-payout-factors.md). `Clear` takes back every factor your mod set. `Mod.Id` is your mod id (see the [glossary](../../glossary.md#mod-id)).
 
 ```csharp
 Contests.Started += contest =>

@@ -7,12 +7,12 @@ nav_order: 5
 
 # The Spawned event
 
-The `Spawned` event tells your mod each time a spawner spawns something.
+The `Spawned` event tells your mod each time a spawner spawns something. Use it to log or react to spawns, including the ones the game makes on its own.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Spawners</code> <span>the spawn event</span></p>
 
-`Spawned` is the event to subscribe to. It fires each time a spawner spawns, including the spawns the game makes on its own.
+`Spawned` is the event to subscribe to. It fires each time a spawner spawns, including the spawns the game makes on its own. See [Using events](../../guides/getting-started/using-events.md) for how to subscribe.
 
 <div class="api-pair" markdown="1">
 
@@ -48,8 +48,8 @@ public sealed class SpawnerArgs
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The id of the spawner, as `SpawnerInfo.Id`. |
-| `TypeName` | `string` | What kind of spawner it is. |
+| `Id` | `string` | The spawner's id, the same as `SpawnerInfo.Id`. |
+| `TypeName` | `string` | The kind of spawner. |
 | `SpawnedCount` | `int` | How many things it has spawned, counted after this spawn. |
 
 </div>
@@ -57,7 +57,7 @@ public sealed class SpawnerArgs
 
 ## Things to know
 
-- `Spawned` fires every time a spawner spawns, including the spawns the game makes by itself. That covers the spawn when a scene starts and the spawn on a map change, not just the ones you trigger. <span class="tech">(it is raised from a postfix on `Spawner.TrySpawn(bool)` whenever the method returns `true`.)</span>
+- `Spawned` fires every time a spawner spawns, including the spawns the game makes by itself. That covers the spawn when a [scene](../../glossary.md#scene) starts and the spawn on a map change, not only the ones you trigger. <span class="tech">(it is raised from a postfix on `Spawner.TrySpawn(bool)` whenever the method returns `true`.)</span>
 
 ## Limits
 

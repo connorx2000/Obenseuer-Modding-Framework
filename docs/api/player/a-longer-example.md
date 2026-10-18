@@ -7,10 +7,10 @@ nav_order: 10
 
 # A longer example
 
+This page has a complete mod that checks several Player calls with one key press. When you press F9, it reads the player's position, health and a skill, and adds half a skill level. It also counts the active effects and the level's [spawn points](../../glossary.md#entrypoint) (named entrypoints).
+
 This page uses `KeyCode` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-Run with a save loaded. The output goes to the mod's log, `BepInEx\logs\example.playersmoke.log`. It reads the player's position, health and a skill, adds half a skill level, and counts the active effects and the level's spawn points when you press F9.
 
 ```csharp
 using ObenseuerCore;
@@ -38,4 +38,19 @@ public class PlayerSmoke : FrameworkMod
 }
 ```
 
-What you should see: the position is not zero, `Add` returns `true`, and `Level` goes up once `Get` crosses a whole number. Subscribe to `Skills.SkillIncreased` to see gains from the game too. The spawn point count matches the level's spawn points. If something is wrong, look for errors in `BepInEx\logs\obenseuer.moddingframework.player.log`, `obenseuer.moddingframework.skills.log` and `obenseuer.moddingframework.effects.log`.
+To run it:
+
+1. Load a save.
+2. Press F9.
+3. Open the mod's [log](../../guides/getting-started/logging.md), `BepInEx\logs\example.playersmoke.log`.
+
+The check has run. Next, compare the log with the list below.
+
+What you should see:
+
+- The position is not zero.
+- `Add` returns `true`.
+- `Level` goes up once `Get` crosses a whole number. To see gains from the game too, subscribe to [`Skills.SkillIncreased`](skills.md).
+- The spawn point count matches the level's spawn points.
+
+If something is wrong, look for errors in `BepInEx\logs\obenseuer.moddingframework.player.log`, `obenseuer.moddingframework.skills.log` and `obenseuer.moddingframework.effects.log`.

@@ -8,6 +8,8 @@ nav_order: 19
 
 # World objects
 
+[`WorldObjects`](worldobjects/finding-objects.md) and [`Spawn`](worldobjects/spawn.md) work with the objects in the game's scenes. Use them to find a saved object, keep a note on it that survives a save, or drop an item for the player.
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,12 @@ Status: experimental.
 
 ## What it is
 
-World objects are the things lying around in the game's scenes: items on the floor, packages, coins, furniture and other objects the game saves. This API lets your mod find them (by save id, by place in the scene, or by distance), tell whether the game saves one, store a small piece of your own text on one, and drop new items into the world.
+World objects are the things lying around in the game's [scenes](../glossary.md#scene): items on the floor, packages, coins, furniture and other objects the game saves. This API lets your mod do these jobs:
+
+- Find them by save id (a unique name the game gives to an object it saves), by place in the scene, or by distance.
+- Tell whether the game saves one.
+- Store a small piece of your own text on one.
+- Drop new items into the world.
 
 ## When to use it
 
@@ -26,7 +33,7 @@ World objects are the things lying around in the game's scenes: items on the flo
 
 ## Quick example
 
-This mod, once the game is ready, logs how many saved objects are within 10 metres of the player and drops an apple at the player's position.
+Once the game is ready, this mod [logs](../guides/getting-started/logging.md) how many saved objects are within 10 metres of the player. It then drops an apple at the player's position.
 
 ```csharp
 using System.Collections.Generic;
@@ -50,4 +57,4 @@ public sealed class WorldLook : FrameworkMod
 }
 ```
 
-The number 10620 is the apple's item id. `Spawn.Item` returns `false` instead of throwing when the game can't place the item. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+The number 10620 is the apple's item id. `Spawn.Item` returns `false` instead of throwing when the game can't place the item. [Using events](../guides/getting-started/using-events.md) explains `WhenReady` in more detail.

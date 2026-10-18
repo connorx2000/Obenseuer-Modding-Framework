@@ -7,12 +7,14 @@ nav_order: 9
 
 # Survival
 
-`Survival` is how your mod reaches the player's needs and health. Each need is a number: hunger, thirst, bowel, bladder, tiredness, hygiene, mood, health, bleeding, alcohol, high, radiation and more. You can read each one, set it, slow down or speed up how fast it changes, get told when one crosses a line, change or cancel damage, and react when the player eats, drinks or uses an item. You never touch the game's objects yourself.
+`Survival` is how your mod reaches the player's needs and health. Use it to read, set or watch a need, and to slow down or speed up how fast it changes. It also lets you change or cancel damage, and react when the player eats, drinks or uses an item.
+
+Each need is a number: hunger, thirst, bowel, bladder, tiredness, hygiene, mood, health, bleeding, alcohol, high, radiation and more. You never touch the game's objects yourself.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Survival</code> <span>read, set and watch the needs, and handle damage</span></p>
 
-Use `Get` and `Set` to read and change a need, `OnCrossed` to hear when one crosses a line, and `InterceptDamage` to change or cancel health damage.
+Use `Get` and `Set` to read and change a need. `OnCrossed` tells you when one crosses a line, and `InterceptDamage` changes or cancels health damage.
 
 <div class="api-pair" markdown="1">
 
@@ -61,7 +63,7 @@ public static partial class Survival
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Stat</code> <span>one number about the player</span></p>
 
-Every call that reads or changes a need takes one of these, such as `Survival.Get(Stat.Hunger)`. Each value is one of the game's player stats, and the table below gives the game field it reads and writes.
+Every call that reads or changes a need takes one of these, such as `Survival.Get(Stat.Hunger)`. Each value is one of the game's player stats. The table below gives the game field it reads and writes.
 
 <div class="api-pair" markdown="1">
 
@@ -343,7 +345,7 @@ public sealed class ConsumedArgs
 
 ### Putting it together
 
-Halves how fast hunger rises, logs when hunger crosses 80, and logs when the player dies.
+This [plugin](../glossary.md#plugin) halves how fast hunger rises, logs when hunger crosses 80, and logs when the player dies.
 
 <div class="api-example" markdown="1">
 
@@ -373,7 +375,7 @@ public class SlowHunger : BaseUnityPlugin
 | `Survival.OnCrossed(..., 80f, ...)` | Logs when hunger crosses 80, going up or down. |
 | `Survival.PlayerDied += ...` | Logs the cause when the player dies. |
 
-The same example is in the `Examples\SlowHunger\` folder of the framework.
+The same example is in the `Examples\SlowHunger\` folder of the framework. [`CoreLog`](corelog.md) is the framework's [logging](../guides/getting-started/logging.md) class.
 
 </div>
 
@@ -383,11 +385,11 @@ The values of `Stat` never change, and new stats are added at the end.
 
 #### Reading, setting and watching a stat
 
-- Nothing in `Survival` throws into the game. If a feature the call needs is missing, you get the plain default: `0`, `false` or nothing happens. `Survival.IsAvailable` is `true` only when every feature group Survival needs is in place (see [If something fails to set up](details.md#if-something-fails-to-set-up)). A handler of yours that throws is logged, and the next handler still runs.
+- Nothing in `Survival` throws into the game. If a feature the call needs is missing, you get the plain default: `0`, `false` or nothing happens. `Survival.IsAvailable` is `true` only when every [feature group](../glossary.md#feature-group) Survival needs is in place (see [If something fails to set up](details.md#if-something-fails-to-set-up)). A handler of yours that throws is logged, and the next handler still runs.
 - Bad arguments still throw, even when `IsAvailable` is false. An empty `modId` throws `ArgumentException`. A `null` callback or handler throws `ArgumentNullException`.
 - `Get` gives you the value exactly as the game keeps it. It does not scale it to a percentage.
 - `Set` returns `false` when the value is not a number, there is no player, or the game is loading or saving. Otherwise it keeps your value inside the range in the table. For example, setting Health to 500 sets it to 100.
-- `OnCrossed` calls `callback(stat, value, rising)` when the value moves from below `threshold` to at or above it (`rising` is true), or from at or above it to below it (`rising` is false). It returns `false` when `IsAvailable` is false.
+- `OnCrossed` calls `callback(stat, value, rising)` when the value crosses `threshold`. Moving from below to at or above it gives `rising` true. Moving from at or above it to below it gives `rising` false. It returns `false` when `IsAvailable` is false.
 - The value is checked once every game second. The first check after a load only sets the starting point and never fires. Stats only change while the player is active, so nothing fires while the game is frozen.
 - `RemoveAll(modId)` removes everything your mod set up through `Survival`. That is its speed changes (`Decay`), its item and damage handlers and its `OnCrossed` watches. It does not remove handlers you added with `+=` to the plain events (`PlayerDied`, `PassedOut`, `Damaged`, `Breakdown`, `Consumed`). Take those off with `-=`.
 
@@ -401,37 +403,45 @@ The values of `Stat` never change, and new stats are added at the end.
 - The game changes the speed again afterwards, so an offset is not an exact amount per hour. Awake, hunger is multiplied by `(1 - High / 100)` and `(1 - AlcoholAddiction / 200)`. While the player sleeps, hunger and thirst are multiplied by 0.33 and hygiene by 0.5.
 - For the four cravings, one change affects both rising and falling. A craving rises by `Addiction x 0.01 x rate / 60` (the other needs use the same form) and falls by `rate / 60`. A change to the rate changes both.
 - Hunger and thirst speed also affect the toilet needs. Hunger decay also scales how fast Bowel builds up, and thirst decay scales Bladder.
-- Some stats cannot have a speed change. `DuckNeed` cannot, because the game only uses its rate to set the level when the player has enough ducks, so it is not a real rate. Addiction levels (`AlcoholAddiction` and the others), `Bowel`, `Bladder`, `Health`, `Mood`, `Tiredness`, `Radiation` and `SaunaHeat` cannot either.
+- Some stats cannot have a speed change. `DuckNeed` cannot. The game only uses its rate to set the level when the player has enough ducks, so it is not a real rate. Addiction levels (`AlcoholAddiction` and the others), `Bowel`, `Bladder`, `Health`, `Mood`, `Tiredness`, `Radiation` and `SaunaHeat` cannot either.
 
 #### Using items (Consumables)
 
 - `Consumables.Intercept` runs your code before the game does anything for an item use, once for each use. If any handler sets `args.Cancel = true`, the whole use is skipped. Nothing else happens for that use: no cooldown, no sound, no events, no change to the item, no stat change, no liquid change, no outputs, no item removed, no ammo change and no spawned items. <span class="tech">(The framework looks at the use entry point, `ItemInfo.UseItem(int, bool)` for inventory use (a drink from a liquid container included) and `CollectibleItem.InvokeActions()` for use in the world. `ItemConsumable.Invoke(ItemData, bool)` is the fallback for other callers.)</span>
-- A use the game refuses never reaches your handler. That is a use with no use button, a cooldown, an active trade, `CanUse` false, or a permission check that says the player may not use it.
-- All handlers share one `ConsumeArgs` for each use, and a handler that throws is logged while the others still run. The framework never changes the shared `ItemConsumable`.
+- A use the game refuses never reaches your handler. That is a use with no use button, a cooldown, an active trade or `CanUse` false. A permission check that says the player may not use it counts too.
+- All handlers share one `ConsumeArgs` for each use. A handler that throws is logged while the others still run. The framework never changes the shared `ItemConsumable`.
 - `Consumables.Remove(modId)` removes all of your mod's handlers, and `Remove(modId, handler)` removes one. `Survival.RemoveAll` calls the first.
 - You cannot make an item stronger or weaker. `Intercept` can only cancel a use. It cannot change the size of an effect.
 
 #### The Consumed event
 
-- `Consumables.Consumed` is for watching only. It fires once for each `ItemConsumable.Invoke` the game runs, after the game has applied the effects, used up or removed the item and spawned its extra items. `ItemId` is the item's id in the game's item list (`Item.ID`). The payload has no stat changes in it.
-- `Consumed` does not fire when a use was cancelled or refused, or when the game throws, or when `Survival.IsAvailable` is false.
+- `Consumables.Consumed` is for watching only. It fires once for each `ItemConsumable.Invoke` the game runs. By then the game has applied the effects, used up or removed the item and spawned its extra items. `ItemId` is the item's id in the game's item list (`Item.ID`). The payload has no stat changes in it.
+- `Consumed` does not fire when a use was cancelled or refused, when the game throws, or when `Survival.IsAvailable` is false.
 - One use can fire `Consumed` more than once. It fires once for every consumable action the game runs. For example `ItemInfo.UseItem` runs the child item's actions and then the item's own action, and `Item.InvokeActions` runs each action of an item. A use forced by depression fires it too.
-- Unsubscribe from `Consumed` with `-=`. `RemoveAll` does not remove it, and handlers are kept apart so one that fails does not stop the others.
+- Unsubscribe from `Consumed` with `-=`. `RemoveAll` does not remove it. Handlers are kept apart, so one that fails does not stop the others.
 - A use that depression forces is the one case where cancelling works differently. The game calls `ItemConsumable.Invoke` directly, so only the fallback applies. A cancel skips the item's effects and its removal, so the item stays in the inventory. The game's mental health code treats the use as handled and skips its own fallback. <span class="tech">(`ItemInfo.Activate` still runs, and `Depression` still returns `true` after a cancel.)</span>
 
 #### Damage and other events
 
 - `InterceptDamage` runs your code before the game takes health from the player. Handlers run in the order they were added.
-- Your handler gets a `DamageArgs`: `Original` is the amount the game asked for, `Amount` is the working amount, and `Reason` and `Silent` say what caused it and whether a message shows. You can change `Amount` or set `Cancel = true`. A `Cancel` from any handler wins, and the later handlers still run and see it.
+- Your handler gets a `DamageArgs`. `Original` is the amount the game asked for, and `Amount` is the working amount. `Reason` and `Silent` say what caused it and whether a message shows. You can change `Amount` or set `Cancel = true`. A `Cancel` from any handler wins, and the later handlers still run and see it.
 - `Damaged(lost, reason)` fires when the player really lost health. `lost` is the amount actually taken, after the health stopped at 0. Bleeding does not fire it, because bleeding raises `Bleeding` and not health directly. Mushroom and gas protection do not fire it, because they stop the damage before health changes. <span class="tech">(It fires when `PlayerStatsHealth.Damage` lowers `currentStatus`.)</span>
-- `PassedOut` fires when the player faints. It does not fire when the call is refused, when normal sleep starts, when the player is arrested, or when the player is already passed out. <span class="tech">(It fires when `WaitingController.PassOut(..., Type.Passout)` changes `waitingType` to `Passout`. Normal sleep (`Sleep`) sets `Sleeping`, and `Type.Arrest` is the arrest case.)</span>
+- `PassedOut` fires when the player faints. It does not fire when the call is refused or when normal sleep starts. It also stays quiet when the player is arrested, or is already passed out. <span class="tech">(It fires when `WaitingController.PassOut(..., Type.Passout)` changes `waitingType` to `Passout`. Normal sleep (`Sleep`) sets `Sleeping`, and `Type.Arrest` is the arrest case.)</span>
 - `Breakdown` fires when the game starts a step of a mental breakdown. `BreakdownArgs.Kind` says which one: `Suicide`, `SelfHarm`, `Mushrooms` or `Alcohol`. Set `Cancel = true` to stop that step. A `Cancel` from any handler wins, and later handlers still run and see it.
-- Handlers do not run while a save loads or saves, and the breakdown step goes ahead then.
+- Handlers do not run while a [save](../guides/getting-started/save-data.md) loads or saves, and the breakdown step goes ahead then.
 - `PlayerDied`, `PassedOut` and `Damaged` are plain events. `RemoveAll` cannot remove your handlers from them. Unsubscribe with `-=`.
 
 #### Damage handler limits
 
-Damage handlers do not run in three cases. They do not run while a save loads or saves, for an amount of 0 or less, or from inside another damage handler. `RemoveDamage(modId, handler)` removes one handler of your mod, and `RemoveAll` removes them all.
+Damage handlers do not run in three cases: while a save loads or saves, for an amount of 0 or less, or from inside another damage handler. `RemoveDamage(modId, handler)` removes one handler of your mod, and `RemoveAll` removes them all.
+
+**Common problems**
+
+- `OnCrossed` or `InterceptDamage` returns `false`: `IsAvailable` is false, so a feature group Survival needs is not in place. Check `IsAvailable` first.
+- `Set` returns `false`: the value is not a number, there is no player, or the game is loading or saving.
+- `Decay.Set` returns `false`: the multiplier is below 0.
+- `OnCrossed` does not fire right after a load or while the game is frozen: the first check after a load only sets the starting point, and stats only change while the player is active.
+- `RemoveAll` did not remove your event handler: `PlayerDied`, `PassedOut`, `Damaged`, `Breakdown` and `Consumed` are plain events. Take those handlers off with `-=`.
 
 ### Limits
 

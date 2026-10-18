@@ -8,6 +8,8 @@ nav_order: 6
 
 # NPC animation
 
+[`NpcAnimation`](npc-animation/playing-and-stopping-on-an-npc.md) plays your own animation clips on NPCs and other animated figures, and stops them again. Use it when an NPC should play a gesture, pose or idle animation that you made.
+
 This page uses `KeyCode`, `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,9 @@ Status: experimental.
 
 ## What it is
 
-An animation clip is a short recorded movement, such as a wave or a stance. This API lets your mod play your own animation clip on an NPC in the scene, or on any other animated figure, and stop it again. Your clip is mixed in over the NPC's normal animation until you stop it. It does not stop the NPC from walking. To keep the NPC in place while the clip plays, hold it with [NPC movement](npc-movement.md).
+An animation clip is a short recorded movement, such as a wave or a stance. This API plays your own clip on an NPC in the [scene](../glossary.md#scene) (one loaded area of the game), or on any other animated figure. It can also stop the clip again.
+
+Your clip is mixed in over the NPC's normal animation until you stop it. It does not stop the NPC from walking. To keep the NPC in place while the clip plays, hold it with [NPC movement](npc-movement.md).
 
 Every call that takes an NPC uses the NPC's id from the [NPCs page](npcs.md).
 
@@ -28,7 +32,7 @@ Every call that takes an NPC uses the NPC's id from the [NPCs page](npcs.md).
 
 ## Quick example
 
-This mod waits for you to press F8. It finds the closest living NPC and plays a clip on it, or stops the clip when it is already playing. The clip is looked up by name among the clips the game has loaded. Change `ClipName` to the name of your own clip.
+This mod waits for the F8 key. It finds the closest living NPC and plays a clip on it, or stops the clip when one is already playing. The clip is looked up by name among the clips the game has loaded. Change `ClipName` to the name of your own clip.
 
 ```csharp
 using ObenseuerCore;
@@ -79,4 +83,6 @@ public sealed class NpcAnimDemo : FrameworkMod
 }
 ```
 
-`Play` and `Stop` take your mod's id, so each mod can only stop its own clips. A clip from your own mod, for example from an asset bundle, works the same way. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`. A project that uses this API needs a reference to `UnityEngine.AnimationModule.dll`, because `AnimationClip` and `Animator` are in it.
+`Play` and `Stop` take your [mod id](../glossary.md#mod-id) (the id for your config, log, save data and keybinds). So each mod can only stop its own clips. A clip from your own mod, for example from an asset bundle, works the same way. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`.
+
+A project that uses this API needs a reference to `UnityEngine.AnimationModule.dll`, because `AnimationClip` and `Animator` are in it.

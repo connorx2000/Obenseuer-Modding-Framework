@@ -8,6 +8,8 @@ nav_order: 4
 
 # Framework helpers
 
+Three shortcuts that cut the setup code most mods repeat: a [`CoreMod`](core-helpers/coremod.md) handle for your mod, one-line patch helpers, and `Events.WhenReady`. Use them when you want less boilerplate for saving, keybinds, logging and patching.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -17,9 +19,9 @@ Status: experimental.
 
 These are three small shortcuts that remove the setup code almost every mod repeats. None of them adds a new feature. Each one calls an existing part of the framework for you.
 
-- `CoreMod` gives your mod one handle that does saving, keybinds, logging and patching under your mod id, so you do not type the id each time.
-- The `CorePatcher` short helpers (`Prefix`, `Postfix`, `Finalizer`) change a game method when you only need to run your own code before it, after it, or when it throws an error.
-- `Events.WhenReady` runs your code once a save is loaded, even if the save was loaded before your code asked.
+- [`CoreMod`](core-helpers/coremod.md) gives your mod one handle that does saving, keybinds, logging and patching under your [mod id](../glossary.md#mod-id). You do not type the id each time.
+- The [`CorePatcher` short helpers](core-helpers/corepatcher-short-helpers.md) (`Prefix`, `Postfix`, `Finalizer`) change a game method in one line. Use them when you only need to run your own code before it, after it, or when it throws an error.
+- [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, even if the save was loaded before your code asked.
 
 Saving a value with `SaveData.Bind` is on the [game save data page](savedata-game.md).
 
@@ -27,7 +29,7 @@ Saving a value with `SaveData.Bind` is on the [game save data page](savedata-gam
 
 - Register a save slot and a keybind for your mod in two short lines, without repeating your mod id.
 - Run your own code before or after a game method, in one line.
-- Run something once, as soon as a save is ready, without worrying whether it is already ready.
+- Run something once, as soon as a save is ready, without checking whether it is already ready.
 
 ## Quick example
 
@@ -62,4 +64,4 @@ public sealed class Helpers : FrameworkMod
 }
 ```
 
-`Mod.Key` makes a keybind the player can change in the options. `Mod.Save` stores your `MyState` in the player's save, and gives it back when the save loads. `Mod.Postfix` makes `AfterDay` run right after the game's `IncreaseDayCounter` method, and gives `true` when that worked.
+`Mod.Key` makes a [keybind](../guides/getting-started/keybinds.md) the player can change in the options. `Mod.Save` stores your `MyState` in the player's [save](../guides/getting-started/save-data.md), and gives it back when the save loads. `Mod.Postfix` is a [patch](../guides/getting-started/patching.md): it makes `AfterDay` run right after the game's `IncreaseDayCounter` method, and gives `true` when that worked.

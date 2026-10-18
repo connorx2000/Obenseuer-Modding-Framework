@@ -7,6 +7,8 @@ nav_order: 4
 
 # Switches and loaders
 
+This page covers track switches and wagon loaders: finding them, setting a switch's branch, and turning a loader on or off.
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -14,7 +16,7 @@ A track switch is a lever that sends a train down one of several branches of tra
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>switches and wagon loaders</span></p>
-Use `Switches` and `Loaders` to find the track switches and wagon loaders, then `SetBranch` and `SetLoaderOn` to work them.
+`Switches` and `Loaders` find the track switches and wagon loaders. `SetBranch` and `SetLoaderOn` work them.
 
 <div class="api-pair" markdown="1">
 
@@ -47,7 +49,7 @@ public static class Trains
 
 ## Things to know
 
-- `Switches` and `Loaders` list the objects that are switched on in the scene you are in. Pass one of them to the calls below. <span class="tech">(They are the `MinitrainSwitch` and `MinitrainWagonLoader` objects found among the active objects of the active scene.)</span>
+- `Switches` and `Loaders` list the objects that are switched on in the [scene](../../glossary.md#scene) you are in. Pass one of them to the calls below. <span class="tech">(They are the `MinitrainSwitch` and `MinitrainWagonLoader` objects found among the active objects of the active scene.)</span>
 - `GetBranch` tells you which branch a switch points at. The branch number only changes when the lever has finished moving, not when you call `SetBranch`. <span class="tech">(It reads `MinitrainSwitch.currentBranchIndex`, which is updated when the animation ends (`ChangeTrackCO`).)</span>
 - `SetBranch` with `force` set to `false` follows the game's own rule: it won't move a switch that has a train on it. If the change is accepted, it starts the lever and returns `true`. The game keeps waiting for the track to clear during the lever's movement as well. <span class="tech">(`false` here is the game's occupancy check in `ChangeTrack`, `MinitrainSwitch`: the switch's `trackSegment.occupied`, or, when `isReversed` is set, the previous segment's `occupied`. On success it calls `ChangeTrack(branch)`.)</span>
 - `SetBranch` with `force` set to `true` moves the switch even with a train on it. The branch changes at once, and then the lever moves. <span class="tech">(It calls `ChangeTrackForce(branch)`, which sets `currentBranchIndex` at once and then animates.)</span>
@@ -58,5 +60,9 @@ public static class Trains
 
 - `GetBranch` throws an `ArgumentNullException` for a `null` object.
 - `SetBranch` returns `false` when a train is on the switch's piece of track, or, for a reversed switch, on the piece before it.
-- `SetBranch` returns `false` when the switch has no such branch, and throws an `ArgumentOutOfRangeException` for a negative branch. It also returns `false` when the object is not a switch, and while a save is loading or being written. <span class="tech">(The number of branches is the length of the private `MinitrainSwitch.branchRotations`, read through reflection.)</span>
-- `SetBranch`, `SetLoaderOn` and `SetLoaderFreeToTake` throw an `ArgumentNullException` for a `null` object. They return `false` while a save is loading or being written, and `false` when the object is not the right kind of object.
+- `SetBranch` returns `false` when the switch has no such branch. It throws an `ArgumentOutOfRangeException` for a negative branch. It also returns `false` when the object is not a switch, and while a save is loading or being written. <span class="tech">(The number of branches is the length of the private `MinitrainSwitch.branchRotations`, read through reflection.)</span>
+- `SetBranch`, `SetLoaderOn` and `SetLoaderFreeToTake` throw an `ArgumentNullException` for a `null` object. They return `false` while a save is loading or being written. They also return `false` when the object is not the right kind of object.
+
+**Common problems**
+
+- `SetBranch` returns `false`: a train is on the switch's piece of track, or, for a reversed switch, on the piece before it. Or the switch has no such branch, the object is not a switch, or a save is loading or being written. To move a switch that has a train on it, pass `force` as `true`.

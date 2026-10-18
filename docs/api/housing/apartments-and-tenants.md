@@ -7,14 +7,14 @@ nav_order: 2
 
 # Apartments and tenants
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
+`Housing` lists the apartments in the tenement and the tenants in them, and tells you when tenants move or pay rent. This page lists every call, property and event, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
-`Housing` lists the apartments in the tenement and the tenants in them, and tells you when tenants move or pay rent. An apartment's number is the number the game shows (for example "Apartment: 2").
+An apartment's number is the number the game shows (for example "Apartment: 2").
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Housing</code> <span>apartments, tenants and rent events</span></p>
 
-This is the class you start from. It lists apartments and their tenants, starts and cancels evictions, and raises the tenant and rent events.
+This is the class you start from. It lists apartments and their tenants, starts and cancels [evictions](evictions.md), and raises the tenant and rent events.
 
 <div class="api-pair" markdown="1">
 
@@ -47,7 +47,7 @@ public static class Housing
 | `Get(apartmentId)` | `ApartmentInfo` | The apartment with this number. `null` when there is none. |
 | `GetTenant(apartmentId)` | `TenantInfo` | Who lives there. `null` when the apartment is vacant. |
 | `StartEviction(apartmentId)` | `bool` | Starts an eviction with the default hours. `true` when it started. |
-| `StartEviction(apartmentId, hours)` | `bool` | Starts an eviction with your hours. `true` when it started. |
+| `StartEviction(apartmentId, hours)` | `bool` | Starts an eviction with your number of hours. `true` when it started. |
 | `CancelEviction(apartmentId)` | `bool` | Clears a pending eviction. `true` when it was cleared. |
 
 | Property | Type | What it means |
@@ -57,12 +57,12 @@ public static class Housing
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `TenantMovedIn` | `TenantArgs` | A tenant has just finished moving in. |
-| `TenantMovedOut` | `TenantArgs` | A tenant has just left. |
-| `RentPaid` | `RentPayment` | A rent payment has just been credited. |
-| `TenementEventStarted` | `TenementEventArgs` | A random tenement event has just started. |
-| `EvictionStarted` | `TenantArgs` | An eviction timer has just been set. |
-| `EvictionCancelled` | `TenantArgs` | A pending eviction has just been cleared. |
+| `TenantMovedIn` | `TenantArgs` | Right after a tenant finishes moving in. |
+| `TenantMovedOut` | `TenantArgs` | Right after a tenant leaves. |
+| `RentPaid` | `RentPayment` | Right after a rent payment is credited. |
+| `TenementEventStarted` | `TenementEventArgs` | Right after a random tenement event starts. |
+| `EvictionStarted` | `TenantArgs` | Right after an eviction timer is set. |
+| `EvictionCancelled` | `TenantArgs` | Right after a pending eviction is cleared. |
 
 </div>
 </div>
@@ -103,7 +103,7 @@ public sealed class ApartmentInfo
 | `EvictionHoursLeft` | `float` | The game hours left on the eviction timer. `0` when none. |
 | `MoveInHoursLeft` | `float` | The game hours left on the move-in timer. `0` when nobody is moving in. |
 | `Type` | `ApartmentType` | The apartment's size. |
-| `ManagerGuid` | `string` | The id of the apartment's furniture area, which `PlayerShops.Ensure` takes. `null` when there is none. |
+| `ManagerGuid` | `string` | The id of the apartment's furniture area, which [`PlayerShops.Ensure`](../economy/player-shops.md) takes. `null` when there is none. |
 
 </div>
 </div>
@@ -125,7 +125,7 @@ public sealed class TenantInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `int` | The tenant's character number (NPC id). |
+| `Id` | `int` | The tenant's character number ([NPC](../npcs.md) id). |
 | `Name` | `string` | The tenant's name. |
 
 </div>
@@ -134,7 +134,7 @@ public sealed class TenantInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenantArgs</code> <span>what the tenant and eviction events tell you</span></p>
 
-`TenantMovedIn`, `TenantMovedOut`, `EvictionStarted` and `EvictionCancelled` give you this. `ApartmentId` says which apartment it is, and `Tenant` is the tenant the event is about.
+`TenantMovedIn`, `TenantMovedOut`, `EvictionStarted` and `EvictionCancelled` give you this. `ApartmentId` says which apartment it is. `Tenant` is the tenant the event is about.
 
 <div class="api-pair" markdown="1">
 
@@ -157,7 +157,7 @@ public sealed class TenantArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RentPayment</code> <span>an amount of rent</span></p>
 
-`RentPaid` gives you this, and `ApartmentInfo.Rent` holds the rent owed next. Hotel prices use the same type.
+`RentPaid` gives you this, and `ApartmentInfo.Rent` holds the rent owed next. [Hotel](../hotels/listing-and-renting-rooms.md) prices use the same type.
 
 <div class="api-pair" markdown="1">
 
@@ -171,8 +171,8 @@ public sealed class RentPayment
 
 | Property | Type | What it means |
 |---|---|---|
-| `Oc` | `int` | The OC amount. |
-| `Rm` | `float` | The RM amount. |
+| `Oc` | `int` | The [OC](../../glossary.md#oc) amount (Open Sewer Coins). |
+| `Rm` | `float` | The [RM](../../glossary.md#rm) amount (Real Money). |
 
 </div>
 </div>
@@ -180,7 +180,7 @@ public sealed class RentPayment
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TenementEventArgs</code> <span>what TenementEventStarted tells you</span></p>
 
-`TenementEventStarted` gives you this, once for each random tenement event that starts. `Kind` says which kind it is, and `TenantId` is the tenant it is about, or `0` for none.
+`TenementEventStarted` gives you this, once for each random tenement event that starts. `Kind` says which kind it is. `TenantId` is the tenant it is about, or `0` for none.
 
 <div class="api-pair" markdown="1">
 
@@ -269,16 +269,16 @@ public enum ApartmentType
 ## Things to know
 
 - The apartment number is the one the game shows, and it is unique in the building. `AllApartments()` gives every apartment, empty or not, in the game's own order. `Get` gives `null` for a number that does not exist. <span class="tech">(The number is the game's `apartmentNumber`.)</span>
-- `GetTenant` gives `null` when the apartment is vacant, or when the tenant has moved out and left their furniture behind.
-- `ApartmentInfo.ManagerGuid` is the id you pass to `PlayerShops.Ensure` (see [Player shops](../economy/player-shops.md#player-shops)). It is `null` when the game links no furniture area to the apartment, and also for a short time after a save loads, before the game links it. <span class="tech">(It is the GUID of the apartment's furniture manager.)</span>
-- Rent is paid in rounds, not per tenant. The game does not keep a paid or unpaid mark for each room, so use `ApartmentInfo.Rent` for what is owed next, and `RentPaid` for when it is paid.
+- `GetTenant` gives `null` when the apartment is vacant. It also gives `null` when the tenant has moved out and left their furniture behind.
+- `ApartmentInfo.ManagerGuid` is the id you pass to `PlayerShops.Ensure` (see [Player shops](../economy/player-shops.md#player-shops)). It is `null` when the game links no furniture area to the apartment. It is also `null` for a short time after a save loads, before the game links it. <span class="tech">(It is the GUID of the apartment's furniture manager.)</span>
+- Rent is paid in rounds, not per tenant. The game does not keep a paid or unpaid mark for each room. Use `ApartmentInfo.Rent` for what is owed next, and `RentPaid` for when it is paid.
 - `TenantMovedIn` fires when the move-in timer has finished and the tenant is in. `Tenant` is the new tenant.
 - `TenantMovedOut` fires when a tenant leaves, through an eviction or when a new tenant replaces them. `Tenant` is the tenant who left.
 - `RentPaid` fires when a rent round is credited. `Oc` and `Rm` are the totals for all apartments together, the same amounts the game adds to the wallet. A round is only announced when the game really pays.
-- `TenementEventStarted` fires when a random tenement event happens, such as noise or trash. The scene sets what an event does: the game triggers the relay and optional spawner that the scene lists for that kind and tenant, and the event can also send mail and change dialogue variables.
+- `TenementEventStarted` fires when a random tenement event happens, such as noise or trash. The scene sets what an event does. The game triggers the [relay](../../glossary.md#relay) (a hidden switch in the scene) and optional spawner that the scene lists for that kind and tenant. The event can also send mail and change dialogue variables.
 - `TenementEventStarted` fires after the random chance for that event succeeded. It also fires for an event started with `Tenants.TriggerEvent` (see [Tenants](../tenants.md)).
-- `EvictionStarted` fires when an eviction timer is set. That covers `StartEviction`, the game's own button, and anything else that sets one. `Tenant` is the tenant being evicted. The tenant does not leave until the timer ends, and then `TenantMovedOut` fires.
+- `EvictionStarted` fires when an eviction timer is set. That covers `StartEviction`, the game's own button, and anything else that sets one. `Tenant` is the tenant being evicted. The tenant does not leave until the timer ends, and then `TenantMovedOut` fires. The rules for the timer are on [Evictions](evictions.md).
 - `EvictionCancelled` fires when a pending eviction is cleared. That covers `CancelEviction` and the game's button. `Tenant` is the tenant who stays.
 - `ApartmentInfo.Type` is the apartment's size from the game's data. A `Shop` is a shop space. `Unknown` means the game gives the apartment no size, so its size is not known.
-- `Housing.IsAvailable` is `false` when a tenant or rent event could not be set up. See "If something fails to set up" below.
+- `Housing.IsAvailable` is `false` when a tenant or rent event could not be set up. See "If something fails to set up" on [Details](details.md#if-something-fails-to-set-up).
 - Renovation cost and build-time tweaks are in `TweaksRenovations`. This page does not change them.

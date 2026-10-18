@@ -7,12 +7,12 @@ nav_order: 3
 
 # Buying fuel
 
-`FuelBought` tells your mod when the player has paid for fuel at a station.
+`FuelBought` tells your mod when the player has paid for fuel at a gas station. Use it to react to a purchase, for example to keep a record of what was spent.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelStations</code> <span>fuel purchase event</span></p>
 
-`FuelBought` is the event on this class. `FuelStations.All()` lists the stations, and it is covered on the [gas stations](gas-stations.md) page.
+`FuelBought` is the event on this class. `FuelStations.All()`, which lists the stations, is covered on the [gas stations](gas-stations.md) page.
 
 <div class="api-pair" markdown="1">
 
@@ -33,7 +33,7 @@ public static class FuelStations
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelBoughtArgs</code> <span>what FuelBought tells you</span></p>
 
-`FuelBought` gives you this. The framework builds it from a hook on the game's `GasStation.PayFuelOc` payment, so it is the framework's own type.
+`FuelBought` gives you this. The framework builds it from a hook (a change the framework makes to a game method) on the game's `GasStation.PayFuelOc` payment. So it is the framework's own type.
 
 <div class="api-pair" markdown="1">
 
@@ -63,9 +63,13 @@ public sealed class FuelBoughtArgs
 - `Currency` is always OC for now. The game only pays this kind of bill in OC (Open Sewer Coins, see the [glossary](../../glossary.md#oc)).
 - `Amount` is the fuel the payment covers. The framework reads it before the game empties the pumps. <span class="tech">(It is `FuelPump.filledAmount`, added up over the station's pumps.)</span>
 - The money side of the same payment is `Cash.MoneyChanged`. See [Economy](../economy.md). `FuelBought` tells you what the money was spent on.
-- The event fires for every way the game starts a payment. The game calls the payment method from scene or dialogue wiring, not from its code, and the framework changes the method itself so every caller is covered. <span class="tech">(`PayFuelOc` has no C# caller in the game code.)</span>
+- The event fires for every way the game starts a payment. The game calls the payment method from scene or dialogue wiring, not from its code. The framework changes the method itself, so every caller is covered. <span class="tech">(`PayFuelOc` has no C# caller in the game code.)</span>
 
 ## Limits
 
-- `Cost` and `Amount` can disagree when the player filled more than one pump. `Cost` is the bill the game holds, and the game overwrites that bill each time it changes instead of adding to it. So `Cost` is the last pump's bill, while `Amount` adds up every pump. This is how the game counts, and the framework does not fix it. <span class="tech">(`Cost` is `priceToPayOc`, and `GasStation.UpdatePriceToPayOc` overwrites it.)</span>
-- The framework does not hold the event back while a save loads. A handler that should ignore events raised then can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- `Cost` and `Amount` can disagree when the player filled more than one pump. `Cost` is the bill the game holds. The game overwrites that bill each time it changes, instead of adding to it. So `Cost` is the last pump's bill, while `Amount` adds up every pump. This is how the game counts, and the framework does not fix it. <span class="tech">(`Cost` is `priceToPayOc`, and `GasStation.UpdatePriceToPayOc` overwrites it.)</span>
+- The framework does not hold the event back while a save loads. A handler that should ignore events raised then can check [`SaveData.Busy`](../../api-core/savedata.md#savedatabusy), which is `true` while a save is loading or being written.
+
+**Common problems**
+
+- `FuelBought` does not fire: the player could not afford the bill, so nothing was paid. A station priced in RM never raises it either (see [Gas stations](gas-stations.md)). Otherwise check `FuelStations.IsAvailable`. When it is `false`, the framework could not set up the event, or its feature group was turned off. If the event could not be set up, `obenseuer.moddingframework.fuel.log` has error lines and a warning (see [Details](details.md#if-something-fails-to-set-up)).

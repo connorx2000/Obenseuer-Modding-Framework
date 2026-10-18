@@ -7,9 +7,9 @@ nav_order: 2
 
 # Held weapons
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
+How to read what the player holds in each hand, and how much ammo they carry. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
-`Weapons.Equipped()` and `Weapons.EquippedLeft()` tell you what the player holds in each hand. What they return is a `WeaponInfo`, a snapshot of the item at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
+`Weapons.Equipped()` and `Weapons.EquippedLeft()` tell you what the player holds in each hand. They return a `WeaponInfo`, a snapshot of the item at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeaponKind</code> <span>what kind of weapon an item is</span></p>
@@ -53,7 +53,7 @@ public sealed class WeaponInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `ItemId` | `int` | The item's id. |
+| `ItemId` | `int` | The item's id (see [Items](../items.md)). |
 | `Kind` | `WeaponKind` | What kind of weapon it is. |
 | `AmmoLoaded` | `int` | The ammo loaded now. `0` when the item has no ammo. |
 | `AmmoCapacity` | `int` | The most ammo it can hold. `0` when the item has no ammo. |
@@ -63,7 +63,7 @@ public sealed class WeaponInfo
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the held items</span></p>
-Use `Equipped` and `EquippedLeft` to read the items in your hands, and `Ammo` to count how many of an ammo item the player carries.
+`Equipped` and `EquippedLeft` read the items in the player's hands. `Ammo` counts how many of an ammo item the player carries.
 
 <div class="api-pair" markdown="1">
 
@@ -87,7 +87,7 @@ public static class Weapons
 
 ## Things to know
 
-- `Equipped()` is the right hand and `EquippedLeft()` is the left hand. Both give `null` when the hand is empty. A flashlight in the left hand shows as `Kind` `None`, and its battery shows as `AmmoLoaded` and `AmmoCapacity`.
+- `Equipped()` is the right hand and `EquippedLeft()` is the left hand. Both give `null` when the hand is empty. A flashlight in the left hand shows as `Kind` `None`. Its battery shows as `AmmoLoaded` and `AmmoCapacity`.
 - `Kind` is `None` for anything that is not a melee weapon or a Detonator. That includes tools, the flashlight, the osrat, the dosimeter and items such as a guitar. <span class="tech">(A held `WieldableItem.BasicWieldable` or `WieldableItem.BasicWieldableItem` (for example `WieldableGuitar`) is reported the same way with `Kind` `None`. Its `equipped` and `fullyEquipped` flags are not available.)</span>
 - `AmmoLoaded` and `AmmoCapacity` are whole numbers, rounded down. Both are `0` when the item has no ammo. <span class="tech">(They come from the item's `ItemAmmodata`.)</span>
-- `Ammo(id)` counts the items of that kind the player carries. For an ammo item that stores its charge inside itself, this counts the items, not the charge. <span class="tech">(It is `PlayerInventory.Count`.)</span>
+- `Ammo(id)` counts the items of that kind the player carries. Some ammo items store their charge inside themselves. For those, it counts the items, not the charge. <span class="tech">(It is `PlayerInventory.Count`.)</span>

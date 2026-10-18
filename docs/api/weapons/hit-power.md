@@ -7,10 +7,12 @@ nav_order: 5
 
 # Hit power
 
+Melee hits can be made stronger or weaker for each kind of target, with a factor your mod sets. The factors are kept only for the session. They are not saved.
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Melee hits can be made stronger or weaker for each kind of target. The game picks the target kind from the thing that was hit, as the table shows. The factors are kept only for the session. They are not saved.
+The game picks the target kind from the thing that was hit, as the target table further down shows.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>HitTarget</code> <span>the kinds of target a hit can land on</span></p>
@@ -70,7 +72,7 @@ public sealed class HitArgs
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the hit factors</span></p>
-Use `SetHitFactor` to scale melee damage on one kind of `HitTarget`, and `ClearHitFactors` to remove your mod's factors.
+`SetHitFactor` scales melee damage on one kind of `HitTarget`. `ClearHitFactors` removes your mod's factors. Both take your mod id as `modId`, the [owner](../../glossary.md#owner) of the factors.
 
 <div class="api-pair" markdown="1">
 
@@ -108,7 +110,7 @@ public static class Weapons
 - On a hit of 1 damage, a factor of `1.3` gives 2 about 3 hits in 10 and 1 otherwise. A factor of `1.5` gives 2 about half the time. A factor of `0.5` gives 0 or 1, half of the time each.
 - The newest factor for a target wins, and so does its rounding choice. Factors are not multiplied together, not between your calls and not between two mods.
 - An older `chanceRounding` choice does not apply once a newer call for the same target changes it. Factors for different targets do not affect each other.
-- When a second mod sets a target another mod already set, one warning that names both mods goes to the log, and the newer value applies.
+- When a second mod sets a target another mod already set, one warning that names both mods goes to the [log](../../guides/getting-started/logging.md). The newer value applies.
 - `ClearHitFactors(modId)` removes your mod's factors for every target.
 - Factors are cleared when the game loads a new level or a save. A neighbouring level that the game loads in the background does not clear them. Set your factors again from `Events.Loaded` or `Events.SceneLoaded` after each load. <span class="tech">(They are cleared on a `LoadSceneMode.Single` scene load, which loading a save also does.)</span>
 - Only the damage of melee hits is changed. Other weapons, explosions and damage to the player are not. <span class="tech">(The change is made on the melee weapon's `MeleeWeapon.Hit` call.)</span>
@@ -117,6 +119,16 @@ public static class Weapons
 
 ## Limits
 
-- `SetHitFactor` returns `false` when the mod id is not valid, the target is not a `HitTarget` value, the factor is not a real number, the factor is below `0` or above `10`, or the hit changes could not be set up.
+- `SetHitFactor` returns `false` in these cases:
+  - the mod id is not valid
+  - the target is not a `HitTarget` value
+  - the factor is not a real number
+  - the factor is below `0` or above `10`
+  - the hit changes could not be set up.
 - `ClearHitFactors` returns `false` when the mod id is not valid or your mod had none.
 - A node with no stock left, or a target that does not take this kind of damage, does not raise `Hit`.
+
+**Common problems**
+
+- Your factors stop working after a load: factors are cleared when the game loads a new level or a save. Set them again from `Events.Loaded` or `Events.SceneLoaded` after each load.
+- `SetHitFactor` returns `false` for a valid id, target and factor: the hit changes could not be set up. See [Details](details.md#if-something-fails-to-set-up).

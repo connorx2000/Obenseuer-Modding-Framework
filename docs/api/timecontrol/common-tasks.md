@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`TimeControl`](clock-speed-timers-and-the-minute-event.md): change the clock speed, set and cancel a timer, react to each minute, and read the day length. Each call that changes something takes your [mod id](../../glossary.md#mod-id) first.
+
 Run the clock four times slower, and go back to normal speed later.
 
 ```csharp
@@ -14,7 +16,7 @@ TimeControl.SetTimeScale(Mod.Id, 0.25f);
 TimeControl.ClearTimeScale(Mod.Id);
 ```
 
-Run something after 10 in-game minutes, and cancel it if you no longer want it. `In` gives you a handle, a number that names that one timer.
+Run something after 10 in-game minutes, and cancel it if you no longer want it. `In` gives you a handle: a number that names that one timer.
 
 ```csharp
 int handle = TimeControl.In(Mod.Id, 10, () => Log.Info("10 minutes later"));

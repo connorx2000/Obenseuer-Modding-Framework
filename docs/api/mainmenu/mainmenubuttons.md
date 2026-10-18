@@ -7,12 +7,12 @@ nav_order: 2
 
 # MainMenuButtons
 
-This is the full list of what the API gives you.
+Every call and property of `MainMenuButtons`. The rules behind them are on the pages [Add](add.md), [SetControlsEnabled](setcontrolsenabled.md) and [IsOpen](isopen.md).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MainMenuButtons</code> <span>adds buttons and holds the controls</span></p>
 
-Call `Add` to put a button on the main menu, and read `IsOpen` to check the menu is up with your buttons on it.
+`Add` puts a button on the main menu. `SetControlsEnabled` switches the menu's controls off and on. `IsOpen` tells you whether the menu is up with your buttons on it.
 
 <div class="api-pair" markdown="1">
 
@@ -29,8 +29,8 @@ public static class MainMenuButtons
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Add(id, label, onClick)` | `bool` | Adds a button with no mod id. Returns `true` when added. |
-| `Add(modId, id, label, onClick)` | `bool` | Adds a button for your mod. Returns `true` when added. |
+| `Add(id, label, onClick)` | `bool` | Adds a button with no mod id. `true` when added. |
+| `Add(modId, id, label, onClick)` | `bool` | Adds a button for your mod. `true` when added. |
 | `SetControlsEnabled(enabled)` | `void` | Switches the menu's controls off or on, with no mod id. |
 | `SetControlsEnabled(modId, enabled)` | `void` | Switches the menu's controls off or on, counted for your mod. |
 

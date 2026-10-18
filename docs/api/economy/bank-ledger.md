@@ -7,12 +7,12 @@ nav_order: 6
 
 # Bank ledger
 
-The bank ledger is a history of the changes to the player's bank accounts: deposits, withdrawals, interest, loans and so on. Each change is a `BankLedgerEntry`.
+The bank ledger is a history of the changes to the player's [bank accounts](banking.md): deposits, withdrawals, interest, loans and so on. Each change is a `BankLedgerEntry`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankLedger</code> <span>the ledger's reads and its event</span></p>
 
-Call `Entries(bankName, max, beforeId)` to read a bank's history, newest first, and subscribe to `Added` to hear each new entry.
+Call `Entries(bankName, max, beforeId)` to read a bank's history, newest first. Subscribe to `Added` to hear about each new entry.
 
 <div class="api-pair" markdown="1">
 
@@ -28,7 +28,7 @@ public static class BankLedger
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Entries(bankName, max, beforeId)` | `List<BankLedgerEntry>` | Entries for one bank, newest first. A `beforeId` of 0 means no limit. |
+| `Entries(bankName, max, beforeId)` | `List<BankLedgerEntry>` | The entries for one bank, newest first. A `beforeId` of 0 means no limit. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -45,7 +45,7 @@ public static class BankLedger
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankLedgerEntry</code> <span>one change to one bank account</span></p>
 
-`BankLedger.Entries` returns these, and `Added` gives you one as it is recorded. `Kind` says what sort of change it was, and `OcAfter` and `RmAfter` show the balance after it.
+`BankLedger.Entries` returns these, and `Added` gives you one as it is recorded. `Kind` says what sort of change it was. `OcAfter` and `RmAfter` show the balance after it.
 
 <div class="api-pair" markdown="1">
 
@@ -72,8 +72,8 @@ public sealed class BankLedgerEntry
 | `Day` | `int` | The game day it happened. |
 | `BankName` | `string` | The bank. |
 | `Kind` | `string` | What sort of change it was. The kinds are listed below. |
-| `OcDelta` | `int` | The change in OC. |
-| `RmDelta` | `float` | The change in RM. |
+| `OcDelta` | `int` | The change in [OC](../../glossary.md#oc) (the everyday coins). |
+| `RmDelta` | `float` | The change in [RM](../../glossary.md#rm) (Real Money). |
 | `DebtOcDelta` | `int` | The change in OC debt. |
 | `DebtRmDelta` | `float` | The change in RM debt. |
 | `OcAfter` | `int` | The OC in the account afterwards. |
@@ -85,18 +85,26 @@ public sealed class BankLedgerEntry
 
 ## Things to know
 
-- The ledger records changes to the balance of bank accounts: OC, RM, debt, and the frozen flag. It never changes the game, and it only tracks bank accounts, not the cash in the wallet. An entry is a change that happened, not a request. <span class="tech">(when one of its changes to the game's methods runs, it compares every account with its last snapshot.)</span>
-- The ledger is saved with the save, and keeps the newest 500 entries for each bank. It drops the oldest. The file is `obenseuer.moddingframework.bankledger.json` in the save's mods folder.
-- `Kind` is the sort of change an entry is. The kinds are `Opening balance` (every account the first time the ledger looks at a save), `Opened`, `Deposit`, `Withdrawal`, `Credit`, `Interest`, `Loan`, `Repayment`, `Debt payment`, `Invoice`, `Purchase`, `Refund`, `Cash by post`, `Scam payout`, `Frozen`, `Unfrozen` and `Other`.
-- `Other` is a change the ledger can't give a specific kind. That is a change found before the ledger's next check (a daily tick, the start of an accounts or debt call, or a change from a group that is turned off), or one made by a legal action, recorded just after the action runs. Its `Memo` is the exact text `no hook recorded this change`.
+- The ledger records changes to the balance of bank accounts: OC, RM, debt, and the frozen flag. It never changes the game. It only tracks bank accounts, not the cash in the wallet. An entry is a change that happened, not a request. <span class="tech">(when one of its changes to the game's methods runs, it compares every account with its last snapshot.)</span>
+- The ledger is stored in the [save](../../guides/getting-started/save-data.md). It keeps the newest 500 entries for each bank and drops the oldest. The file is `obenseuer.moddingframework.bankledger.json` in the save's mods folder.
+- `Kind` is the sort of change an entry is. `Opening balance` is recorded for every account the first time the ledger looks at a save. The other kinds are `Opened`, `Deposit`, `Withdrawal`, `Credit`, `Interest`, `Loan`, `Repayment` and `Debt payment`. The rest are `Invoice`, `Purchase`, `Refund`, `Cash by post`, `Scam payout`, `Frozen`, `Unfrozen` and `Other`.
+- `Other` is a change the ledger can't give a specific kind. That covers two cases:
+  - A change found before the ledger's next check: a daily tick, the start of an accounts or debt call, or a change from a group that is turned off.
+  - A change made by a legal action, recorded right after the action runs.
+- The `Memo` of an `Other` entry is the exact text `no hook recorded this change`.
 - A money change that also flips the frozen flag becomes two entries. The money entry comes first, then a `Frozen` or `Unfrozen` entry with all changes at zero.
-- `IsAvailable`, `FirstDay`, `Entries` and `Added` only need the `.accounts` group. They also need the ledger's feature group to be on and no recording failure.
+- `IsAvailable`, `FirstDay`, `Entries` and `Added` only need the `.accounts` group. They also need the ledger's [feature group](../../glossary.md#feature-group) to be on and no recording failure.
 - A missing `.interest`, `.debt`, `.scam` or `.legal` group does not turn them off. Its changes then show up as `Other` entries.
-- The framework first records any account change it has not recorded yet as `Other`, then records the group's own change under its own kind, so a missing group never shows its change under another call's kind. The group's own kind (such as `Interest` or `Scam payout`) is not recorded while that group is missing.
+- The framework first records any account change it has not recorded yet as `Other`. Then it records the group's own change under its own kind. So a missing group never shows its change under another call's kind. The group's own kind (such as `Interest` or `Scam payout`) is not recorded while that group is missing.
 
 ## Limits
 
-- `BankLedger.Added` uses the same nesting limit as `Cash.MoneyChanged`. A handler that calls a `Banking` write is refused once it is nested deeper than 8 handler levels (see [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework)).
+- `BankLedger.Added` uses the same nesting limit as [`Cash.MoneyChanged`](money-cash.md). A handler that calls a `Banking` write is refused once it is nested deeper than 8 handler levels. See [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework).
 - If something fails, the ledger turns off and banking keeps working. A failure while recording also turns it off until the next save is loaded.
-- The ledger's feature group is `obenseuer.moddingframework.bankledger`. It has five smaller feature groups for the game methods it watches: `.accounts` (the eight `Bank` writes), `.interest` (`Money.CurrentTime`), `.debt` (`Money.DebtDownpaymentCallback`), `.scam` (`FakeInvoiceReceiver.HandleMail`) and `.legal` (`LegalAction.TriggerAction`).
+- The ledger's [feature group](../../glossary.md#feature-group) is `obenseuer.moddingframework.bankledger`. It has five smaller feature groups, one for each set of game methods it watches:
+  - `.accounts` (the eight `Bank` writes)
+  - `.interest` (`Money.CurrentTime`)
+  - `.debt` (`Money.DebtDownpaymentCallback`)
+  - `.scam` (`FakeInvoiceReceiver.HandleMail`)
+  - `.legal` (`LegalAction.TriggerAction`)
 - If a game method in `.accounts` is missing in this version of the game, the ledger is off, and `IsAvailable` is `false`.

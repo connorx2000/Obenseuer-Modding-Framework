@@ -8,9 +8,18 @@ nav_order: 8
 
 # Instruments
 
+[`Instruments`](instruments/guitars.md) lets your mod find the guitars in the [scene](../glossary.md#scene), play them, and react when someone strums one. Use it to reward guitar playing or to play a short tune from a quest.
+
 ## What it is
 
-The only musical instrument in the game is the guitar. The player holds it in a hand and strums it with the Primary Use key, and people nearby may comment on the playing. This API lists the guitars in the scene you are in. It can play a single strum or a timed run of strums from your mod, hold a long note, and tells you when a strum is played and when a witness comments on it.
+The guitar is the only musical instrument in the game. The player holds it in a hand and strums it with the Primary Use key. People nearby may comment on the playing.
+
+This API gives your mod these jobs:
+
+- List the guitars in the scene you are in.
+- Play a single strum, or a timed run of strums.
+- Hold a long note.
+- Get told when a strum is played and when a [witness](../glossary.md#witness) (a person nearby) comments on it.
 
 ## When to use it
 
@@ -20,7 +29,7 @@ The only musical instrument in the game is the guitar. The player holds it in a 
 
 ## Quick example
 
-This mod logs each strum and each comment a nearby person makes on the playing. Hold a guitar in the game and strum it to see the lines in the log.
+This mod [logs](../guides/getting-started/logging.md) each strum and each comment a nearby person makes on the playing.
 
 ```csharp
 using ObenseuerCore;
@@ -38,3 +47,5 @@ public sealed class GuitarWatch : FrameworkMod
 ```
 
 `GuitarPlayed` and `GuitarCommented` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md) for more on events.
+
+To see it work, hold a guitar in the game and strum it. The lines appear in the log.

@@ -7,14 +7,12 @@ nav_order: 3
 
 # Wait stations
 
-A wait station is a place in the world where the player waits, such as a work station: the player uses it and time passes. These calls list the stations in the scene you are in, check whether one can be used, use one, and tell you when a wait at a station ends.
-
-
+A wait station is a place in the world where the player waits, such as a work station: the player uses it and time passes. These calls list the stations in the [scene](../../glossary.md#scene) you are in and use them. They also check whether one can be used, and tell you when a wait at a station ends.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WaitStations</code> <span>list, check and use wait stations</span></p>
 
-Use it to list the stations in the scene, check whether one can be used, use one, and hear when a wait at a station ends.
+Use it to list, check and use the stations in the scene. Its `Finished` event tells you when a wait at a station ends.
 
 <div class="api-pair" markdown="1">
 
@@ -108,11 +106,23 @@ public sealed class WaitStationDoneArgs
 
 ## Things to know
 
-- `All()` lists every active wait station in the scene you are in. Job stations and resident stations are included. It only reads, and gives an empty list when the scene has no station or when a read fails (which is logged once). <span class="tech">(It lists every active `InteractableWait`. Job stations (`InteractableWaitWork`) and resident stations (`InteractableWaitResident`) derive from it. It reads the protected `WaitInMinutes` and `type` fields by reflection.)</span>
-- `Type` is what kind of wait the station is, or `null` when it is a kind that `WaitKind` does not have. To start the same wait yourself, call `PlayerState.Wait(Minutes * 60, Type.Value)` when `Type` has a value. <span class="tech">(It is the station's `WaitingController.Type`. `None`, `Sleeping`, `Passout` and `Arrest` are not in `WaitKind`, so they come back `null`.)</span>
+- `All()` lists every active wait station in the scene you are in, including job stations and resident stations. It only reads. It gives an empty list when the scene has no station, or when a read fails (which is [logged](../../guides/getting-started/logging.md) once). <span class="tech">(It lists every active `InteractableWait`. Job stations (`InteractableWaitWork`) and resident stations (`InteractableWaitResident`) derive from it. It reads the protected `WaitInMinutes` and `type` fields by reflection.)</span>
+- `Type` is what kind of wait the station is, or `null` when it is a kind that `WaitKind` does not have. To start the same wait yourself, call [`PlayerState.Wait(Minutes * 60, Type.Value)`](playerstate.md) when `Type` has a value. <span class="tech">(It is the station's `WaitingController.Type`. `None`, `Sleeping`, `Passout` and `Arrest` are not in `WaitKind`, so they come back `null`.)</span>
 - `IgnoresNeeds` and the `Satisfies...` values describe how the wait treats the player's needs. A resident station looks up its resident after the wait starts, so its `Satisfies...` values can change during a wait. Read them when no wait is running. <span class="tech">(`IgnoresNeeds` reads the protected `ignorePlayerNeeds` field by reflection, and `FindResidentAndApartment` runs after the wait starts.)</span>
-- `CanUse(id)` and `Use(id)` make the same checks, in this order: the id is not empty; no save is loading or being written; the game's waiting controller exists; no level change is running; waiting is not blocked; the player is not asleep or waiting; the game's stats, screens, clock and use text exist; the id matches a station; the station's interaction is not turned off; and the station says the player can wait. `Use` then does what pressing the station's Interact key does. <span class="tech">(The checks need `PlayerStats`, `GameUIController`, `GameController`, `TimeOfDayAzure` and `UseText`. The station checks are `IsInteractDisabled()` being false and `CanWait()` being true. `Use` calls the station's `Interact()`.)</span>
-- `Finished` fires for every wait that a station starts, including a wait the player wakes from early. `Seconds` is the time the game reports when it wakes the player, not the planned length. It does not fire for 0 or less, or while a save is loading or being written. At a job station it fires before the pay is added and before `Jobs.Worked` fires. <span class="tech">(It is a postfix on `InteractableWait.WaitDone`. The job station's `WaitDone` calls the base method first.)</span>
+- `CanUse(id)` and `Use(id)` make the same checks, in this order:
+  - the id is not empty;
+  - no save is loading or being written;
+  - the game's waiting controller exists;
+  - no level change is running;
+  - waiting is not blocked;
+  - the player is not asleep or waiting;
+  - the game's stats, screens, clock and use text exist;
+  - the id matches a station;
+  - the station's interaction is not turned off;
+  - and the station says the player can wait.
+
+  `Use` then does what pressing the station's Interact key does. <span class="tech">(The checks need `PlayerStats`, `GameUIController`, `GameController`, `TimeOfDayAzure` and `UseText`. The station checks are `IsInteractDisabled()` being false and `CanWait()` being true. `Use` calls the station's `Interact()`.)</span>
+- `Finished` fires for every wait that a station starts, including a wait the player wakes from early. `Seconds` is the time the game reports when it wakes the player, not the planned length. It does not fire for 0 or less, or while a save is loading or being written. At a job station it fires before the pay is added and before [`Jobs.Worked`](../jobs.md) fires. <span class="tech">(It is a postfix on `InteractableWait.WaitDone`. The job station's `WaitDone` calls the base method first.)</span>
 
 ## Limits
 

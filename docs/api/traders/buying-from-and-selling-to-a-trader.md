@@ -11,7 +11,7 @@ nav_order: 5
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>buys and sells for the player</span></p>
-Use `Buy` and `Sell` to make one trade for the player.
+`Buy` and `Sell` each make one trade for the player.
 
 <div class="api-pair" markdown="1">
 
@@ -25,15 +25,15 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Buy(modId, traderId, itemId, count, out refusal)` | `bool` | The player buys `count` of an item. Returns `true` when done. |
-| `Sell(modId, traderId, itemId, count, out refusal)` | `bool` | The player sells `count` of an item. Returns `true` when done. |
+| `Buy(modId, traderId, itemId, count, out refusal)` | `bool` | The player buys `count` of an item. `true` when done. |
+| `Sell(modId, traderId, itemId, count, out refusal)` | `bool` | The player sells `count` of an item. `true` when done. |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TraderTradeRefusal</code> <span>why a trade was refused</span></p>
-`Buy` and `Sell` give you this through `out refusal`. It is `None` when the trade went through, and otherwise says why it did not, such as `OutOfStock`. The game has no such list; the framework sets these values, with `Failed` when nothing more specific applies.
+`Buy` and `Sell` give you this through `out refusal`. It is `None` when the trade went through. Otherwise it says why the trade did not, such as `OutOfStock`. The game has no such list: the framework sets these values, with `Failed` when nothing more specific applies.
 
 <div class="api-pair" markdown="1">
 
@@ -83,19 +83,19 @@ public enum TraderTradeRefusal
 
 ## Things to know
 
-- `Buy` and `Sell` return `true` when the trade was done. Otherwise they return `false` and `refusal` says why. A refusal before anything changed shows no message in the game. The log gets one line for each kind of trade and reason.
+- `Buy` and `Sell` return `true` when the trade was done. Otherwise they return `false`, and `refusal` says why. A refusal before anything changed shows no message in the game. The [log](../../guides/getting-started/logging.md) gets one line for each kind of trade and reason.
 - `Buy` gives the player the items first, then takes the units from the trader's stock, then takes the money. The game's own `Trade.Buy` only moves the money, so the framework moves the items too.
 - `Buy` only takes ordinary stock: units nobody owns, not stolen, and priced by the game as a new item. A stolen unit, or one the game prices differently (such as a worn one), stays on the shelf and is not counted. <span class="tech">(units with no owner and no stolen mark, which the game prices as a new item)</span>
 - A bought unit keeps the shelf unit's owner and item data, such as its skin.
 - `Sell` takes `count` of the item from the player's stacks that the trader accepts, one stack at a time. It skips units that the trader doesn't accept: a stolen unit the trader doesn't buy, or a unit the trader's allowed and forbidden categories rule out. Those units stay with the player and are not sold.
-- Each stack is priced on its own, so its wear, quality and stolen mark count. A sold unit keeps its owner and item data in the trader's stock, and the trader keeps it unless the trader destroys what it buys. <span class="tech">(each stack is priced with its own owner and meta; a stolen unit sold to the trader is never one stolen from that trader, and it keeps its owner so the game's stolen price factor applies to the sale)</span>
-- A trade is not a crime. Taking a unit that someone owns, or selling stolen goods through `Sell`, does not commit a theft, the same as in the game's own trade screen.
+- Each stack is priced on its own, so its wear, quality and stolen mark count. A sold unit keeps its owner and item data in the trader's stock. The trader keeps it unless the trader destroys what it buys. <span class="tech">(each stack is priced with its own owner and meta; a stolen unit sold to the trader is never one stolen from that trader, and it keeps its owner so the game's stolen price factor applies to the sale)</span>
+- A trade is not a crime. Taking a unit that someone owns, or selling stolen goods through `Sell`, does not commit a theft. The game's own trade screen works the same way.
 - The trade screen does not need to be open. A trade does not check whether the trade screen is open for that trader.
-- Events are held back until the trade is done. Handlers for `Shops.Bought`, `Shops.Sold`, `PlayerInventory.ItemAdded`, `PlayerInventory.ItemRemoved` and `Cash.MoneyChanged` run after the trade is complete, so they never run in the middle of one.
+- Events are held back until the trade is done. Handlers for [`Shops.Bought`](../economy/shops.md), `Shops.Sold`, [`PlayerInventory.ItemAdded`](../inventory/player-inventory.md), `PlayerInventory.ItemRemoved` and [`Cash.MoneyChanged`](../economy/money-cash.md) run after the trade is complete. They never run in the middle of one.
 - A buy raises one `Shops.Bought`. A sale raises one `Shops.Sold` for each stack. Item events come once per item with the total moved. A bought item's "New item" notice shows once with the total. A refused or undone trade raises none of these.
 - If a trade fails halfway, it is undone, and you get the reason. Only the money the trade moved goes back, to the player and to the trader.
-- The trader's stock and the player's inventory (the main, backpack and character slots) are written back slot by slot, into the same slots, with the same amount, owner, quality, liquid and other item data. <span class="tech">(the undo writes slots back directly, so the game's take and drop callbacks do not run again, and the undo does not take back the game's own callbacks that ran during a step)</span>
-- A finished trade is saved at the next save, like a trade on the trade screen. That is the trader's money and trade balance, the trader's stock, and the player's inventory and money. The framework keeps no record of your trades, so keep your own in your own save data if you need one.
+- The undo writes the trader's stock and the player's inventory (the main, backpack and character slots) back slot by slot, into the same slots. Each slot gets the same amount, owner, quality, liquid and other item data it had. <span class="tech">(the undo writes slots back directly, so the game's take and drop callbacks do not run again, and the undo does not take back the game's own callbacks that ran during a step)</span>
+- A finished trade is saved at the next save, like a trade on the trade screen. That covers the trader's money and trade balance, the trader's stock, and the player's inventory and money. The framework keeps no record of your trades. If you need one, keep it in your own [save data](../../guides/getting-started/save-data.md).
 - The game's price rules are not changed. Item value, stolen goods and containers are priced as the game does. Price factors only scale the result.
 
 ## Limits
@@ -103,8 +103,14 @@ public enum TraderTradeRefusal
 - `OutOfStock` happens when there are fewer than `count` units that `Buy` can take.
 - A bought unit's cold (refrigerated) state is not kept.
 - `Sell` refuses and changes nothing when the accepted units are fewer than `count`. You get `NotAccepted` when the trader's categories ruled out a unit the player holds, otherwise `NotEnoughItems`. It also refuses when the trader can't pay for the whole sale, or has no room for the items.
-- Liquids can't be traded here. An item that is a liquid, or holds one such as a filled bottle, is refused with `LiquidItem`, because the liquid can change when stacks merge and an undo could not restore that.
+- Liquids can't be traded here. An item that is a liquid, or holds one such as a filled bottle, is refused with `LiquidItem`. The liquid can change when stacks merge, and an undo could not restore that.
 - Special traders can't be traded with. A trader that gives and takes certificates is refused with `SpecialTrader`. <span class="tech">(these are `TradeSpecial`)</span>
 - A trade can't start while another trade is running, or from inside a `Shops.PriceQuery` handler. The call refuses with `TradeBusy`. <span class="tech">(while a trade runs, a `Shops.PriceQuery` handler can still read and set the price; but these writes are refused: `Cash` writes (`Give`, `TrySpend`, and the banking and mail writes that check them), `PlayerInventory.Give` and `Take`, and `Traders.SetMoney` and `Restock`; other framework writes, such as shop stock and equipment, are not blocked)</span>
-- The undo has limits. If a sale of a worn item (a hat, a backpack, a held item) fails after the item is taken, the item is back in its slot, but the game may not treat it as worn until the player moves it.
-- In rare slot cases a purchase can put one unit on the floor, and the call then refuses and undoes the rest, leaving that unit on the floor. The player never loses money either way.
+- The undo has limits. A sale of a worn item (a hat, a backpack, a held item) can fail after the item is taken. Then the item is back in its slot. The game may not treat it as worn until the player moves it.
+- In rare slot cases a purchase can put one unit on the floor. The call then refuses and undoes the rest, leaving that unit on the floor. The player never loses money either way.
+
+**Common problems**
+
+- `Buy` refuses with `OutOfStock`: there are fewer than `count` units that `Buy` can take. `Buy` only takes ordinary stock, so a stolen unit, or one the game prices differently (such as a worn one), is not counted. Ask for fewer, or read the stock first.
+- `Sell` refuses with `NotEnoughItems` or `NotAccepted`: the units the trader accepts are fewer than `count`. `Sell` skips a stolen unit the trader doesn't buy, and a unit the trader's allowed and forbidden categories rule out. Count what the trader will take rather than what the player holds.
+- A trade refuses with `TradeBusy`: another trade is running, or the call came from inside a `Shops.PriceQuery` handler. Wait for the first trade to finish.

@@ -7,12 +7,12 @@ nav_order: 2
 
 # Shops
 
-This is the full list of what the API gives you.
+This page lists every `BaseShops` call and event, and the `BaseShopInfo` snapshot that `All()` gives you. Read it for the rules behind listing shops, setting their money and making them restock.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShops</code> <span>the static class for base shops</span></p>
 
-Use `All` to list the shops in the scene, `SetMoney` and `Restock` to change a shop, and `Buy` and `Sell` to trade furniture with one.
+`All` lists the shops in the [scene](../../glossary.md#scene). `SetMoney` and `Restock` change a shop. `Buy` and `Sell` trade furniture with one.
 
 <div class="api-pair" markdown="1">
 
@@ -67,8 +67,8 @@ public sealed class BaseShopInfo
 |---|---|---|
 | `Id` | `string` | The shop's id. Pass it to the other calls. |
 | `Kind` | `string` | The type of shop, such as `FurnitureShop` or `TrainShop`. |
-| `Oc` | `int` | How many OC the shop holds. |
-| `Rm` | `int` | How many RM the shop holds. |
+| `Oc` | `int` | How many [OC](../../glossary.md#oc) (Open Sewer Coins) the shop holds. |
+| `Rm` | `int` | How many [RM](../../glossary.md#rm) (Real Money) the shop holds. |
 | `RestockDaily` | `bool` | `true` when the shop restocks every day. `false` when it restocks on a timer. |
 
 </div>
@@ -76,11 +76,16 @@ public sealed class BaseShopInfo
 
 ## Things to know
 
-- `All()` lists the shops that are switched on in the scene you are in. A shop in another scene, or one the game has hidden, is not listed. With no save loaded you get an empty list. <span class="tech">(It searches the active objects of the active scene for `BaseShop`. `Kind` is the C# type name.)</span>
-- A shop id is a piece of text that names one shop. `All()` gives it to you, and it is stable as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the shop's save GUID when it has one, otherwise its scene path.)</span>
-- `SetMoney(id, oc, rm)` sets how much money the shop holds. The shop pays the player out of this money when it buys furniture, so the new amounts limit what it can pay.
+- `All()` lists the shops that are switched on in the [scene](../../glossary.md#scene) you are in. A shop in another scene, or one the game has hidden, is not listed. With no save loaded you get an empty list. <span class="tech">(It searches the active objects of the active scene for `BaseShop`. `Kind` is the C# type name.)</span>
+- A shop id is a piece of text that names one shop. `All()` gives it to you. It stays the same as long as the scene does not change. A null or empty id finds nothing. <span class="tech">(The id is the shop's save GUID when it has one, otherwise its scene path.)</span>
+- `SetMoney(id, oc, rm)` sets how much money the shop holds. The shop pays the player out of this money when it buys furniture. So the new amounts limit what it can pay.
 - `SetMoney` returns `false` for a negative amount, for an unknown shop, and while a save is loading or being written. A shop screen that is already open can show the old amounts until it refreshes. <span class="tech">(It writes `currentOcMoney` and `currentRmMoney` directly, because the game has no setter. The sale checks read those fields.)</span>
 - `Restock(id)` makes the shop restock now. It draws new amounts of money for the shop and refreshes its stock.
-- `Restock` does not reset the shop's restock timer, so the next restock the game planned still happens when it was planned. It returns `false` for an unknown shop and while a save is loading or being written. <span class="tech">(It calls the game's `Restock()`, which draws new OC and RM amounts in the shop's ranges and then calls `UpdateShopItems()`, which a subclass overrides. `timeToRestock` and `restockedDay` keep their values. For a furniture shop this runs the framework's furniture changes on `UpdateShopItems`.)</span>
+- `Restock` does not reset the shop's restock timer. The next restock the game planned still happens when it was planned. `Restock` returns `false` for an unknown shop and while a save is loading or being written. <span class="tech">(It calls the game's `Restock()`, which draws new OC and RM amounts in the shop's ranges and then calls `UpdateShopItems()`, which a subclass overrides. `timeToRestock` and `restockedDay` keep their values. For a furniture shop this runs the framework's furniture changes on `UpdateShopItems`.)</span>
 - `RestockDaily` tells you when the shop restocks by itself. When it is `true`, the shop restocks at the start of each new day. Otherwise it restocks on its own timer, after a time chosen between its smallest and largest restock time. <span class="tech">(The daily restock happens on the first minute tick of a new day. The timer runs between `minRestockingTime` and `maxRestockingTime` seconds.)</span>
-- The list of what a shop has in stock belongs to each kind of shop, and furniture stock is on the [furniture page](../furniture.md). The price percentages and the stock amount ranges are not available. <span class="tech">(Each subclass owns its stock list, for example `FurnitureShop.availableFurnitures`. The percentages are `sellPercent` and `buyPercent`.)</span>
+- The list of what a shop has in stock belongs to each kind of shop. Furniture stock is on the [furniture page](../furniture.md). The price percentages and the stock amount ranges are not available. <span class="tech">(Each subclass owns its stock list, for example `FurnitureShop.availableFurnitures`. The percentages are `sellPercent` and `buyPercent`.)</span>
+
+**Common problems**
+
+- `SetMoney` or `Restock` returns `false`: no shop has the id, or a save is loading or being written. `SetMoney` also refuses a negative amount. Use an id from `All()`, and check [`SaveData.Busy`](../../api-core/savedata.md#savedatabusy) when the timing matters.
+- A shop screen still shows the old money after `SetMoney`: the screen was already open. It shows the new amounts when it refreshes.

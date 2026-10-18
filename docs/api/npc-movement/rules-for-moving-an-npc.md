@@ -7,15 +7,16 @@ nav_order: 3
 
 # Rules for moving an NPC
 
+These rules apply to every [`NpcMovement`](moving-an-npc.md) call: errors, saves, scene loads, and how an [NPC](../npcs.md) (a character in the game) gets its schedule back.
+
 ## Things to know
 
-- A claim belongs to your mod. Every call takes the `modId` of your mod. An invalid `modId` throws an `ArgumentException`, as the other calls that take a `modId` do.
+- A [claim](../../glossary.md#claim) (your mod's hold on an NPC) belongs to your mod. Every call takes the `modId` of your mod. An invalid `modId` throws an `ArgumentException`, as the other calls that take a `modId` do.
 - Failures return `false` and do not throw. The game's own behaviour never throws an error to your code. The first failure of each member is logged as an error.
 - Calls that change an NPC return `false` while a save is loading or being written.
-- The schedule always comes back. When the last hold on an NPC goes, the NPC's schedule goes on again.
-- If the NPC cannot take it up at that moment (a save is loading or being written, or the NPC is switched off), the release waits and is tried again each frame.
-- If the NPC's controller is destroyed, the claim is dropped and a patrol or stand your mod started on it is stopped.
-- A scene load releases your claims. A single-scene load releases every claim, one at a time, using the same rule. An additive load (a neighbouring scene loaded alongside) does not.
+- The [schedule](../npc-schedules.md) always comes back. When the last hold on an NPC goes, the NPC's schedule goes on again. If the NPC cannot take it up at that moment, the release waits and is tried again each frame. That happens while a save is loading or being written, or while the NPC is switched off.
+- If the NPC's controller is destroyed, the claim is dropped. A patrol or stand your mod started on it is stopped.
+- A [scene](../../glossary.md#scene) load releases your claims. A single-scene load releases every claim, one at a time, using the same rule. An additive load (a neighbouring scene loaded alongside) does not.
 - A patrol or stand that your mod started is stopped, and the NPC goes back to its schedule. Claim again from your own `Events.SceneLoaded` handler if you still need it.
 
 ## Limits

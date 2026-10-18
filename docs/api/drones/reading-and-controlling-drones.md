@@ -7,15 +7,17 @@ nav_order: 2
 
 # Reading and controlling drones
 
+How to list the drones in the [scene](../../glossary.md#scene) (one loaded area of the game), read their state, and switch them on or off. This page also covers the `Changed` event.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of what the API gives you. `Drones` reads and controls the drones in the scene you are in. Each drone is a `DroneInfo`, a snapshot of its state at the moment you asked, and the snapshot does not update by itself, so ask again for fresh values.
+This is the full list of what the API gives you for reading and controlling drones. `Drones` reads and controls the drones in the scene you are in. Each drone is a `DroneInfo`, a snapshot of its state at the moment you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Drones</code> <span>read and control drones</span></p>
 
-Call `All()` or `Get(id)` to read drones, and `SetActive`, `SetTarget` or `SetMaxSpeed` to control one.
+Call `All()` or `Get(id)` to read drones. Call `SetActive`, [`SetTarget` or `SetMaxSpeed`](route.md) to control one.
 
 <div class="api-pair" markdown="1">
 
@@ -42,11 +44,11 @@ public static class Drones
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` when the `Changed` or `NodePassed` events could not be set up. |
+| `IsAvailable` | `bool` | `false` when the `Changed` or [`NodePassed`](node-passes.md) events could not be set up. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Changed` | `DroneChangedArgs` | A drone was switched on or off. |
+| `Changed` | `DroneChangedArgs` | Right after a drone is switched on or off. |
 
 </div>
 </div>
@@ -54,7 +56,7 @@ public static class Drones
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>DroneInfo</code> <span>a snapshot of one drone</span></p>
 
-`Drones.All()` and `Drones.Get(id)` give you these. `TargetNodeId` is the node the drone is heading for, and `MaxSpeed` is the top speed it is set to, not the speed it is flying at.
+`Drones.All()` and `Drones.Get(id)` give you these. `TargetNodeId` is the node the drone is heading for. `MaxSpeed` is the top speed it is set to, not the speed it is flying at.
 
 <div class="api-pair" markdown="1">
 
@@ -76,7 +78,7 @@ public sealed class DroneInfo
 | `Active` | `bool` | `true` when the drone is switched on. |
 | `Position` | `Vector3` | Where the drone is, in world coordinates. |
 | `MaxSpeed` | `float` | The top speed it is set to, not the speed it is flying at right now. |
-| `TargetNodeId` | `string` | The id of the air node it is heading for. `null` when it has no target. |
+| `TargetNodeId` | `string` | The id of the [air node](air-nodes.md) it is heading for. `null` when it has no target. |
 | `NextNodeId` | `string` | The id of the node after that one. `null` when there is none. |
 
 </div>
@@ -107,8 +109,8 @@ public sealed class DroneChangedArgs
 
 ## Things to know
 
-- A drone's `Id` names one drone in the scene you are in. If the game gave the drone a save id, that is the id. If not, the id is the drone's place in the scene, for example `Scene:Root[0]/Child[2]`, and it changes when the object is renamed or moved. <span class="tech">(The framework uses a non-empty public `Drone.GUID` field first, then the id the game's save system gives the object (`SaveController.GetObjectGUID`), then the scene path. No game code that mentions `Drone` ever sets `Drone.GUID`, so in practice you get the save id or the path.)</span>
+- A drone's `Id` names one drone in the [scene](../../glossary.md#scene) you are in. If the game gave the drone a save id, that is the id. If not, the id is the drone's place in the scene, for example `Scene:Root[0]/Child[2]`. That id changes when the object is renamed or moved. <span class="tech">(The framework uses a non-empty public `Drone.GUID` field first, then the id the game's save system gives the object (`SaveController.GetObjectGUID`), then the scene path. No game code that mentions `Drone` ever sets `Drone.GUID`, so in practice you get the save id or the path.)</span>
 - `All()` lists the drones in the scene you are in. A drone that is switched off at the object level (the whole object is hidden) is not listed. `Get` returns null when you pass an id that nothing matches, or an empty id. <span class="tech">(`All` and `Get` use `FindObjectsByType` with inactive objects left out, and the order is whatever Unity returns.)</span>
-- `SetActive` runs the game's own switch on or off, so you get the same sounds and effects as in the game. It returns `true` when the drone is in the state you asked for, including when it was already in that state, in which case nothing happens. It returns `false` for an unknown id, an empty id, or while a save is loading or being written. <span class="tech">(It calls `Drone.TurnOn()` or `Drone.TurnOff()`, so the drone's outputs and sounds run as normal, and `Changed` fires. The save check is `SaveData.Busy`.)</span>
+- `SetActive` runs the game's own switch on or off, so you get the same sounds and effects as in the game. It returns `true` when the drone is in the state you asked for. That includes a drone that was already in that state, and then nothing happens. It returns `false` for an unknown id, an empty id, or while a save is loading or being written. <span class="tech">(It calls `Drone.TurnOn()` or `Drone.TurnOff()`, so the drone's outputs and sounds run as normal, and `Changed` fires. The save check is `SaveData.Busy`.)</span>
 - `Changed` fires when a drone really changes state. It also fires when the game switches a drone off at the end of its route. It does not fire when a call changes nothing. <span class="tech">(It is raised from a Harmony postfix (a change to the game method that runs after it) on `Drone.TurnOn` and `Drone.TurnOff`, only when `active` differs from its value before the call. If a `TurnOn` output switches the same drone straight back off, only the last `Changed(false)` fires.)</span>
 - `MaxSpeed` is the speed the drone is set to, not how fast it is flying right now. You can't read the live speed (see [What you can't do (yet)](details.md#what-you-cant-do-yet)).

@@ -7,9 +7,11 @@ nav_order: 4
 
 # What you can't do (yet)
 
+The light jobs that [`Lights`](simple-lights.md) does not offer, and what it can change instead.
+
 ## Limits
 
-- You can't switch a multi-state fixture on or off as a whole. Only the lit setting can be changed. <span class="tech">(The game's `LightTurnOffOnMultiState.on` flag and `Toggle` method have no framework call.)</span>
-- You can't address the `LightsON` script. It has no save id and no saved state, so it can't be pointed at by an id, and a change would be lost the next time the scene starts.
-- You can't wait for a fade to finish. The fades run over several frames, and `Toggled` fires when the switch flips, not when the light has finished fading. <span class="tech">(`TurnLightOnFade` and `TurnLightOffFade`.)</span>
-- You can't change a light's brightness or materials. Only on or off, and the lit setting, can be changed.
+- No way to switch a [multi-state](multi-state-lights.md) fixture on or off as a whole. Only the lit setting can be changed. <span class="tech">(The game's `LightTurnOffOnMultiState.on` flag and `Toggle` method have no framework call.)</span>
+- No way to address the `LightsON` script. It has no save id and no saved state. So no id can point at it, and a change would be lost the next time the scene starts.
+- No way to wait for a fade to finish. The fades run over several frames. `Toggled` fires when the switch flips, not when the light has finished fading. <span class="tech">(`TurnLightOnFade` and `TurnLightOffFade`.)</span>
+- No control over a light's brightness or materials. Only on or off, and the lit setting, can be changed.

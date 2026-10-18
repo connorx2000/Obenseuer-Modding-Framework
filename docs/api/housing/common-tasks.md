@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`Housing`](apartments-and-tenants.md) and [`Building`](building.md): list apartments and tenants, run evictions, and place, move and track furniture.
+
 This page uses `Vector3`, `Quaternion` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -22,7 +24,7 @@ TenantInfo tenant = Housing.GetTenant(2);
 if (tenant != null) Log.Info("Apartment 2 is home to " + tenant.Name);
 ```
 
-Start an eviction with the game's normal 18 hours, with your own number of hours, or call it off.
+Start an [eviction](evictions.md) with the game's normal 18 hours or with your own number of hours, or call it off.
 
 ```csharp
 if (Housing.StartEviction(2)) Log.Info("The eviction timer is running.");
@@ -32,14 +34,14 @@ if (Housing.CancelEviction(2)) Log.Info("The tenant can stay.");
 Housing.EvictionStarted += args => Log.Info("Eviction started for " + args.Tenant.Name);
 ```
 
-List the furniture the player placed in each building area.
+List the furniture the player placed in each [building area](../../glossary.md#building-area) (a part of a building that holds placed furniture).
 
 ```csharp
 foreach (string areaId in Building.AllAreaIds())
     Log.Info(areaId + " holds " + Building.GetPlacedFurniture(areaId).Count + " pieces you can move");
 ```
 
-Place a piece of furniture in an area. Take the area id from `Building.AllAreaIds()` and the furniture id from `Building.Catalog()`. You get the new piece, or `null` when the game would not allow it.
+Place a piece of furniture in an area. Take the area id from `Building.AllAreaIds()` and the furniture id from `Building.Catalog()` (see [Catalogue](catalogue.md)). You get the new piece back, or `null` when the game would not allow it.
 
 ```csharp
 string areaGuid = "some id from Building.AllAreaIds()";
@@ -64,7 +66,7 @@ bool removed = Building.Remove(pieceGuid);
 Log.Info("Moved: " + moved + ", removed: " + removed);
 ```
 
-Find out which building area the player is in, and react when that changes.
+Find out which building area the player is in, and react when that changes (see [Building areas](building-areas.md)).
 
 ```csharp
 BuildAreaInfo area = Building.CurrentArea;
@@ -85,7 +87,7 @@ foreach (BlueprintInfo blueprint in Building.AllBlueprints())
 if (!Building.IsBlueprintKnown("some blueprint name")) Building.UnlockBlueprint("some blueprint name", true);
 ```
 
-Check whether the events work.
+Check whether the events work. The reasons they can turn off are on [Details](details.md#if-something-fails-to-set-up).
 
 ```csharp
 if (!Housing.IsAvailable) Log.Warn("Housing events are off.");

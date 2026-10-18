@@ -7,13 +7,15 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs: change the speed or quality for your mod, undo those changes, and start, pause and resume stations. `Mod.Id` is your [mod id](../../glossary.md#mod-id).
+
 Make only one kind of station slower. This makes the process stations take twice as long. Kinds are explained in [Speed](speed.md#speed).
 
 ```csharp
 CraftingSpeed.SetSpeedFactor(Mod.Id, "manufacturingProcess", 0.5f);
 ```
 
-Make everything the player crafts one and a half times its normal quality.
+Make everything the player crafts one and a half times its normal quality. The calls are listed in [The calls](the-calls.md).
 
 ```csharp
 if (!CraftingQuality.SetQualityFactor(Mod.Id, 1.5f))
@@ -27,7 +29,7 @@ CraftingSpeed.Clear(Mod.Id);
 CraftingQuality.Clear(Mod.Id);
 ```
 
-Start a craft at every station, and log how many started. The station must already have a recipe selected, as explained in [Start and stop](start-and-stop.md#start-and-stop).
+Start a craft at every station, and [log](../../guides/getting-started/logging.md) how many started. The station ids come from [`Crafting.All()`](../recipes/crafting-stations.md). The station must already have a recipe selected, as explained in [Start and stop](start-and-stop.md#start-and-stop).
 
 ```csharp
 int started = 0;
@@ -36,7 +38,7 @@ foreach (CraftingStationInfo station in Crafting.All())
 Log.Info(started + " stations started.");
 ```
 
-Pause every station that is running a timed batch, then let them carry on.
+Pause every station that is running a timed batch, then let them carry on. The rules are in [Pause and resume](pause-and-resume.md).
 
 ```csharp
 foreach (CraftingStationInfo station in Crafting.All())

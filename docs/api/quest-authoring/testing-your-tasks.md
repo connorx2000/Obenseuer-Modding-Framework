@@ -7,9 +7,9 @@ nav_order: 6
 
 # Testing your tasks
 
-Two config entries help you check your tasks while you build them.
+Two entries in the framework's [config](../../guides/getting-started/config.md) help you check your tasks while you build them.
 
 ## Things to know
 
-- The config entry `Debug.QuestAuthoringSelfCheck` logs a check of the definition rules and the ownership rule at start. Set it in the framework's config.
-- The config entry `Debug.QuestAuthoringCommand` adds the console command `core_quests_check`. It makes, advances and finishes a test task in the loaded save and logs the result. It adds a finished task to that save, so use a scratch save.
+- `Debug.QuestAuthoringSelfCheck` makes the framework [log](../../guides/getting-started/logging.md) a check of the definition rules and the ownership rule at start. Set it in the framework's config.
+- `Debug.QuestAuthoringCommand` adds the console command `core_quests_check`. The command makes, advances and finishes a test task in the loaded save, and logs the result. It adds a finished task to that save, so use a scratch save.

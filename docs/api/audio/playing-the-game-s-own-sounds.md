@@ -7,15 +7,17 @@ nav_order: 2
 
 # Playing the game's own sounds
 
+This is the full list of the game's own sounds you can use: the item pickup sounds and the random sound libraries. `Sounds` lists their names and plays them.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of the game's own sounds you can use: the item pickup sounds and the random sound libraries. `Sounds` lets you list their names and play them. A play call returns `true` when a sound started and `false` when it did not. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+A play call returns `true` when a sound started and `false` when it did not. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Sounds</code> <span>the game's pickup and library sounds</span></p>
 
-Use `PickupNames` or `LibraryNames` to list the game's sounds, then `PlayPickup`, `PlayLibrary` or `PlayLibraryAt` to play one.
+Use `PickupNames` or `LibraryNames` to list the game's sounds. Then play one with `PlayPickup`, `PlayLibrary` or `PlayLibraryAt`.
 
 <div class="api-pair" markdown="1">
 
@@ -34,7 +36,7 @@ public static class Sounds
 |---|---|---|
 | `PickupNames()` | `List<string>` | The names of the item pickup sounds you can play. |
 | `LibraryNames()` | `List<string>` | The names of the random sound sets you can play. |
-| `PlayPickup(name)` | `bool` | Plays one pickup sound. Returns `false` when it could not start. |
+| `PlayPickup(name)` | `bool` | Plays one pickup sound. `false` when it could not start. |
 | `PlayLibrary(name)` | `bool` | Plays one sound from a random set, with no position. |
 | `PlayLibraryAt(name, position)` | `bool` | Plays one sound from a random set at a place in the world. |
 
@@ -50,3 +52,7 @@ public static class Sounds
 
 - A pickup name that is not on the list throws an error, so take the name from `PickupNames()`. A library name that is not on the list also throws an error.
 - A play call returns `false` when the game's sound player does not exist yet, for example on the main menu. The call does not throw for that.
+
+**Common problems**
+
+- A play call throws an error: the pickup or library name is not on the list. Take the name from `PickupNames()` or `LibraryNames()`.

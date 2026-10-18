@@ -7,7 +7,7 @@ nav_order: 5
 
 # Death message
 
-This call sets the reason the death screen shows.
+This call sets the reason the death screen shows. Use it to fit the death screen text to your mod.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>the reason on the death screen</span></p>

@@ -7,4 +7,4 @@ nav_order: 7
 
 # Money and shops
 
-Cash and banking, invoices, shops, shop stock and hours, the casino, card games and fuel.
+This group covers cash and banking, invoices, shops, and shop stock and hours. It also covers the casino, card games and fuel.

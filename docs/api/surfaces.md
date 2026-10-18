@@ -7,9 +7,18 @@ nav_order: 17
 
 # Surfaces
 
+`Surfaces` reads and changes the wallpaper on the walls, floors and ceilings of a player's room. Use it to redecorate a room from your mod or to react when wallpaper goes up or comes off.
+
 ## What it is
 
-Walls, floors and ceilings in a player's room can be covered with wallpaper, and each wallpaper comes in one or more looks (skins). This API lets your mod list those surfaces, see which wallpaper is on each one, put a wallpaper on, strip one off, and get told when either happens. It does not cover the plain paint or material of a surface that has no wallpaper, the scraping the player does to take wallpaper off, or the wallpaper items themselves.
+Walls, floors and ceilings in a player's room can be covered with wallpaper. Each wallpaper comes in one or more looks (skins). This API lets your mod:
+
+- list those surfaces
+- see which wallpaper is on each one
+- put a wallpaper on, or strip one off
+- get told when either happens
+
+It does not cover the plain paint or material of a surface that has no wallpaper. It does not cover the scraping the player does to take wallpaper off, or the wallpaper items themselves.
 
 ## When to use it
 
@@ -19,7 +28,7 @@ Walls, floors and ceilings in a player's room can be covered with wallpaper, and
 
 ## Quick example
 
-This mod writes a log line each time wallpaper is put on or taken off a surface. Once a save is loaded, it also logs how many surfaces already have wallpaper.
+This mod writes a [log](../guides/getting-started/logging.md) line each time wallpaper is put on or taken off a surface. Once a save is loaded, it also logs how many surfaces already have wallpaper.
 
 ```csharp
 using ObenseuerCore;
@@ -46,7 +55,7 @@ public sealed class WallpaperWatch : FrameworkMod
 }
 ```
 
-`Changed` is an event: the framework calls your code each time it happens. A `WallpaperItemId` of `0` means the surface has no wallpaper. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
+`Changed` is an event: the framework calls your code each time it happens. A `WallpaperItemId` of `0` means the surface has no wallpaper. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -81,12 +90,12 @@ if (!Surfaces.IsAvailable) Log.Warn("Wallpaper events are off.");
 
 ## Reference
 
-Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Surfaces</code> <span>the surfaces in the scene you are in</span></p>
 
-This is the class to start from. `All()` and `Get(id)` read the surfaces, `SetWallpaper` puts a wallpaper on one, `Remove` strips it, and `Changed` tells you when either happens.
+This is the class to start from. `All()` and `Get(id)` read the surfaces. `SetWallpaper` puts a wallpaper on one, `Remove` strips it, and `Changed` tells you when either happens.
 
 <div class="api-pair" markdown="1">
 
@@ -106,10 +115,10 @@ public static class Surfaces
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<SurfaceInfo>` | Every surface in the scene you are in. |
-| `Get(id)` | `SurfaceInfo` | The surface with this id. It is `null` when no surface has it. |
-| `SetWallpaper(id, itemId, skinIndex)` | `bool` | Puts a wallpaper on the surface in that look. It is `true` when the surface now shows it. |
-| `Remove(id)` | `bool` | Strips the wallpaper. It is `true` when the surface has none afterwards. |
+| `All()` | `List<SurfaceInfo>` | Every surface in the [scene](../glossary.md#scene) you are in. |
+| `Get(id)` | `SurfaceInfo` | The surface with this id. `null` when no surface has it. |
+| `SetWallpaper(id, itemId, skinIndex)` | `bool` | Puts a wallpaper on the surface in that look. `true` when the surface now shows it. |
+| `Remove(id)` | `bool` | Strips the wallpaper. `true` when the surface has none afterwards. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -176,13 +185,17 @@ public sealed class SurfaceArgs
 
 - `All()` and `Get(id)` read the surface as it is right now. A `SurfaceInfo` is a snapshot, so ask again for fresh values. `All()` only lists surfaces that are switched on in the scene you are in. <span class="tech">(The id is the object's save GUID, or the scene path when it has none. The surfaces are the game's `FurnitureSurfaceArea` objects.)</span>
 - `SetWallpaper(id, itemId, skinIndex)` puts that wallpaper on the surface in that look. It returns `true` when the surface now shows that item and look. If the surface already shows them, nothing is done and you still get `true`.
-- `SetWallpaper` gives `false` when the game would not allow it. That is the case for an unknown surface id, an item number that is not a wallpaper, a look the wallpaper does not have, a wallpaper that is not allowed on that kind of surface (for example a wall wallpaper on a floor), and while a save is loading or saving. <span class="tech">(The surface rule is the game's `FurnitureSurfaceArea.AllowedToPlace`, which checks the wallpaper's surface area flags and the surface's allowed surface types. Before it calls the game, the framework loads the wallpaper's look textures (`LoadVariants`, the same as the game's own placing code does). That step has not been tested in a running game.)</span>
+- `SetWallpaper` gives `false` when the game would not allow it. That is the case for an unknown surface id, an item number that is not a wallpaper, or a look the wallpaper does not have. It is also the case for a wallpaper that is not allowed on that kind of surface (for example a wall wallpaper on a floor). The same goes for any call while a save is loading or saving. <span class="tech">(The surface rule is the game's `FurnitureSurfaceArea.AllowedToPlace`, which checks the wallpaper's surface area flags and the surface's allowed surface types. Before it calls the game, the framework loads the wallpaper's look textures (`LoadVariants`, the same as the game's own placing code does). That step has not been tested in a running game.)</span>
 - A look number that is below 0 or past the wallpaper's last look is refused. The game would save such a number and then fail with it, so the framework does not let it through. <span class="tech">(A negative index throws when the surface updates, and again on every load. An index past the last look shows no material, and the surface keeps its old one.)</span>
 - `Remove(id)` strips the wallpaper and brings back the surface's normal look. It does not give the player an item and does not use anything up. It returns `true` when the surface has no wallpaper afterwards, which is also the case if it had none to begin with. <span class="tech">(It calls the game's `RemoveWallpaper`, which puts back the default material and clears the saved wallpaper.)</span>
 - `Remove` does not do what the player does when scraping. The player's scraping wears down the scraper and can destroy it. `Remove` skips all of that. <span class="tech">(It does not run the game's `TryRemoveWallpaper`, which costs scraper integrity.)</span>
 - `Changed` fires for every change, whether your mod, the player or the game made it. It fires only when the wallpaper item or the look really changes, so putting the same wallpaper on again raises nothing.
-- `Changed` does not fire when a save loads. The game puts the saved wallpaper back before it applies it, so the framework sees no change. If your handler should ignore changes made while a save loads, check `SaveData.Busy` (true while a save is loading or being written). <span class="tech">(It is raised after the game's `SetWallpaper` and `RemoveWallpaper`. On a load, the game restores `savedItemId` and `savedSkinIndex` before it calls `SetWallpaper`, so the check before the call already sees the same values.)</span>
+- `Changed` does not fire when a save loads. The game puts the saved wallpaper back before it applies it, so the framework sees no change. If your handler should ignore changes made while a save loads, check [`SaveData.Busy`](../api-core/savedata.md#savedatabusy) (true while a save is loading or being written). <span class="tech">(It is raised after the game's `SetWallpaper` and `RemoveWallpaper`. On a load, the game restores `savedItemId` and `savedSkinIndex` before it calls `SetWallpaper`, so the check before the call already sees the same values.)</span>
 - `IsAvailable` is `false` when the change event could not be set up. Then `Changed` never fires. See "If something fails to set up" below.
+
+**Common problems**
+
+- `SetWallpaper` returns `false`: the surface id is unknown, the item number is not a wallpaper, or the wallpaper does not have that look. Other causes: the wallpaper is not allowed on that kind of surface, a save is loading or saving, or no save is loaded. Take the id from `Surfaces.All()`, and use a look number from 0 up to the wallpaper's last look.
 
 ### What you can't do (yet)
 
@@ -192,7 +205,7 @@ public sealed class SurfaceArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.surfaces.log`. Source files: `src/Api/Surfaces.cs` and `src/Api/SurfacesPatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -200,12 +213,12 @@ Everything not listed in this reference is internal and may change without notic
 ### When you can call it
 
 - Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Changed` too.
-- It is safe to call any of it at any time, even on the main menu or with no save loaded. `All()` gives an empty list, `Get` gives `null`, and `SetWallpaper` and `Remove` give `false`. Nothing throws. A `null` or empty id simply finds nothing.
+- It is safe to call any of it at any time, even on the main menu or with no save loaded. `All()` gives an empty list, `Get` gives `null`, and `SetWallpaper` and `Remove` give `false`. Nothing throws. A `null` or empty id finds nothing.
 - `SetWallpaper` and `Remove` do nothing while a save is loading or saving. They return `false`.
 - Your `Changed` handler runs inside the game's own call, right after the change. If your handler throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when wallpaper changes. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working. The name you will see in the log is the feature group `obenseuer.moddingframework.surfaces`.
+The framework changes some of the game's methods when it starts, so it can tell your mod when wallpaper changes. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it. Then it turns the group off and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working. The name you will see in the log is the feature group `obenseuer.moddingframework.surfaces`.
 
 - If the change event cannot be set up, `Changed` stops and `IsAvailable` is `false`. <span class="tech">(The framework needs the two private fields `savedItemId` and `savedSkinIndex` on `FurnitureSurfaceArea`, and it changes two game methods: `SetWallpaper(ItemWallpaperData, int, int)` and `RemoveWallpaper()`. If a field or a method is missing, the feature group is turned off. `IsAvailable` is `false` then.)</span>

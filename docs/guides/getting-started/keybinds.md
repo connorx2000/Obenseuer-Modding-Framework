@@ -8,7 +8,9 @@ nav_order: 4
 
 A keybind is a keyboard key that makes your mod do something. You register it once when your mod loads, and the player can change the key in the Mods menu.
 
-This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below, then run `dotnet build -c Release -p:DeployToGame=true` with the game closed. `Mod.Key` registers the key. `Update` is a method that Unity, the game engine, calls on every frame, so it is where you check whether the key was pressed.
+## The example
+
+This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below. `Mod.Key` registers the key. `Update` is a method that Unity, the game engine, calls on every frame, so it is where you check whether the key was pressed.
 
 ```csharp
 using ObenseuerCore;
@@ -38,15 +40,23 @@ public class ExampleHello : FrameworkMod
 }
 ```
 
-Start the game, load a save and press G. Then open `BepInEx\logs\example.hello.log` in the game folder and look for `greet key pressed`.
+Then build and check the result:
 
-- **`Mod.Key(id, displayName, defaultKey)` gives you a `ModKeybind`.** It returns `null` if the key cannot be created, so check for `null` before you use it, as the code above does.
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game, load a save and press G.
+3. Open `BepInEx\logs\example.hello.log` in the game folder and look for `greet key pressed`.
+
+The key works. The points below cover the key object and the checks around it.
+
+## Things to know
+
+- **`Mod.Key(id, displayName, defaultKey)` gives you a [`ModKeybind`](../../api/settings/keybinds.md).** It returns `null` if the key cannot be created, so check for `null` before you use it, as the code above does.
 - **`Down()` is true on the frame the key is pressed. `Held()` is true while it is held.** Use `Down()` for one action per press.
-- **`Down()` and `Held()` do not check menus, dialogues or the pause screen.** Your mod would react to the key while a menu is open. The code above checks `UiState` first to avoid that.
+- **`Down()` and `Held()` do not check menus, dialogues or the pause screen.** Your mod would react to the key while a menu is open. The code above checks [`UiState`](../../api/ui-state.md) first to avoid that.
 - **The player changes the key on the Mods menu page "Mod Keybinds".** The choice is saved in `BepInEx\config\ObenseuerCore.ModKeybinds.cfg`.
-- **Two mods can use the same key.** Each mod gets the press. The framework logs one warning that names both mods and the key when the second one registers.
-- **To read a game action, such as Interact, use `Keybinds.Key("Interact")`.** That gives the `KeyCode` the player has set for the game's own action.
-  - Technical: `Mod.Key` calls `Keybinds.Register(modId, id, displayName, defaultKey)` with your mod's id.
+- **Two mods can use the same key.** Each mod gets the press. When the second one registers, the framework logs one warning that names both mods and the key.
+- **To read a game action, such as Interact, use `Keybinds.Key("Interact")`.** That gives the [`KeyCode`](../../glossary.md#keycode) the player has set for the game's own action.
+  - Technical: `Mod.Key` calls `Keybinds.Register(modId, id, displayName, defaultKey)` with your [mod id](../../glossary.md#mod-id).
 
 ## Where to go next
 

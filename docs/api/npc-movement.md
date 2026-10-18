@@ -8,6 +8,8 @@ nav_order: 9
 
 # NPC movement
 
+[`NpcMovement`](npc-movement/moving-an-npc.md) lets your mod take over where an [NPC](npcs.md) goes for a while, and then hand it back to its schedule. Use it to walk an NPC somewhere, make it patrol or stand, or keep it where it is.
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,20 +17,28 @@ Status: experimental.
 
 ## What it is
 
-Every NPC (a character in the game) follows a daily schedule. The schedule gives the NPC an activity at each time of day, such as walking to a place, standing at a spot or patrolling a route. This API lets your mod take over an NPC's movement for a while. You can walk it to a position, make it patrol or stand at a group of waypoints, or just switch its schedule off so it stays where it is. When you are done, `Clear` hands the NPC back to its normal schedule.
+Every NPC (a character in the game) follows a daily [schedule](npc-schedules.md). The schedule gives the NPC an activity at each time of day. Examples are walking to a place, standing at a spot or patrolling a route.
 
-NPC ids on this page are the ones from the [NPCs](npcs.md) page (`NpcInfo.Id`, `Npcs.All()`). To choose an NPC and read its state, use that page.
+This API lets your mod take over an NPC's movement for a while. Your mod can:
+
+- walk the NPC to a position;
+- make it patrol or stand at a group of waypoints;
+- switch its schedule off, so it stays where it is.
+
+When you are done, `Clear` hands the NPC back to its normal schedule.
+
+NPC ids on this page are the ones from the [NPCs](npcs.md) page (`NpcInfo.Id`, `Npcs.All()`). Use that page to choose an NPC and read its state.
 
 ## When to use it
 
 - Walk an NPC to a place for a quest or a scripted scene.
 - Make an NPC patrol a route or stand at a spot.
-- Freeze an NPC where it is so the schedule does not pull it away.
+- Freeze an NPC where it is, so the schedule does not pull it away.
 - Stop whatever an NPC is doing right now.
 
 ## Quick example
 
-This mod waits for a save to load. Then it walks the first living NPC it can to a spot 5 metres away, and gives the NPC back to its schedule after 20 seconds.
+This mod waits for a save to load. It then walks the first living NPC it can to a spot 5 metres away. After 20 seconds it gives the NPC back to its schedule.
 
 ```csharp
 using ObenseuerCore;
@@ -70,4 +80,4 @@ public sealed class NpcWalk : FrameworkMod
 }
 ```
 
-`MoveTo` returns `false` for an NPC that is not in the loaded scene, so the example tries each NPC until one works. `Mod.Id` is your mod's own id; it is how the framework knows the claim is yours. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+`MoveTo` returns `false` for an NPC that is not in the loaded [scene](../glossary.md#scene), so the example tries each NPC until one works. `Mod.Id` is your mod's own [mod id](../glossary.md#mod-id). It is how the framework knows the [claim](../glossary.md#claim) (your mod's hold on the NPC) is yours. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

@@ -8,11 +8,20 @@ nav_order: 17
 
 # Trains
 
+[`Trains`](trains/trains-on-the-track.md) reads the game's trains, track and minitrain, and tells your mod when a train sets off, stops or crashes. Use it to watch train traffic or to send a train down another track.
+
 Status: experimental.
 
 ## What it is
 
-The game has trains that run on rails. This API lets your mod look at them: every train on the track with its speed, position, wagon type and cargo, the small train the player can drive (the minitrain) and its fuel, the track switches and wagon loaders, and the pieces of track and which ones are taken. It lets you flip a track switch and turn a wagon loader on or off. It also tells your mod when a train sets off, stops or crashes.
+The game has trains that run on rails. This API lets your mod read:
+
+- Every train on the track, with its speed, position, wagon type and cargo.
+- The [minitrain](trains/the-minitrain.md) (the small train the player can drive) and its fuel.
+- The [track switches and wagon loaders](trains/switches-and-loaders.md).
+- The [pieces of track](trains/pieces-of-track.md), and which ones are taken.
+
+It lets you flip a track switch and turn a wagon loader on or off. It also tells your mod when a train sets off, stops or crashes.
 
 To drive a train (engine, speed, brakes, coupling wagons), see [Train actions](trainactions.md). To ask whether the player is driving the minitrain right now, use `Travel.UsingMinitrain` on the [player page](player.md). This page does not repeat it.
 
@@ -26,7 +35,7 @@ To drive a train (engine, speed, brakes, coupling wagons), see [Train actions](t
 
 ## Quick example
 
-This mod writes a log line when a train sets off, stops or crashes. Once a save is loaded, it also logs the minitrain's fuel.
+This mod writes a [log](../guides/getting-started/logging.md) line when a train sets off, stops or crashes. Once a save is loaded, it also logs the minitrain's fuel.
 
 ```csharp
 using ObenseuerCore;
@@ -49,4 +58,4 @@ public sealed class TrainWatch : FrameworkMod
 }
 ```
 
-`Departed`, `Arrived` and `Crashed` are events: the framework calls your code each time they happen. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).
+`Departed`, `Arrived` and `Crashed` are [events](trains/events.md): the framework calls your code each time they happen. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md).

@@ -7,16 +7,18 @@ nav_order: 6
 
 # Recipes
 
+This page covers `RecipeRegistry`, which adds recipes, and `RecipeDefinition`, which describes a new recipe. You need it when your mod adds a recipe at a station such as a Stove.
+
 This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-A recipe definition says which existing recipe to copy and what is different. Leave a field out to keep the template's.
+A recipe definition names the existing recipe to copy, the [template](../../glossary.md#template) (the existing recipe it copies), and what is different. Leave a field out to keep the template's.
 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RecipeRegistry</code> <span>adds recipes</span></p>
 
-Use `Define` to add a recipe based on an existing one. `IdFor` gives the number a key will have before you define it.
+`Define` adds a recipe based on an existing one. `IdFor` gives the number a key will have, before you define it.
 
 <div class="api-pair" markdown="1">
 
@@ -31,8 +33,8 @@ public static class RecipeRegistry
 
 | Method | Returns | What it does |
 |---|---|---|
-| `IdFor(modGuid, key)` | `int` | The number a key will have. |
-| `Define(modGuid, key, definition)` | `int` | Adds a recipe. Returns its number, or -1 when refused. |
+| `IdFor(modGuid, key)` | `int` | The number the key will have. |
+| `Define(modGuid, key, definition)` | `int` | Adds a recipe. Returns its number, or -1 when it is refused. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -76,7 +78,7 @@ public sealed class RecipeDefinition
 | `Outputs` | `Dictionary<int, float>` | The items it makes: item number and amount. At least one. |
 | `OutputsOnFail` | `Dictionary<int, float>` | The items you get when it fails. May be empty. |
 | `ProcessTime` | `int` | How long it takes, in seconds. |
-| `MinimumSkill` | `int` | The skill level the recipe wants. Below it the chance of failing is higher. |
+| `MinimumSkill` | `int` | The skill level the recipe wants. Below it, the chance of failing is higher. |
 | `HardMinimumSkill` | `bool` | `true` if the player cannot craft it at all below that skill level. |
 | `RelevantSkill` | `Skill` | The skill the recipe uses. |
 | `FailChance` | `float` | The chance it fails, from 0 to 1. |
@@ -88,17 +90,26 @@ public sealed class RecipeDefinition
 
 ## Things to know
 
-- `TemplateRecipeId` is required, and is the number of an existing recipe. A mod recipe used as a template must be defined earlier.
+- `TemplateRecipeId` is required. It is the number of an existing recipe. A mod recipe used as a [template](../../glossary.md#template) must be defined earlier.
 - `Name` is required, 1 to 200 characters.
 - `Station` is the name of the station that makes the recipe, such as `Stove`, `Oven` or `Mashing`. Capital letters do not matter. `None` and names that do not exist throw an error. Stations list their recipes by this value. <span class="tech">(The name is as `Recipes.Get(id).Station` reports it.)</span>
 - `Inputs` and `Outputs` are required, with at least one entry each. Each key is an item number of 0 or more. Each amount is above 0 and at most 1000000. `OutputsOnFail` is optional.
-- `ProcessTime` is in seconds, 0 to 10000000. `MinimumSkill` is 0 to the highest skill level. `RelevantSkill` is a `Skill` value, and `Skill.None` is allowed. `FailChance` is 0 to 1. <span class="tech">(The highest skill level is `Skills.MaxLevel`.)</span>
+- `ProcessTime` is in seconds, 0 to 10000000. `MinimumSkill` is 0 to the highest skill level. `RelevantSkill` is a [`Skill`](../player/skills.md) value, and `Skill.None` is allowed. `FailChance` is 0 to 1. <span class="tech">(The highest skill level is `Skills.MaxLevel`.)</span>
 - `RecipeTags` can have up to 16 entries of 1 to 64 characters each. Use `null` to keep the template's tags.
-- These things are copied from the template: the conditions that must or must not hold, the variant settings, whether only stolen items are used, which items are allowed when they are not stolen, and whether the item owner is kept on failure. <span class="tech">(It copies the required and excluding conditions, the variant fields, `useOnlyStolenItems`, `allowedNonStolenItemsIds`, `keepItemOwnerOnFail`, `disableJunkSpawn`, `SkillFactor`, `SkillGainFactor`, `Meta` and the sprite.)</span>
+- These are copied from the template:
+  - the conditions that must or must not hold;
+  - the variant settings;
+  - whether only stolen items are used;
+  - which items are allowed when they are not stolen;
+  - whether the item owner is kept on failure. <span class="tech">(It copies the required and excluding conditions, the variant fields, `useOnlyStolenItems`, `allowedNonStolenItemsIds`, `keepItemOwnerOnFail`, `disableJunkSpawn`, `SkillFactor`, `SkillGainFactor`, `Meta` and the sprite.)</span>
 - Also copied from the template: whether junk is spawned, the skill factors, the extra data and the picture. The settings for extra data of the result are new defaults, not the template's. <span class="tech">(`metaSettings` is a new default, not the template's.)</span>
 - Added recipes live in the game's memory only. The game's recipe file is not changed. <span class="tech">(They live in `RecipeDatabase.Recipes`. `Recipes.json` is not written.)</span>
 
 ## Limits
 
-- A recipe is added only when its template exists and every item in it exists. That covers `Inputs`, `Outputs` and `OutputsOnFail`.
-- A recipe with a missing item is not added, and an error goes to the log, because a partial recipe could give free items.
+- A recipe is added only when its [template](../../glossary.md#template) exists and every item in it exists. That covers `Inputs`, `Outputs` and `OutputsOnFail`.
+- A recipe with a missing item is not added, because a partial recipe could give free items. An error goes to the [log](../../guides/getting-started/logging.md).
+
+**Common problems**
+
+- The recipe is not added: its template does not exist, or an item in `Inputs`, `Outputs` or `OutputsOnFail` does not exist. For a missing item, an error goes to the log. Use the number of an existing recipe as the template, and existing item numbers in the three lists. A mod recipe used as a template must be defined earlier.

@@ -8,18 +8,29 @@ nav_order: 2
 
 # HUD
 
+[`Hud`](hud/hud.md) puts your mod's messages on the game's screen, in the game's own style. Use this API when your mod needs to tell the player something, or to change achievements, difficulty or quest items.
+
 Status: experimental.
 
 ## What it is
 
-The HUD is everything the game draws on top of the world: the notification box, subtitles, the hint box the card game uses for its rules, the crosshair, the tooltip, and the Notes page. `Hud` lets your mod show messages and controls in the game's own style, and hide the game's HUD or crosshair for a moment.
+The HUD is everything the game draws on top of the world:
+
+- the notification box
+- subtitles
+- the hint box the card game uses for its rules
+- the crosshair
+- the tooltip
+- the Notes page
+
+[`Hud`](hud/hud.md) shows messages and controls in the game's own style. It can also hide the game's HUD or crosshair for a moment.
 
 This page also covers four smaller parts:
 
-- `ConsoleCommands` adds commands to the developer console (opened with F1).
-- `Achievement` reads and unlocks the game's achievements.
-- `GameDifficulty` makes the game easier or harder from a mod.
-- `TaskItems` reads and changes the quest items the player carries.
+- [`ConsoleCommands`](hud/consolecommands.md) adds commands to the developer console (opened with F1).
+- [`Achievement`](hud/achievement.md) reads and unlocks the game's achievements.
+- [`GameDifficulty`](hud/gamedifficulty.md) makes the game easier or harder from a mod.
+- [`TaskItems`](hud/taskitems.md) reads and changes the quest items the player carries.
 
 ## When to use it
 
@@ -52,4 +63,8 @@ public sealed class HudHello : FrameworkMod
 }
 ```
 
-`Hud.Notify(title, body)` shows the game's notification box. `Hud.ShowHint` puts text in the same hint box the card game uses for its rules. The player can hide that box with the Hints key (K by default). The game has no hints option in its settings menu, so if a player does not see your hint, tell them to press that key. The game must be loaded first, which is why the calls sit inside `Events.WhenReady`. See [Using events](../guides/getting-started/using-events.md).
+- `Hud.Notify(title, body)` shows the game's notification box.
+- `Hud.ShowHint` puts text in the same hint box the card game uses for its rules.
+- The game must be loaded first, so both calls sit inside [`Events.WhenReady`](core-helpers/events-whenready.md). See [Using events](../guides/getting-started/using-events.md).
+
+The player can hide the hint box with the Hints key (K by default). The game has no hints option in its settings menu. If a player does not see your hint, tell them to press that key. The FAQ entry [My hint does not show](../faq.md#my-hint-does-not-show) covers the same case.

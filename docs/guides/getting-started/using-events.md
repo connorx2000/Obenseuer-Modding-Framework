@@ -8,7 +8,9 @@ nav_order: 5
 
 An event is a signal the framework sends when something happens in the game, such as a new hour starting or a save loading. Your mod subscribes to the event with `+=` and gives it a method to run. You do this once when your mod loads. The full list is on the [events page](../../events.md).
 
-This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below, then run `dotnet build -c Release -p:DeployToGame=true` with the game closed. `GameTime` reads the game's clock and calendar.
+## The example
+
+This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below. [`GameTime`](../../api-core/gametime.md) reads the game's clock and calendar.
 
 ```csharp
 using ObenseuerCore;
@@ -37,19 +39,27 @@ public class ExampleHello : FrameworkMod
 }
 ```
 
-Start the game, load a save and play for a few game hours. Then open `BepInEx\logs\example.hello.log` and look for the `hour`, `scene` and `loaded` lines.
+Then build and check the result:
 
-- **`Events.HourPassed(int hour)` runs once for each game hour.**
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game, load a save and play for a few game hours.
+3. Open `BepInEx\logs\example.hello.log` and look for the `hour`, `scene` and `loaded` lines.
+
+The events fire. Each event used above, and the ones near it, is explained below.
+
+## Things to know
+
+- **[`Events.HourPassed(int hour)`](../../api-core/events.md) runs once for each game hour.**
 - **`Events.DayPassed(int day)` runs when the game day changes.** It gets the new day number.
-- **`Events.SceneLoaded(string scene)` gives the name of the scene that loaded.** A scene is one level of the game that Unity loads.
-- **`Events.Saved` and `Events.Loaded` run after a save and after a load.** `Loaded` also runs on every door change, so for work that should happen once per loaded save, use `Events.WhenReady`. It runs your action once a save is loaded, or at once if one already is.
-- **`Events.AfterSave(string folder)` runs in the same saving step, after `Events.Saved` and after every `Saved` handler has run.** The argument is the folder the game just wrote the save to, for example `...\Saves\Esko_Virtanen\MySave`. A door change saves to the `Autosave` or `Autosave2` slot first, so the folder names that slot. It gives `null` when the game has no character and save name yet. It is not `SaveData.Folder`, which stays on the loaded save until the next load (see [Save data](save-data.md) and [Game save data entries](../../api/savedata-game.md#save-folder-and-peek)).
-  - Technical: during a real load the framework skips writing its own mod files while this event still fires, so treat the folder as the game's and not as proof that the framework wrote anything.
+- **`Events.SceneLoaded(string scene)` gives the name of the [scene](../../glossary.md#scene) that loaded.** A scene is one level of the game that Unity (the game engine) loads.
+- **`Events.Saved` and `Events.Loaded` run after a save and after a load.** `Loaded` also runs on every door change. For work that should happen once per loaded save, use `Events.WhenReady`. It runs your action once a save is loaded, or at once if one already is.
+- **`Events.AfterSave(string folder)` runs in the same saving step, after `Events.Saved` and after every `Saved` handler has run.** The argument is the folder the game has written the save to, for example `...\Saves\Esko_Virtanen\MySave`. A door change saves to the `Autosave` or `Autosave2` slot first, so the folder names that slot. It gives `null` when the game has no character and save name yet. It is not `SaveData.Folder`, which stays on the loaded save until the next load (see [Save data](save-data.md) and [Game save data entries](../../api/savedata-game.md#save-folder-and-peek)).
+  - Technical: during a real load, the framework skips writing its own mod files while this event still fires. Treat the folder as the game's, not as proof that the framework wrote anything.
 - **Handlers run in the order they were added.** If one throws an error, the first error from that handler goes to `BepInEx\logs\ObenseuerCore.log`, and the other handlers still run.
 - **`GameTime` reads `Day`, `DayOfWeek`, `Hour`, `Minute` and `IsPaused`.** On the main menu, and while a load runs, `Day`, `Hour` and `Minute` are 0.
-- **`GameTime.IsPaused` is true whenever the game clock is stopped.** The pause menu and the saving screen both stop it. To ask only about the pause menu, use `UiState.IsPaused`.
+- **`GameTime.IsPaused` is true whenever the game clock is stopped.** The pause menu and the saving screen both stop it. To ask only about the pause menu, use [`UiState.IsPaused`](../../api/ui-state.md).
   - Technical: `GameTime.IsPaused` is `Time.timeScale == 0`.
-- **Call the framework from your mod's normal code, not from a background thread you started.** The game raises events on Unity's main thread, so your handlers already run in the right place. See [Main thread](../../glossary.md#main-thread).
+- **Call the framework from your mod's normal code, not from a background thread you started.** The game raises events on Unity's [main thread](../../glossary.md#main-thread), so your handlers already run in the right place.
 
 ## Where to go next
 

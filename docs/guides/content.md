@@ -6,19 +6,24 @@ nav_order: 1
 
 # Adding content
 
-This guide walks you through adding new things to the game: an item, a recipe for it, an icon, a 3D model and a shop listing. It also covers furniture, loot and mail. At the end you have one finished mod that adds a food item called Spicy Jerky. The player can cook it on a stove, find it in fridges and buy it from a trader.
+This guide adds new things to the game: an item, a recipe for it, an icon, a 3D model and a shop listing. It also covers furniture, loot and mail.
 
-Read it in order. Each step builds on the one before it. Item, model, furniture and shop code is marked experimental, so names may change in a later version. If a name here does not compile, check the [API pages](../API.md).
+At the end you have one finished mod that adds a food item called Spicy Jerky. The player can cook it on a stove, find it in fridges and buy it from a trader.
+
+Read the page in order, because each step builds on the one before it. Item, model, furniture and shop code is marked experimental, so names may change in a later version. If a name here does not compile, check the [API pages](../API.md).
 
 ## What you need
 
-- Obenseuer 0.5.08 with the framework installed (see the [install page](../install.md)), and BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono.
+- Obenseuer 0.5.08 with the [framework](../glossary.md#framework) installed (see the [install page](../install.md)).
+- [BepInEx](../glossary.md#bepinex) (the game's mod loader) 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono.
 - The .NET 10 SDK. You use it to build your mod with `dotnet build`.
-- Your own icon (a PNG file) and model (OBJ and MTL files, plus a PNG texture). You can leave these out and skip Steps 2 and 3.
+- Your own icon (a PNG file) and model (OBJ and MTL files, plus a PNG texture). Without them, skip Steps 2 and 3.
 
 ## Set up the project
 
-The mod in this guide is a BepInEx plugin, not a framework mod. A plugin knows where its own DLL is, and you need that to find your icon and model files. Framework mods do not have that.
+The mod in this guide is a BepInEx [plugin](../glossary.md#plugin), not a [framework mod](../api/framework-mods.md). A plugin knows where its own DLL is, and you need that to find your icon and model files. Framework mods do not have that.
+
+These samples use the BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 
 1. Do the steps in [Your first mod](getting-started/first-mod.md) up to the point where it builds. That gives you a folder with `MyFirstMod.csproj`, `Plugin.cs` and `Directory.Build.props`.
 2. Open the `.csproj`. Inside the `<ItemGroup>` that holds the other `<Reference>` lines, add two more. They let your code use the BepInEx plugin base class:
@@ -38,11 +43,11 @@ The mod in this guide is a BepInEx plugin, not a framework mod. A plugin knows w
 4. Build with `dotnet build -c Release -p:DeployToGame=true`. The DLL is copied to `BepInEx\plugins\<name>\` in your game folder, where `<name>` is the name of your `.csproj`.
 5. Put your icon, model and texture files in that same folder, next to the DLL.
 
-These samples use the BepInEx 6 names. For BepInEx 5, see [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+The project is set up. The code for `Plugin.cs` (step 3) is in The plugin skeleton, below.
 
 ## The plugin skeleton
 
-A plugin is a class the game's mod loader (BepInEx) starts for you. The `[BepInPlugin]` line gives your mod its id, name and version. The `[BepInDependency]` line tells BepInEx to start the framework first. `Awake` runs once when the game starts, and it is where you set things up.
+A plugin is a class that [BepInEx](../glossary.md#bepinex) starts for you. The `[BepInPlugin]` line gives your mod its id, name and version. The `[BepInDependency]` line tells BepInEx to start the framework first. `Awake` runs once when the game starts, and it is where you set things up.
 
 ```csharp
 using System;
@@ -66,15 +71,15 @@ public class ContentExample : BaseUnityPlugin
 }
 ```
 
-Most snippets below go inside `Awake()`. Step 6 adds a field and a method to the class as well.
+Most snippets below go inside `Awake()`. Step 6 also adds a field and a method to the class.
 
-- **Use `example.` ids while you test.** Do not start your ids with `obenseuer.moddingframework`, because the framework uses that for its own data.
+- **Use `example.` ids while you test.** Do not start your ids with `obenseuer.moddingframework`, because the framework uses that for its own data. See [mod id](../glossary.md#mod-id).
 - **On BepInEx 5, change two things.** Write `"0.11.0"` instead of `">=0.11.0"`, because BepInEx 5 cannot read a version range. Remove `using BepInEx.Unity.Mono;`, because `BaseUnityPlugin` then comes from `BepInEx`.
 - **You can use newer C# than the samples show.** The samples avoid `?.`, `$""` and `nameof`. Your project uses the latest C# version, so you may use them.
 
 ## Step 1. Define an item and a recipe
 
-`ItemRegistry.Define` makes a new item by copying an existing one, called the template. The copy gets a new id and keeps the template's look and behaviour until you change them. `RecipeRegistry.Define` does the same for recipes. Both take your mod's id and a key that is unique inside your mod, such as `spicy-jerky`.
+[`ItemRegistry.Define`](../api/registry/items.md) makes a new item by copying an existing one, called the [template](../glossary.md#template). The copy gets a new id and keeps the template's look and behaviour until you change them. [`RecipeRegistry.Define`](../api/registry/recipes.md) does the same for recipes. Both take your mod's id and a key that is unique inside your mod, such as `spicy-jerky`.
 
 ```csharp
 int jerky = ItemRegistry.Define(ModGuid, "spicy-jerky", new ItemDefinition
@@ -100,17 +105,20 @@ RecipeRegistry.Define(ModGuid, "spicy-jerky-recipe", new RecipeDefinition
 });
 ```
 
-Here is what the fields do.
+What the fields do:
 
 - **`TemplateId` is required, so always set it.** It is the id of an item that already exists, from the game or from another mod. If you leave it out it is 0, which is the coin, and your item silently becomes a copy of the coin. The copy keeps the template's look, actions, attachments and extra data.
-- **`Title`, `Description`, `BaseValue`, `BaseStackable` and `Categories` replace the template's values when you set them.** Leave one out (or `null`, or -1) to keep the template's. `Title` is 1 to 200 characters. `Description` is up to 2000. `Categories` is up to 32 entries of 1 to 64 characters each.
+- **`Title`, `Description`, `BaseValue`, `BaseStackable` and `Categories` replace the template's values when you set them.** Leave one out (or `null`, or -1) to keep the template's.
+  - `Title` is 1 to 200 characters.
+  - `Description` is up to 2000.
+  - `Categories` is up to 32 entries of 1 to 64 characters each.
 - **`TemplateRecipeId` is required.** It is the id of a recipe that already exists.
-- **`Station` is the name of the cooking or crafting place, such as `Stove`.** It must be a name the game uses for a station. `None` and unknown names throw an error. To see a recipe's station, read `Recipes.Get(id).Station`.
+- **`Station` is the name of the cooking or crafting place, such as `Stove`.** It must be a name the game uses for a station. `None` and unknown names throw an error. To see a recipe's station, read [`Recipes.Get(id).Station`](../api/recipes/recipes.md).
 - **`Inputs` and `Outputs` list item ids and amounts.** Each amount must be above 0 and at most 1000000. Each list needs at least one entry, and an id below 0 throws.
 - **A recipe is only added if every item in it exists.** A recipe that names a missing item is left out, because a half-working recipe would give free items.
 - **`ProcessTime` is in seconds.**
 
-`ItemRegistry.IdFor` tells you which id `Define` will give an item, without making anything. The recipe uses it so it can name the new item before the item call has run.
+[`ItemRegistry.IdFor`](../api/registry/ids.md) tells you which id `Define` will give an item, without making anything. The recipe uses it so it can name the new item before the item call has run.
 
 ### How ids stay the same
 
@@ -130,7 +138,7 @@ An item's id comes from your mod id and its key, so it is the same in every game
 
 ### Saves and removing the mod
 
-**A save remembers your items.** The save folder holds a file, `mods/obenseuer.moddingframework.registry.json`, that lists every item and recipe your mods added. When the player loads a save and a mod from that list is not installed, the game still loads, and the framework writes one warning per item to `BepInEx\logs\obenseuer.moddingframework.registry.log`:
+**A save remembers your items.** The save folder holds a file, `mods/obenseuer.moddingframework.registry.json`, that lists every item and recipe your mods added ([save manifest](../api/registry/save-manifest.md)). The player may load a save while a mod from that list is not installed. The game still loads, and the framework writes one warning per item to `BepInEx\logs\obenseuer.moddingframework.registry.log`:
 
 ```
 save data uses item id 1000123, mod example.content/spicy-jerky: 'Spicy Jerky' is not loaded now. Reinstall that mod; until then its stacks show as Missing item and keep their id. To drop this warning, call ItemRegistry.RemoveMissingItems("example.content"), which removes its missing stacks in the player's inventory and loaded containers, and this entry.
@@ -158,11 +166,15 @@ int jerky = ItemRegistry.Define(ModGuid, "spicy-jerky", new ItemDefinition
 ```
 
 - **Use a square PNG with see-through edges, 128 or 256 pixels wide.** A picture that is not square is padded to a square with empty space.
-- **Big pictures are refused.** A side over 256 pixels logs a warning. A side over 1024 pixels is refused, and the template's icon stays.
-- **A missing or unreadable file keeps the template's icon.** The game reads the file when the item is added, not when you call `Define`, so a bad path is only reported in the log later.
+- **Big pictures are refused.** A side over 256 pixels logs a warning. A side over 1024 pixels is refused, and the [template](../glossary.md#template)'s icon stays.
+- **A missing or unreadable file keeps the template's icon.** The game reads the file when the item is added, not when you call `Define`. So a bad path is only reported in the log later.
 - **`IconPath` must be a full path.** A path that is not full throws `ArgumentException`.
 
-To change the icon of an item that already exists, from the game or from a mod, use `ItemIcons.OverrideVanilla`. It is not saved, so removing your mod brings the old icon back. It returns `false` when it could not read the picture, when the framework's icon changes are not installed, or when the item list is loaded and has no item with that id.
+To change the icon of an item that already exists, from the game or from a mod, use [`ItemIcons.OverrideVanilla`](../api/registry/item-icons.md). It is not saved, so removing your mod brings the old icon back. It returns `false` in these cases:
+
+- It could not read the picture.
+- The framework's icon changes are not installed.
+- The item list is loaded and has no item with that id.
 
 ```csharp
 string folder = Path.GetDirectoryName(Info.Location);
@@ -171,7 +183,7 @@ if (!ItemIcons.OverrideVanilla(19990, Path.Combine(folder, "salted-pork-icon.png
 
 ## Step 3. Give the item a 3D model
 
-The model is what you see when the item lies on the ground or sits on a shelf. A model comes from an OBJ file (a common 3D format). `ModelRegistry.LoadObj` reads it and gives you a `ModelHandle`, which you put in `ItemDefinition.Model`. All the options are on [Content models](content-models.md).
+The model is what you see when the item lies on the ground or sits on a shelf. A model comes from an OBJ file (a common 3D format). [`ModelRegistry.LoadObj`](../api/registry/models.md) reads it and gives you a `ModelHandle`, which you put in `ItemDefinition.Model`. All the options are on [Content models](content-models.md).
 
 Add `Model` to the call from Step 1, or replace that call with this one.
 
@@ -197,14 +209,14 @@ ItemRegistry.Define(ModGuid, "spicy-jerky", new ItemDefinition
 ```
 
 - **`LoadObj` does not throw for a bad file.** It gives you a handle where `IsReady` is `false` and `Error` says why. Always check `IsReady`.
-- **A model that is not ready leaves the template's look in place,** and the problem is written to the log.
+- **A model that is not ready leaves the [template](../glossary.md#template)'s look in place,** and the problem is written to the log.
 - **`ItemDefinition.Model` only accepts a handle from `LoadObj`.** Anything else throws `ArgumentException`.
 
 ## Step 4. Furniture
 
 ### Pick a template
 
-A piece of furniture you add is a copy of a piece the game already has. It keeps the original's models and behaviour, and gets its own title, description, price and shop listing.
+A piece of furniture you add with [`FurnitureRegistry.Define`](../api/furniture/defining-furniture.md) is a copy of a piece the game already has, its [template](../glossary.md#template). It keeps the original's models and behaviour, and gets its own title, description, price and shop listing.
 
 ```csharp
 string rack = FurnitureRegistry.Define(ModGuid, "jerky-rack", new FurnitureDefinition
@@ -217,19 +229,24 @@ string rack = FurnitureRegistry.Define(ModGuid, "jerky-rack", new FurnitureDefin
 if (rack == null) Log.Error("jerky rack was refused");   // null means the framework refused it
 ```
 
-The player can get the rack in one of two ways. You can add the id of a furniture shop to `ShopIds`, so the shop sells it. Find shop ids in the game with `FurnitureRegistry.ShopGuids()`. Or you can call `FurnitureRegistry.Give(rack, 1)` from an event or a timer to put one in the player's stock.
+The player can get the rack in one of two ways:
+
+- Add the id of a furniture shop to `ShopIds`, so the shop sells it. Find shop ids in the game with `FurnitureRegistry.ShopGuids()`.
+- Call `FurnitureRegistry.Give(rack, 1)` from an event or a timer, to put one in the player's stock.
+
+The fields and calls:
 
 - **Set exactly one of `TemplatePath` or `TemplateName`.** Setting both or neither throws `ArgumentException`. `TemplateName` is the furniture's name in the developer console's furniture list. `TemplatePath` is the more exact form.
   - Technical: `TemplatePath` is the Addressables key of the vanilla asset (the game's asset address).
-- **`Define` returns the furniture's id, written `obx:<modGuid>/<key>`.** It returns `null` when the furniture changes are not installed, or when a furniture piece was already built. A second call with the same mod id and key returns the same id and keeps the first definition. A `TemplateName` that matches nothing still returns an id, and the error shows up in the log when the piece is first built.
+- **`Define` returns the furniture's id, written `obx:<modGuid>/<key>`.** It returns `null` when the furniture changes are not installed, or when a furniture piece was already built. A second call with the same mod id and key returns the same id and keeps the first definition. A `TemplateName` that matches nothing still returns an id. The error shows up in the log when the piece is first built.
 - **`ShopIds` lists furniture shops that should sell the piece.** Use the ids from `FurnitureRegistry.ShopGuids()`, which lists the furniture shops in the levels that are loaded. Each listed shop gets `ShopStock` pieces at each restock, 3 by default.
   - Technical: a shop id is `BaseShop.GUID`.
-- **`Icon` is a Unity `Sprite` (an image object), not a file path.** Leave it `null` unless you already have a sprite.
+- **`Icon` is a Unity [`Sprite`](../glossary.md#sprite-and-texture2d) (an image object), not a file path.** Leave it `null` unless you already have a sprite.
 - **`FurnitureRegistry.Give(id, amount)` adds pieces to the player's stock.** `amount` must be 1 to 1000. It returns `false` while a save is busy or when no building is loaded.
 
 ### Sitting
 
-A seat that the template has stays a seat on your copy. `Seats` lists the seats in the scene you are in and can sit the player down. Take seat ids from `Seats.All()`. Do not make them up.
+A seat that the template has stays a seat on your copy. `Seats` lists the seats in the [scene](../glossary.md#scene) (one loaded area of the game) you are in, and can sit the player down. Take seat ids from `Seats.All()`. Do not make them up.
 
 ```csharp
 Seats.Sat += args => Log.Info("sat on " + args.Id + ", by player " + args.ByPlayer);   // someone sat down
@@ -255,25 +272,38 @@ Action sitDown = () =>
 Call `sitDown` from a key press or a timer, after a save has loaded. The list is empty while no save is loaded ([seats](../api/seats.md)).
 
 - **`Seats.All()` also lists toilets,** so the snippet skips them with `IsToilet`.
-- **`Seats.Sit` can say no without telling you why.** It returns `false` and writes nothing to the log when the player is already sitting, the seat is taken or switched off, the seat is more than 1.5 metres from the camera, the controls or keys are disabled, the game is paused or busy, or the player is asleep. It also returns `false` when no game scene is ready. The snippet measures from the player, but the game measures from the camera, so a seat the snippet picks can still be refused.
+- **`Seats.Sit` can say no without telling you why.** It returns `false` and writes nothing to the log in these cases:
+  - The player is already sitting.
+  - The seat is taken or switched off.
+  - The seat is more than 1.5 metres from the camera.
+  - The controls or keys are disabled.
+  - The game is paused or busy.
+  - The player is asleep.
+
+  It also returns `false` when no game scene is ready.
+- **The game measures the distance from the camera.** The snippet measures from the player, so a seat the snippet picks can still be refused.
 - **`Sat` and `Left` fire after the game has changed the seat.** They do not fire while a save is loading ([seats](../api/seats.md)).
 
 ### Placing furniture
 
-The player places furniture with the game's building tool. `Give` puts the piece in the player's stock, and the player places it from there. Your mod can also place, move and remove pieces itself: `Building.Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab)` returns the new piece, `Building.Move(guid, position, rotation)` moves one and `Building.Remove(guid)` removes one ([housing](../api/housing.md)).
+The player places furniture with the game's building tool. `Give` puts the piece in the player's stock, and the player places it from there. Your mod can also place, move and remove pieces itself ([housing](../api/housing.md)):
 
-You can also watch for pieces being placed and removed.
+- `Building.Place(managerGuid, furnitureId, position, rotation, childRotation, skin, altPrefab)` returns the new piece.
+- `Building.Move(guid, position, rotation)` moves one.
+- `Building.Remove(guid)` removes one.
+
+These events report pieces being placed and removed:
 
 ```csharp
 Building.FurniturePlaced += item => Log.Info("placed " + item.Id + " in " + item.AreaId + " at " + item.Position);   // a piece was placed
 Building.FurnitureRemoved += item => Log.Info("removed " + item.Id + " from " + item.AreaId);                        // a piece was removed
 ```
 
-- **`Building.AllAreaIds()` lists the areas where furniture can be placed.** `Building.GetPlacedFurniture(areaId)` lists the pieces in one area.
+- **`Building.AllAreaIds()` lists the [areas](../glossary.md#building-area) where furniture can be placed.** `Building.GetPlacedFurniture(areaId)` lists the pieces in one area.
 
 ## Step 5. Loot pools
 
-Containers such as fridges fill themselves from a loot category, for example `Fridge`. `LootPools.Add` adds your item to a category's list, so it can turn up in those containers.
+Containers such as fridges fill themselves from a loot category, for example `Fridge`. [`LootPools.Add`](../api/loot/adding-and-removing.md) adds your item to a category's list, so it can turn up in those containers.
 
 ```csharp
 LootPools.ContainerFilled += args => Log.Info(args.ItemIds.Count + " stacks in " + args.Container.Name);   // a container was just filled
@@ -283,14 +313,14 @@ Log.Info("loot entry kept: " + added);
 
 - **`LootPools.Categories()` lists the category names.** Pass one of those names to `Add`.
 - **The weight is 1 to 100, and it is not a percentage.** An item's chance of being picked is its weight divided by the total weight of the category's list. A category with a short list can give your item most of its picks. Compare your weight with `LootCategoryInfo.CommonWeight` and `RareWeight` ([loot](../api/loot.md)).
-- **Avoid the rare list unless the category already has rare entries.** A category with no rare entries starts giving rare picks as soon as you add one, so prefer the common list (`LootTier.Rare` is the rare one) ([loot](../api/loot.md)).
+- **Avoid the rare list unless the category already has rare entries.** A category with no rare entries starts giving rare picks as soon as you add one. So prefer the common list (`LootTier.Rare` is the rare one) ([loot](../api/loot.md)).
 - **You can call `Add` in `Awake`.** The entry waits until the category and the item exist ([loot](../api/loot.md)).
 - **Item ids 0 and 1 are refused.**
 - **`LootPools.Remove(modId, category, itemId)` takes your entry out.** `ContainerFilled` fires after a container fill puts at least one stack in.
 
 ## Step 6. Shops
 
-`ShopStock` adds stock to two kinds of shop. A trader gets a fixed stack of the item in its empty slots. A vending machine gets one more entry in its list. `Shops.All()` lists the shops, their ids and their kinds.
+[`ShopStock`](../api/shops-stock/shop-keys.md) adds stock to two kinds of shop. A trader gets a fixed stack of the item in its empty slots. A vending machine gets one more entry in its list. [`Shops.All()`](../api/economy/shops.md) lists the shops, their ids and their kinds.
 
 This step adds a field and a method to your class, and a line to `Awake`. The method picks one trader and stocks it when a save has loaded.
 
@@ -322,7 +352,7 @@ private void StockTrader()
 }
 ```
 
-If your class already has an `Awake` from the earlier steps, add the `Events.Loaded` line to it instead of writing a second one.
+If your class already has an `Awake` from the earlier steps, add the [`Events.Loaded`](../api-core/events.md) line to it instead of writing a second one.
 
 - **Use the shop's id, not its name.** A shop key matches a shop when it equals the id or the name, but a name can match more than one shop.
   - Technical: the id is the shop's GUID.
@@ -332,7 +362,7 @@ If your class already has an `Awake` from the earlier steps, add the `Events.Loa
 - **`AddVendingEntry(modId, shopKey, itemId, stock, price, currency)` adds a line to a vending machine.** A `price` of 0 or below uses the game's own price rule ([shops and stock](../api/shops-stock.md)).
 - **`ShopStock.Remove(modId, shopKey, itemId)` drops your trader stock and your vending line for that shop and item.**
 - **Item ids 0 and 1 are refused.**
-- **Every write returns `false` while a save is busy.** `SaveData.Busy` tells you the same thing.
+- **Every write returns `false` while a save is busy.** [`SaveData.Busy`](../api-core/savedata.md) tells you the same thing.
 
 The example stocks the trader with the lowest id among those loaded. To pick one trader on purpose, print `Shops.All()` once and write that trader's id into your code.
 
@@ -355,7 +385,7 @@ Action sendSample = () =>
 };
 ```
 
-- **`MailKind.Letter` goes to the mailbox. `MailKind.Package` goes to the parcel locker** ([economy](../api/economy/mail.md#mail)).
+- **`MailKind.Letter` goes to the [mailbox](../api/mailboxes.md). `MailKind.Package` goes to the [parcel locker](../api/parcellockers.md)** ([economy](../api/economy/mail.md#mail)).
 - **`SendItem` takes a count of 1 to 1000 and an item id above 1.** Each `MailLine` has the same limits.
 - **`delayMinutes` is 1 to 525600.**
 - **A mail name must not be empty.**
@@ -367,11 +397,11 @@ Action sendSample = () =>
 
 Many calls take a number for an item. Look the number up, rather than copying one from another mod.
 
-- **`Items.Find(title)` finds an item by its title.** It matches the whole title, ignoring capital letters, and returns `null` if there is no match.
+- **[`Items.Find(title)`](../api/items/lookup.md) finds an item by its title.** It matches the whole title, ignoring capital letters, and returns `null` if there is no match.
 - **`Items.Search(text)` finds every item whose title contains the text.**
 - **`Items.Get(id)` gives you the item for an id.**
 - **The game's own list is the file `Obenseuer_Data\StreamingAssets\Items.json`.** Open it in a text editor and search for the item's title.
-- **An item from your own mod gets its id from `ItemRegistry.Define`.** `ItemRegistry.IdFor(modGuid, key)` gives the same id in every session.
+- **An item from your own mod gets its id from [`ItemRegistry.Define`](../api/registry/items.md).** `ItemRegistry.IdFor(modGuid, key)` gives the same id in every session.
 
 ## Common mistakes
 
@@ -387,7 +417,9 @@ Many calls take a number for an item. Look the number up, rather than copying on
 
 ## The finished mod
 
-This mod adds Spicy Jerky. Its folder under `BepInEx\plugins\` holds the DLL, `spicy-jerky-icon.png`, `jerky-pack.obj`, `jerky-pack.mtl` and `jerky-pack.png`. The icon and model are the ones from Steps 2 and 3. It puts the pieces from Steps 1, 2, 3 and 6 together. Use the same project as in "Set up the project", and copy the DLL and the four asset files to `BepInEx\plugins\example.spicy-jerky\` (the build does this for the DLL when you use `-p:DeployToGame=true`).
+This mod adds Spicy Jerky. It puts the pieces from Steps 1, 2, 3 and 6 together, with the icon and model from Steps 2 and 3. Its folder under `BepInEx\plugins\` holds the DLL, `spicy-jerky-icon.png`, `jerky-pack.obj`, `jerky-pack.mtl` and `jerky-pack.png`.
+
+Use the same project as in Set up the project, above. Copy the DLL and the four asset files to `BepInEx\plugins\example.spicy-jerky\`. The build does this for the DLL when you use `-p:DeployToGame=true`. On BepInEx 5, change the two things listed under The plugin skeleton.
 
 ```csharp
 using System.Collections.Generic;
@@ -463,9 +495,23 @@ public class SpicyJerky : BaseUnityPlugin
 }
 ```
 
-To test it, start the game, load a save and read `BepInEx\logs\SpicyJerky.log`. The file is named after the text you passed to `CoreLog.For`. A line starting `trader` shows the stock was set. Then look for Spicy Jerky in that trader's shop and in the stove's recipe list.
+To test it:
 
-On BepInEx 5, change the two things listed under "The plugin skeleton".
+1. Start the game and load a save.
+2. Read the [log](getting-started/logging.md) file `BepInEx\logs\SpicyJerky.log`. The file is named after the text you passed to [`CoreLog.For`](../api-core/corelog.md). A line starting `trader` shows the stock was set.
+3. Look for Spicy Jerky in that trader's shop and in the stove's recipe list.
+
+Spicy Jerky is now in the game. Where to go next, below, lists the API page for each area.
+
+### Common problems
+
+- The build says it could not find the game, [BepInEx](../glossary.md#bepinex) or the framework: the message names the missing piece. Finish the [install](../install.md), start the game once, then build again. If the game is not in the default Steam folder, add its path to the build line, for example `-p:GameDir="D:\Games\Obenseuer"`. The folder is the one that holds `Obenseuer.exe`.
+- The mod does not load: open `BepInEx\LogOutput.log` and search for your mod's name. BepInEx writes a line for each plugin it loads or skips. For more checks, see [my mod does not load](../faq.md#my-mod-does-not-load).
+- The log says "spicy jerky was refused": `Define` returned -1. It does that only when [`ItemRegistry.CanDefine`](../api/registry/items.md) is `false`, for example after the game has loaded its item list. Define in `Awake`.
+- The log says "model not ready:": the text after it is the reason, and the item keeps the template's look. Causes on this page: a bad file, or a `LoadObj` path that is not full, which gives a handle that is never ready. Build paths with `Path.Combine(Path.GetDirectoryName(Info.Location), ...)`. [Content models](content-models.md) lists the file limits.
+- The log says "no trader is loaded, so jerky is not stocked": the example stocks only a trader that is loaded when a save loads. To pick one trader on purpose, print `Shops.All()` once and write that trader's id into your code. `AddTraderStock` returns `true` even when the shop is not loaded yet, and the entry waits.
+- Spicy Jerky is not in the stove's recipe list: a recipe that names a missing item is left out, and the error goes to the log. A `Define` after the game has loaded its lists is also refused. A `Station` of `None` or an unknown name throws an error. Check `Station`, check each id in `Inputs` and `Outputs` (see Finding item ids, above), and define in `Awake`.
+- A save shows "Missing item" where the jerky was: the mod is not installed, or it is installed but could not add the item. If it is not installed, reinstall it. The stacks keep their id, so they come back. If it is installed, the framework log says why it could not add the item ([missing items](../api/registry/missing-items.md#missing-items)).
 
 ## Where to go next
 

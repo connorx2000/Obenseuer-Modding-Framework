@@ -7,11 +7,20 @@ nav_order: 9
 
 # Wardrobe
 
+`Wardrobe` covers the items the player wears, such as a hat, a mask, a watch or a backpack. Use it to check, put on or take off a worn item, or to react when one changes.
+
 Status: experimental.
 
 ## What it is
 
-The wardrobe is the four places on the player where an item can be worn: the head, the face, the wrist (watch) and the back (backpack). This API lets your mod see what the player wears in each place, put an item from the bag on, take an item off, and get told when anything changes. It does not change how the player looks (that is `PlayerLook`), and it does not cover the items held in the hands.
+The wardrobe is the four places on the player where an item can be worn: the head, the face, the wrist (watch) and the back (backpack). This API lets your mod:
+
+- see what the player wears in each place
+- put an item from the bag on
+- take an item off
+- get told when anything changes.
+
+It does not change how the player looks: that is [`PlayerLook`](../api-core/playerlook.md). It does not cover the items held in the hands.
 
 ## When to use it
 
@@ -21,7 +30,7 @@ The wardrobe is the four places on the player where an item can be worn: the hea
 
 ## Quick example
 
-This mod logs the item the player wears on each place when a save is loaded, and logs a line each time one changes.
+This mod [logs](../guides/getting-started/logging.md) the item worn in each place once a save is loaded. It also logs a line each time one changes.
 
 ```csharp
 using ObenseuerCore;
@@ -42,7 +51,7 @@ public sealed class WardrobeWatch : FrameworkMod
 }
 ```
 
-An item id of `-1` means nothing is worn there. `Changed` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+An [item id](items.md) of `-1` means nothing is worn there. `Changed` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
 
 ## Common tasks
 
@@ -66,7 +75,7 @@ bool hasWatch = Wardrobe.WornOn("Watch") >= 0;
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is detail for experienced modders, which you can skip on a first read.
 
 ### Wardrobe
 
@@ -74,7 +83,7 @@ The four places are called by name: `"Head"`, `"Face"`, `"Watch"` and `"Backpack
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Wardrobe</code> <span>what the player wears</span></p>
-Use it to list the clothing slots, see what is worn in each one, equip or unequip items, and hear about changes.
+Lists the clothing slots, tells you what is worn in each one, equips or unequips items, and reports changes.
 
 <div class="api-pair" markdown="1">
 
@@ -97,7 +106,7 @@ public static class Wardrobe
 | Method | Returns | What it does |
 |---|---|---|
 | `Slots()` | `List<string>` | The four place names, `"Head"`, `"Face"`, `"Watch"`, `"Backpack"`, in that order. |
-| `WornOn(slot)` | `int` | The item id worn there. `-1` when the place is empty. |
+| `WornOn(slot)` | `int` | The item id worn in that place. `-1` when the place is empty. |
 | `Equip(itemId)` | `bool` | Puts an item from the bag on. `true` when it is worn afterwards. |
 | `Unequip(slot)` | `bool` | Takes the item off the place and puts it in the bag. `true` when an item was taken off. |
 
@@ -110,7 +119,7 @@ public static class Wardrobe
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WardrobeChangedArgs</code> <span>what you get when a place changes</span></p>
-`Changed` gives you this when a slot changes. `Slot` names the slot, and `ItemId` is what is worn in it now.
+`Changed` gives you this when a slot changes. `Slot` names the slot. `ItemId` is what is worn in it now.
 
 <div class="api-pair" markdown="1">
 
@@ -132,22 +141,36 @@ public sealed class WardrobeChangedArgs
 
 ### Things to know
 
-- Pass a place name from the list, and an item id that is zero or more. A `null` place, a name that is not one of the four, or a negative item id throws an `ArgumentException`. Every other problem returns the plain default (`-1` or `false`).
-- `Equip` only takes an item from the player's bag. An item that is in a backpack, or is already worn, is not moved. The item's place is the one named by its category. If an item has a category for more than one place, the first match is used. If something else is worn in that place, the game moves it into the bag. <span class="tech">(`Equip` takes the item from `Inventory.Slots` and calls `Inventory.EquipItem`, the same method the game's `ItemEquipable` calls when the player uses a wearable. It never writes to the slot data itself.)</span>
-- `Equip` returns `false` when it did not put the item on. That happens when the item is not in the bag, when the item has no wearing place, when the place would refuse the item (for example an item the game does not let you store), when the item is owned by someone who does not allow use, when the item in the place is owned (it is not swapped out), when a save is loading or being written, and when the game does not put it on. The game plays the item's sound when the player uses it, and `Equip` does not. <span class="tech">(The check for an item that belongs to someone reads the `ItemOwnerPermission` entry in the item's `Meta`, and a worn item counts as owned when its `ownerId` is above 0. The place's own category rules (`SlotController.CheckIfAllowed`) decide, so an item that is also `Unstorable` is not equipped. A refusal because the item belongs to someone is logged once.)</span>
-- `Unequip` takes the item off the place and puts it in the bag. It returns `false` when nothing is worn there, when the worn item is owned by someone, when the game cannot move the item (for example, the bag is full), and when a save is loading or being written. <span class="tech">(It calls `Inventory.Unequip`.)</span>
-- `Changed` fires after the item worn in the head, face, watch or backpack place changes. That covers `Equip`, `Unequip`, and the player dragging an item into or out of a worn place, including a drag that is cancelled and put back. It fires once for each action, and only when the worn item is different afterwards, or when the game's own equip or unequip ran. It is not raised for the hands.
+- Pass a place name from the list, and an item id of zero or more. A `null` place, a name that is not one of the four, or a negative item id throws an `ArgumentException`. Every other problem returns the plain default (`-1` or `false`).
+- `Equip` only takes an item from the player's bag. An item in a backpack, or one that is already worn, is not moved. The item's category names its place. If an item has a category for more than one place, the first match is used. If something else is worn in that place, the game moves it into the bag. <span class="tech">(`Equip` takes the item from `Inventory.Slots` and calls `Inventory.EquipItem`, the same method the game's `ItemEquipable` calls when the player uses a wearable. It never writes to the slot data itself.)</span>
+- `Equip` returns `false` when it did not put the item on. That happens in these cases:
+  - the item is not in the bag
+  - the item has no wearing place
+  - the place would refuse the item, for example an item the game does not let you store
+  - the item is owned by someone who does not allow use
+  - the item in the place is owned (it is not swapped out)
+  - a save is loading or being written
+  - the game does not put it on.
+
+  The game plays the item's sound when the player uses it. `Equip` does not. <span class="tech">(The check for an item that belongs to someone reads the `ItemOwnerPermission` entry in the item's `Meta`, and a worn item counts as owned when its `ownerId` is above 0. The place's own category rules (`SlotController.CheckIfAllowed`) decide, so an item that is also `Unstorable` is not equipped. A refusal because the item belongs to someone is logged once.)</span>
+- `Unequip` takes the item off the place and puts it in the bag. It returns `false` when nothing is worn there, or when the worn item is owned by someone. It also returns `false` when the game cannot move the item (for example, the bag is full). The same goes while a save is loading or being written. <span class="tech">(It calls `Inventory.Unequip`.)</span>
+- `Changed` fires after the item worn in the head, face, watch or backpack place changes. That covers `Equip`, `Unequip`, and the player dragging an item into or out of a worn place. A drag that is cancelled and put back counts too. It fires once for each action, and only when the worn item is different afterwards, or when the game's own equip or unequip ran. It is not raised for the hands.
 - `Changed` does not fire when a script removes the worn item, for example when it spoils, or when a save loads.
-- The player-inventory events count the worn places too, but `Equip` and `Unequip` do not raise them. See [Inventory](inventory.md) for `ItemAdded` and `ItemRemoved`. They are separate from `Changed`. Other ways of moving an item into a worn place can still raise them. <span class="tech">(`Equip` and `Unequip` run inside the inventory's UI scope, which holds those events back.)</span>
+- The player-inventory events `ItemAdded` and `ItemRemoved` count the worn places too (see [Inventory](inventory.md)). `Equip` and `Unequip` do not raise them. Other ways of moving an item into a worn place can still raise them. They are separate from `Changed`. <span class="tech">(`Equip` and `Unequip` run inside the inventory's UI scope, which holds those events back.)</span>
 - A `Changed` handler may call `Equip` or `Unequip`, but only up to 8 levels deep. Past that, both return `false`, and the first refusal goes to the log.
 
 ### Limits
 
 - You can't use this API for the items held in the hands. It covers only the four worn places. <span class="tech">(`ItemDef.EquipSlot` uses the same place names and also reports the two hand slots (Wieldable Primary and Secondary), but this API does not reach them.)</span>
 
+**Common problems**
+
+- `Equip` returns `false`: the item is not in the player's bag, or another case from the `Equip` bullets under Things to know applies. An item in a backpack, or one that is already worn, is not moved.
+- `Equip` or `Unequip` returns `false` inside a `Changed` handler: the calls went past 8 levels deep. The first refusal goes to the log.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.wardrobe.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -163,7 +186,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. A game update can break one of them. The framework then removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it and turns the group off. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If any of the changes fails, the feature group turns off and `Changed` stops. One warning goes to the log. `Slots`, `WornOn`, `Equip` and `Unequip` keep working. <span class="tech">(The methods involved are `Inventory.Equip`, `Inventory.Unequip`, `SlotController.TakeItem`, `SlotController.DropItem`, `ItemData.Return` and `ItemData.ReturnOriginal`. The log line reads "wardrobe events not installed, Changed is disabled".)</span>
-- The framework does not hold back `Changed` while a save is loading. A handler that should ignore events raised then can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- The framework does not hold back `Changed` while a save is loading. A handler that should ignore events raised then can check [`SaveData.Busy`](../api-core/savedata.md), which is `true` while a save is loading or being written.

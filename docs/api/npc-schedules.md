@@ -7,11 +7,19 @@ nav_order: 10
 
 # NPC schedules
 
+`NpcSchedules` reads what an [NPC](npcs.md) (a character in the game) is doing now and its weekly timetable, and tells your mod when an activity changes. Use it to show, log or react to what NPCs are doing.
+
 Status: experimental.
 
 ## What it is
 
-The game gives its NPCs a weekly timetable: at certain days and hours an NPC goes to a place and does something, such as working, eating or sleeping. This API lets a mod read what an NPC is doing right now, read its whole weekly timetable, and get told when an NPC starts a different activity. It only reads. It does not move NPCs. To move an NPC around, use [NPC movement](npc-movement.md).
+The game gives its NPCs a weekly timetable. At certain days and hours an NPC goes to a place and does something, such as working, eating or sleeping. This API lets a mod:
+
+- read what an NPC is doing right now;
+- read its whole weekly timetable;
+- get told when an NPC starts a different activity.
+
+It only reads. It does not move NPCs. To move an NPC around, use [NPC movement](npc-movement.md).
 
 NPCs are given by their id. You get the ids from the [NPC API](npcs.md) (`NpcInfo.Id`, `Npcs.All()`). This API does not list NPCs itself.
 
@@ -25,7 +33,7 @@ NPCs that your own mod spawned have no timetable of the game's kind. To give tho
 
 ## Quick example
 
-This mod writes a log line each time any NPC changes activity. Once a save is loaded, it also logs what the first NPC the game knows is doing, and how many entries that NPC's timetable has.
+This mod writes a [log](../guides/getting-started/logging.md) line each time any NPC changes activity. Once a save is loaded, it also logs what the first NPC the game knows is doing, and how many entries that NPC's timetable has.
 
 ```csharp
 using ObenseuerCore;
@@ -49,7 +57,7 @@ public sealed class ScheduleWatch : FrameworkMod
 }
 ```
 
-`ActivityChanged` is an event: the framework calls your code each time it happens. `From` and `To` are `null` when the NPC had no activity before, or has none now, which is why the example writes "nothing" in their place. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)).
+`ActivityChanged` is an event: the framework calls your code each time it happens. `From` and `To` are `null` when the NPC had no activity before, or has none now. That is why the example writes "nothing" in their place. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)).
 
 ## Common tasks
 
@@ -74,7 +82,7 @@ if (!NpcSchedules.IsAvailable) Log.Warn("Activity changes are not reported");
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Schedules
 
@@ -83,7 +91,7 @@ This is the full list of what the API gives you, one section for each part. Text
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcSchedules</code> <span>read an NPC's activity and timetable</span></p>
 
-Call `CurrentActivity(npcId)` to see what the NPC is doing now, and `Timetable(npcId)` for its fixed timetable.
+`CurrentActivity(npcId)` tells you what the NPC is doing now. `Timetable(npcId)` gives its fixed timetable.
 
 <div class="api-pair" markdown="1">
 
@@ -107,7 +115,7 @@ public static class NpcSchedules
 
 #### Things to know
 
-- `CurrentActivity(npcId)` tells you what the game says the NPC is doing, even when the NPC is not in the scene you are in. You get `null` when the NPC has no activity or no NPC has that id. <span class="tech">(it reads the current activity of the NPC's game data. The name is the activity's name, or the activity's class name when the activity has no name.)</span>
+- `CurrentActivity(npcId)` tells you what the game says the NPC is doing. This works even when the NPC is not in the [scene](../glossary.md#scene) (one loaded area of the game) you are in. You get `null` when the NPC has no activity or no NPC has that id. <span class="tech">(it reads the current activity of the NPC's game data. The name is the activity's name, or the activity's class name when the activity has no name.)</span>
 - `Timetable(npcId)` lists the fixed timetable in the order the game stores it.
 - `ActivityName` is the activity's name, or the name of its code class when it has no name. It is `null` when the entry has no activity.
 - `IsAvailable` is `false` when the activity change event could not be set up. The reads keep working when it is `false`. See [If something fails to set up](#if-something-fails-to-set-up).
@@ -173,8 +181,8 @@ public sealed class ActivityChangedArgs
 | Property | Type | What it means |
 |---|---|---|
 | `NpcId` | `int` | The NPC's id. |
-| `From` | `string` | What it was doing. `null` when it had no activity. |
-| `To` | `string` | What it does now. `null` when its activity was cleared. |
+| `From` | `string` | What the NPC was doing. `null` when it had no activity. |
+| `To` | `string` | What the NPC does now. `null` when its activity was cleared. |
 
 </div>
 </div>
@@ -203,22 +211,22 @@ public static class NpcSchedules
 #### Things to know
 
 - `ActivityChanged` fires when the game gives an NPC a different activity, and also when the game clears it. When the activity is cleared, `To` is `null`. It does not fire when the game sets the same activity again. <span class="tech">(it is raised from a postfix on the game's `NPCDataState.CurrentActivity` setter.)</span>
-- The framework does not poll. It runs no timer. The game sets an idle NPC's activity to nothing every frame, so the change is checked very often, but with no handler, or when nothing changed, it only reads one value and stops. It looks the NPC up only for a real change when you have a handler. <span class="tech">(the game assigns `null` to an idle NPC's `CurrentActivity` every frame.)</span>
+- The framework does not poll, and it runs no timer. The game sets an idle NPC's activity to nothing every frame, so the change is checked very often. With no handler, or when nothing changed, it only reads one value and stops. It looks the NPC up only for a real change when you have a handler. <span class="tech">(the game assigns `null` to an idle NPC's `CurrentActivity` every frame.)</span>
 
 #### Limits
 
 - Loading a save does not fire it. A save load replaces the NPC's whole state at once, so no single change happens. Changes the game makes right after the load do fire it.
 - Do not start or stop NPC activities from inside your handler. Your handler runs inside the game's own call, so wait until the game has finished, for example with a timer.
-- `ActivityChanged` also fires while a save is loading, if an activity changes then. If you want to ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- `ActivityChanged` also fires while a save is loading, if an activity changes then. To ignore those, check `SaveData.Busy`, which is `true` while a save is loading or being written.
 
 ### What you can't do (yet)
 
-- You can't pause an NPC's timetable. There is no single switch that works for every NPC. The game has a flag that is meant to pause an NPC that is away, but it does not stop an NPC that is in the scene, and the game saves it, so a flagged NPC would not appear when its scene loads and would seem to vanish. The game has another switch for an NPC in the scene, but it needs the live NPC and it stops the activity that is running. For a pause in the scene you are in, use `NpcMovement.SetActivityEnabled` (see [NPC movement](npc-movement.md)). <span class="tech">(the saved flag is `NPCDataState.schedulerDisabled`. The scheduler keeps starting activities for in-scene NPCs. The in-scene switch is `NPCController.DisableActivity`.)</span>
-- You can't send an NPC to a place from here. The game's path search only works out a route and does not give the NPC a target. The call that gives an NPC a target only works in the loaded scene, and the timetable replaces that target as soon as the next activity starts. Use [NPC movement](npc-movement.md) instead. <span class="tech">(`NPCPathfinding` only computes a path (`SearchForPath`). The NPC call is `NPCController.SetTargetPosition`.)</span>
+- You can't pause an NPC's timetable. There is no single switch that works for every NPC. The game has a flag that is meant to pause an NPC that is away. But it does not stop an NPC that is in the scene, and the game saves it. So a flagged NPC would not appear when its scene loads, and would seem to vanish. The game has another switch for an NPC in the scene, but it needs the live NPC and it stops the activity that is running. For a pause in the scene you are in, use `NpcMovement.SetActivityEnabled` (see [NPC movement](npc-movement.md)). <span class="tech">(the saved flag is `NPCDataState.schedulerDisabled`. The scheduler keeps starting activities for in-scene NPCs. The in-scene switch is `NPCController.DisableActivity`.)</span>
+- You can't send an NPC to a place from here. The game's path search only works out a route and does not give the NPC a target. The call that gives an NPC a target only works in the loaded scene. The timetable replaces that target as soon as the next activity starts. Use [NPC movement](npc-movement.md) instead. <span class="tech">(`NPCPathfinding` only computes a path (`SearchForPath`). The NPC call is `NPCController.SetTargetPosition`.)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.npcschedules.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -236,6 +244,6 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when an activity changes. If a game update breaks one of them, only that feature turns off, and the framework writes error lines and a warning to the log. The rest of the API keeps working.
+The framework changes some of the game's methods when it starts, so it can tell your mod when an activity changes. If a game update breaks one of them, only that feature turns off. The framework writes error lines and a warning to the log. The rest of the API keeps working.
 
-- The change event depends on the feature group `obenseuer.moddingframework.npcschedules`. This is the name you will see in the log. It has one game change in it: the setter for an NPC's current activity. If the framework can't make it in your game version, it turns the group off, writes error lines and a warning to its log file, and `ActivityChanged` never fires. `IsAvailable` is then `false`. `CurrentActivity` and `Timetable` keep working. <span class="tech">(the game method is `NPCDataState.set_CurrentActivity`.)</span>
+- The change event depends on the [feature group](../glossary.md#feature-group) (a named set of the framework's changes) `obenseuer.moddingframework.npcschedules`. This is the name you will see in the log. It has one game change in it: the setter for an NPC's current activity. If the framework can't make it in your game version, it turns the group off. It also writes error lines and a warning to its log file. `ActivityChanged` then never fires, and `IsAvailable` is `false`. `CurrentActivity` and `Timetable` keep working. <span class="tech">(the game method is `NPCDataState.set_CurrentActivity`.)</span>

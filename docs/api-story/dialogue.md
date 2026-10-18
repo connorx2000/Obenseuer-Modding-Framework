@@ -7,15 +7,15 @@ nav_order: 4
 
 # Dialogue
 
-This page uses `Transform` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
-{: .unity-types}
+The game's conversations run on a dialogue system that keeps variables and runs small scripts written in [Lua](../glossary.md#lua) (a scripting language). `Dialogue` lets your mod read and set those variables, start and stop a conversation, and redirect or cancel one as it starts. It can also add answer lines, and add your own functions for conversation scripts to call.
 
-The game's conversations are run by a dialogue system that keeps variables and runs small scripts written in Lua (a scripting language). `Dialogue` lets your mod read and set those variables, start and stop a conversation, redirect or cancel a conversation when it starts, add answer lines, and add your own functions that conversation scripts can call.
+This page uses `Transform` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what it is.
+{: .unity-types}
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Dialogue</code> <span>variables, conversations and answer lines</span></p>
 
-Use `Start` to begin a conversation, `SetVariable` and the `GetVariable` calls to work with the Lua variables, and `Intercept` to run your code before each conversation starts.
+Use `Start` to begin a conversation, and `SetVariable` and the `GetVariable` calls to work with the Lua variables. `Intercept` runs your code before each conversation starts.
 
 <div class="api-pair" markdown="1">
 
@@ -126,7 +126,7 @@ public sealed class ConversationArgs
 
 ## Putting it together
 
-Sends one conversation to another, sets a variable, and registers a Lua function that checks a quest step.
+This mod sends one conversation to another, sets a variable, and registers a Lua function that checks a [quest](quests-experimental.md) step.
 
 <div class="api-example" markdown="1">
 
@@ -168,30 +168,30 @@ In a conversation condition you would then write `Mod_mymod_HasKey("<taskId>")`.
 
 ### Variables
 
-- `HasVariable`, `GetVariableString`, `GetVariableNumber` and `GetVariableBool` read the Lua variables, and give you your fallback if the variable is not there. A typed read returns the fallback when the variable is missing or holds another type, so `GetVariableString` returns the fallback for a number.
+- `HasVariable`, `GetVariableString`, `GetVariableNumber` and `GetVariableBool` read the Lua variables. They give you your fallback if the variable is not there. A typed read also returns the fallback when the variable holds another type, so `GetVariableString` returns the fallback for a number.
 - `GetActorField` returns a field only when it holds text. Otherwise you get the fallback.
-- `SetVariable(name, value)` returns `true` when the variable was written, and `false` (logged once) when the name or the value is not allowed. It returns `false` when:
-  - the `name` does not match `^[A-Za-z_][A-Za-z0-9_]*$` (a name must start with a letter or `_`, and have only letters, digits and `_`). A newline at the end is refused too;
+- `SetVariable(name, value)` returns `true` when the variable was written. It returns `false` (logged once) when the name or the value is not allowed, that is when:
+  - the `name` does not match `^[A-Za-z_][A-Za-z0-9_]*$`. A name must start with a letter or `_`, and have only letters, digits and `_`. A newline at the end is refused too;
   - the `name` is a Lua keyword: `and break do else elseif end false for function if in local nil not or repeat return then true until while`;
   - the `name` is one the game writes itself: `Actor`, `ActorIndex`, `Alert`, `Conversant`, `ConversantIndex`, `Conversation`, `Converrsant` (the game's own spelling), `Currency`, `Day`, `PlayerAge`, `PlayerFirstName`, `PlayerGender`, `PlayerLastName`, `PoliceIdle`, `Price`, `SavedLevelName`, `Speaker`, `WakeUpReason`, or any name that starts with `DREAM_`;
   - the `value` is a string that contains a backslash or a control character (such as NUL, a new line, a carriage return or a tab). Double quotes are fine;
   - the `value` is not a number (NaN), is infinite, or is a double too large for a float;
   - the `value` is not a string, bool, int, float or double.
-- A bad variable name or value can make the whole save fail to load, so the framework refuses them. The game stores the variables in the save as Lua text, and the game cannot read a bad name or value back. <span class="tech">(The game saves dialogue variables in `Globals.dialogue` as Lua text.)</span>
-- Numbers are stored as floats, so whole numbers above 16,777,216 lose precision. That is 2^24.
-- Start your variable names with your mod's name, for example `mymod_visits`. That keeps them apart from the game's and from other mods'.
+- A bad variable name or value can make the whole save fail to load, so the framework refuses them. The game stores the variables in the save as Lua text, and it cannot read a bad name or value back. <span class="tech">(The game saves dialogue variables in `Globals.dialogue` as Lua text.)</span>
+- Numbers are stored as floats, so whole numbers above 16,777,216 (2^24) lose precision.
+- Start your variable names with your mod's name, for example `mymod_visits`. That keeps them apart from the game's variables and from other mods' variables.
 
 ### Starting and stopping
 
-- `Start(title, actor, conversant)` (experimental) starts a conversation and returns whether one is running afterwards. It returns `false` when a conversation is already running, `title` is empty, or the game is loading or saving. The game can refuse to start a conversation, for example when there is no dialogue screen, so check the result. <span class="tech">(It starts the conversation through `InteractableTalk.StartDialogue` when the conversant has that component, and through `DialogueManager.StartConversation` otherwise.)</span>
-- `Stop()` (experimental) ends every running conversation, and it is never refused. It works even while a save loads or saves. It may leave the person you spoke to in the middle of the conversation, because the game's cleanup runs only when the game's own close step happens. <span class="tech">(It calls the Dialogue System's `StopAllConversations`, also while `SaveGate.Busy`. The state that `InteractableTalk.CheckStartDialogueInterrupt` set when the talk started (`PlayerStats.Active`, the control locks, the dialogue registration) is cleared only when `DialogueController.OnDialogueClosed` runs.)</span>
+- `Start(title, actor, conversant)` (experimental) starts a conversation, and returns whether one is running afterwards. It returns `false` when a conversation is already running, `title` is empty, or the game is loading or saving. The game can refuse to start a conversation, for example when there is no dialogue screen, so check the result. <span class="tech">(It starts the conversation through `InteractableTalk.StartDialogue` when the conversant has that component, and through `DialogueManager.StartConversation` otherwise.)</span>
+- `Stop()` (experimental) ends every running conversation, and it is never refused. It works even while a save loads or saves. It may leave the person you spoke to in the middle of the conversation. The game's cleanup runs only when the game's own close step happens. <span class="tech">(It calls the Dialogue System's `StopAllConversations`, also while `SaveGate.Busy`. The state that `InteractableTalk.CheckStartDialogueInterrupt` set when the talk started (`PlayerStats.Active`, the control locks, the dialogue registration) is cleared only when `DialogueController.OnDialogueClosed` runs.)</span>
 - `Started(title)` and `Ended(title)` fire for every conversation, including ones the game starts itself. A message can reach the object twice in some setups. `CurrentTitle` is `""` whenever `IsActive` is `false`. <span class="tech">(They come from the game's `OnConversationStart` and `OnConversationEnd` messages.)</span>
 
 ### Changing before start
 
-- `Intercept(modId, handler)` runs before every conversation starts, whether the game or this API starts it. Your changes to the game's dialogue database are in place by the time the conversation begins. Handlers run in the order they were added, and adding the same handler for the same mod again does nothing. <span class="tech">(The handler runs in a prefix on `DialogueSystemController.StartConversation`.)</span>
+- `Intercept(modId, handler)` runs before every conversation starts, whether the game or this API starts it (see [interceptor](../glossary.md#interceptor)). Your changes to the game's dialogue database are in place by the time the conversation begins. Handlers run in the order they were added. Adding the same handler for the same mod again does nothing. <span class="tech">(The handler runs in a prefix on `DialogueSystemController.StartConversation`.)</span>
 - Setting `args.Title` sends the player to a different conversation. The new title is used only when `Exists(title)` is `true`. Otherwise the original title stays and the refusal is logged once. `Title` is last-writer-wins: the last handler to set it counts. It is ignored once the conversation is cancelled.
-- Setting `args.Cancel = true` stops the conversation, and nobody can undo it. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`, and setting it back to `false` has no effect.
+- Setting `args.Cancel = true` stops the conversation, and nobody can undo it. Any `Cancel` wins: once a handler sets it, the later handlers still run and see `Cancel` as `true`. Setting it back to `false` has no effect.
 - Experimental: cancelling a conversation can leave the game waiting for it. A cancelled start skips the game's `StartConversation`, so the code that asked for the conversation gets none. Cancel only where you know what started it. Known risks:
   - a behavior tree step that waits for the conversation to finish can stall. <span class="tech">(The stalling task is a BehaviorDesigner task with `waitForConversationCompletion`.)</span>
   - a cutscene starter that waits for a conversation can freeze;
@@ -199,8 +199,9 @@ In a conversation condition you would then write `Mod_mymod_HasKey("<taskId>")`.
 
 ### Lua functions
 
-- `RegisterFunction` adds a function the game's conversation scripts can call, and gives back its name. The Lua name is `Mod_<prefix>_<name>`. The `prefix` is your mod id with each character that is not an ASCII letter or digit replaced by `_`. When that replacement changes the id, the prefix also gets `_` and an 8-digit hex hash of the original id, so `a.b` and `a_b` never collide, and the name does not depend on which mod loads first. It returns `null` when the API is not available. <span class="tech">(The hash is FNV-1a.)</span>
-- `name` must be a valid Lua name, and the function's parameters must be `float`, `string` or `bool`. Lua numbers arrive as `float`.
+- `RegisterFunction` adds a function the game's conversation scripts can call, and gives back its name. The Lua name is `Mod_<prefix>_<name>`. The `prefix` is your [mod id](../glossary.md#mod-id) with each character that is not an ASCII letter or digit replaced by `_`. It returns `null` when the API is not available.
+- When that replacement changes the id, the prefix also gets `_` and an 8-digit hex hash of the original id. So `a.b` and `a_b` never collide, and the name does not depend on which mod loads first. <span class="tech">(The hash is FNV-1a.)</span>
+- `name` must be a valid Lua name. The function's parameters must be `float`, `string` or `bool`. Lua numbers arrive as `float`.
 - `target` is `null` for a static method, and an object of the method's class otherwise.
 - Registering a name again replaces the earlier function.
 - The framework adds six functions of its own, which are not in the `Mod_` namespace. It adds them when `Dialogue` is available, at start and after each scene load.
@@ -210,3 +211,9 @@ In a conversation condition you would then write `Mod_mymod_HasKey("<taskId>")`.
   - `Core_CrimeAgainst(npcId)` returns `Law.GetAgainst(npcId)`. `npcId` is a number.
   - `Core_ResponsePicked(key)` runs the `onPicked` of the answer line with that key. The framework's own answer lines call it, so your mod does not.
   - `Core_LineText(id)` returns the text of a line whose text a mod gave as a callback. The framework's own dialogue lines call it, so your mod does not.
+
+**Common problems**
+
+- `SetVariable` returns `false` and the log has one line about it: the name or the value is not allowed. Check it against the rules under Variables, above.
+- Your `args.Title` redirect is ignored and the original conversation runs: the new title does not exist in the game. `Exists(title)` must be `true`, and the refusal is logged once.
+- A variable you set is gone after the player loads a save: loading replaces the whole table of conversation variables. Set it again on `Events.Loaded`, as [Rules for all three APIs](rules-for-all-three-apis.md) describes.

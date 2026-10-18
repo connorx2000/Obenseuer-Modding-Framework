@@ -8,9 +8,20 @@ nav_order: 1
 
 # Contests
 
+[`Contests`](contests/reading-contests.md) lets your mod watch the game's drinking contests, sauna contests and rat fights, and change what a rat fight pays out. Use it when your mod reacts to a contest starting or ending.
+
 ## What it is
 
-The game has a few contests the player can take part in. In the drinking contest and the sauna contest, the player sits across from an NPC and tries to outlast them. In the rat fight arena, the player bets on one of the rats and watches them fight. This API lets your mod see which contest is running, who is in it, how much the opponent has left, and get told when one starts or finishes. It also lets your mod end the player's own contest as a loss, and change what a rat fight pays out. It cannot start a contest or score one.
+The game has a few contests the player can take part in. In the drinking contest and the sauna contest, the player sits across from an NPC and tries to outlast them. In the rat fight arena, the player bets on one of the rats and watches them fight.
+
+This API gives your mod these jobs:
+
+- See which contest is running, who is in it, and how much the opponent has left.
+- Get told when a contest starts or finishes.
+- End the player's own contest as a loss.
+- Change what a rat fight pays out, with a [payout factor](contests/rat-fight-payout-factors.md).
+
+It cannot start a contest or score one. See [What you can't do (yet)](contests/what-you-can-t-do-yet.md).
 
 ## When to use it
 
@@ -20,7 +31,7 @@ The game has a few contests the player can take part in. In the drinking contest
 
 ## Quick example
 
-This mod writes a log line when a contest starts and another when it ends. The end line says whether the player won.
+This mod writes a [log](../guides/getting-started/logging.md) line when a contest starts and another when it ends. The end line says whether the player won.
 
 ```csharp
 using ObenseuerCore;
@@ -41,4 +52,4 @@ public sealed class ContestWatch : FrameworkMod
 }
 ```
 
-`Started` and `Finished` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md) for more on events.
+`Started` and `Finished` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md).

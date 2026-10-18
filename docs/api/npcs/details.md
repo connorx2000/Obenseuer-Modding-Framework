@@ -7,13 +7,15 @@ nav_order: 4
 
 # Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
+The build this API targets and where its log goes. Also when it is safe to call it, what comes back, and what happens when the framework cannot change a game method.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
 
 Unlisted items are internal and may change.
 
 ## When you can call it
 
-- Call from the [main thread](../../glossary.md#main-thread), not a thread you started.
+- Call from the [main thread](../../glossary.md#main-thread) (your mod's normal code), not a thread you started.
 - It is safe to call at any time. Empty reads return `0`, `false`, `null` or an empty list.
 - Only `Animals.Damage` changes the game.
 - If a handler throws, the error is logged and the other handlers still run.
@@ -21,7 +23,7 @@ Unlisted items are internal and may change.
 
 ## What to check for and what comes back
 
-- `Npcs.IsAvailable` is also `false` if a feature group is off; reads still work.
+- `Npcs.IsAvailable` is also `false` if a [feature group](../../glossary.md#feature-group) is off. Reads still work.
 - `Relationships.GetDisposition` and `Relationships.Has` return `0f` and `false` for a null or empty id.
 - Apart from `Npcs.Find` and `Animals.Damage`, no argument can make a call throw.
 - A failed read returns the default and logs its first failure.

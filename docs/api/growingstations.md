@@ -7,12 +7,14 @@ nav_order: 5
 
 # Growing stations
 
+`GrowingStations` works on the game's plant-growing machines, one whole station at a time. Use it to list stations and their plants, or to pause or rot every plant in a station.
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-A growing station is a machine in the game that grows plants. It has several growing spots, and each spot holds one plant. This API lets your mod list the stations in the scene, see which spots hold a plant, and pause or rot all the plants in a station at once.
+A growing station is a machine in the game that grows plants. It has several growing spots, and each spot holds one plant. This API lets your mod list the stations in the [scene](../glossary.md#scene) and see which spots hold a plant. It can also pause or rot all the plants in a station at once.
 
 Looking at one plant's age, or harvesting it, is on other pages: [Plant actions](plantactions.md) and [Recipes, crafting and growing](recipes.md).
 
@@ -25,7 +27,7 @@ Looking at one plant's age, or harvesting it, is on other pages: [Plant actions]
 
 ## Quick example
 
-This mod writes every growing station in the scene to the log, with how many of its spots are taken. It runs when a scene finishes loading.
+This mod writes every growing station in the scene to the [log](../guides/getting-started/logging.md), with how many of its spots are taken. It runs each time a scene finishes loading.
 
 ```csharp
 using ObenseuerCore;
@@ -49,7 +51,7 @@ public sealed class GrowList : FrameworkMod
 
 ## Common tasks
 
-Pause every growing station, so no plant in the scene grows, and then let them grow again.
+Pause every growing station, so no plant in the scene grows. The second loop lets them grow again. The first argument, `Mod.Id`, is your [mod id](../glossary.md#mod-id).
 
 ```csharp
 foreach (GrowingStationInfo station in GrowingStations.All())
@@ -59,7 +61,7 @@ foreach (GrowingStationInfo station in GrowingStations.All())
     GrowingStations.SetPaused(Mod.Id, station.Id, false);
 ```
 
-Make the plants in one station rot.
+Make the plants in one station rot. This takes the first station in the list.
 
 ```csharp
 foreach (GrowingStationInfo station in GrowingStations.All())
@@ -69,7 +71,7 @@ foreach (GrowingStationInfo station in GrowingStations.All())
 }
 ```
 
-Harvest every plant that is picked up by hand.
+Harvest every plant that is picked up by hand, with [`PlantActions.HarvestSpot`](plantactions.md).
 
 ```csharp
 foreach (GrowingStationInfo station in GrowingStations.All())
@@ -81,7 +83,7 @@ foreach (GrowingStationInfo station in GrowingStations.All())
 }
 ```
 
-Look up one station by id. `Get` returns null when no station has that id.
+Look up one station by id. `Get` returns `null` when no station has that id.
 
 ```csharp
 GrowingStationInfo found = GrowingStations.Get("some-station-id");
@@ -94,12 +96,12 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 ### Stations and spots
 
-`GrowingStations` lists the stations as `GrowingStationInfo` snapshots, copies taken when you asked. The snapshot does not update by itself, so ask again for fresh values. A `modId` is your mod's id (see [Owner](../glossary.md#owner) in the glossary).
+`GrowingStations` lists the stations as `GrowingStationInfo` snapshots. A `modId` is your mod's id (see [Owner](../glossary.md#owner) in the glossary).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GrowingStations</code> <span>list and change growing stations</span></p>
 
-This is the class you start from. `All()` and `Get(id)` list and find stations, and `SetPaused` and `SetRotting` act on a whole station.
+This is the class you start from. `All()` and `Get(id)` list and find stations. `SetPaused` and `SetRotting` act on a whole station.
 
 <div class="api-pair" markdown="1">
 
@@ -115,7 +117,7 @@ public static class GrowingStations
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<GrowingStationInfo>` | Every growing station in the scene the player is in. |
+| `All()` | `List<GrowingStationInfo>` | Every growing station in the [scene](../glossary.md#scene) the player is in. |
 | `Get(id)` | `GrowingStationInfo` | The station with this id. `null` when none has it. |
 | `SetPaused(modId, id, paused)` | `bool` | Pauses or unpauses a whole station. |
 | `SetRotting(modId, id, rotting)` | `bool` | Starts or stops rot in a whole station. |
@@ -126,7 +128,7 @@ public static class GrowingStations
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GrowingStationInfo</code> <span>a snapshot of one station</span></p>
 
-`All()` and `Get(id)` give you this, one per station. It is a copy of the station when you asked, so ask again for a current `Paused`. <span class="tech">(It is filled from the game's `Growing` component on each station.)</span>
+`All()` and `Get(id)` give you one of these for each station. It is a copy of the station taken when you asked, and it does not update by itself. Ask again for a current `Paused`. <span class="tech">(It is filled from the game's `Growing` component on each station.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -144,7 +146,7 @@ public sealed class GrowingStationInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The station's id. The number the game saves it under, or a path through the scene. |
+| `Id` | `string` | The station's id: the number the game saves it under, or a path through the scene. |
 | `Position` | `Vector3` | Where the station is, in world coordinates. |
 | `SlotCount` | `int` | How many growing spots the station has in total. |
 | `Paused` | `bool` | `true` when the station is paused. |
@@ -183,15 +185,15 @@ public sealed class GrowingSlotInfo
 
 - `All()` lists every growing station in the scene the player is in. It gives an empty list when the scene has none. <span class="tech">(it searches the active scene with `FindObjectsByType` for `Growing` components. A station's id is its `GUID` or the GUID of the `SavableScript` on its object, or else a path counted from the scene root.)</span>
 - `Get(id)` gives one station, or `null` when no station has that id.
-- `Slots` only holds spots that have a plant. An empty spot is not listed, so use `SlotCount` for the total number of spots.
-- `PlantId` is the same id the plant pages use. You can pass it to the plant calls to read the plant's fruit or change the plant. See [Plant actions](plantactions.md) and [Recipes, crafting and growing](recipes.md). <span class="tech">(it is the id `Plants.All` reports for the same plant, so a grow plant can be read with `Plants.Fruits` and changed with `PlantActions`. It is the `GUID` of the plant's `grow` component.)</span>
+- `Slots` only holds spots that have a plant. Empty spots are not listed, so use `SlotCount` for the total number of spots.
+- `PlantId` is the same id the plant pages use. Pass it to the plant calls to read the plant's fruit or change the plant. See [Plant actions](plantactions.md) and [Recipes, crafting and growing](recipes.md). <span class="tech">(it is the id `Plants.All` reports for the same plant, so a grow plant can be read with `Plants.Fruits` and changed with `PlantActions`. It is the `GUID` of the plant's `grow` component.)</span>
 - `Collectible` is `true` for a plant that is picked up by hand. Such a plant does not grow and has no age. Harvest it with `PlantActions.HarvestSpot(modId, slot.SpotId)`. <span class="tech">(a plant with no `grow` component and with a `CollectibleItem`.)</span>
-- A plant that is neither growing nor picked up by hand has a `PlantId` of `null` and `Collectible` of `false`. The framework does not act on it. <span class="tech">(it has neither a `grow` component nor a `CollectibleItem`.)</span>
+- A plant that neither grows nor is picked up by hand has a `PlantId` of `null` and `Collectible` of `false`. The framework does not act on it. <span class="tech">(it has neither a `grow` component nor a `CollectibleItem`.)</span>
 - `SetPaused` pauses or unpauses the whole station, the same way the game does. Every growing plant in the station is paused. If the station has a sun modifier, its plants only grow during the day. It returns `true` when the station's paused state is now what you asked for. <span class="tech">(every grow plant gets `Paused` set, and `GrowOnlyDuringDay` when the station has the sun modifier.)</span>
 - `SetRotting` starts or stops rot in every growing plant in the station. It returns `true` when the station was found and the call was made. <span class="tech">(it sets `Rotting` on every grow plant in the station.)</span>
 - A station's pause and rot are saved with the game. A loaded save keeps what was set, so your mod does not need to set them again after a load. <span class="tech">(the game saves the station's `paused` flag, and each plant's `Paused` and `Rotting`.)</span>
-- Two mods can call the setters without clashing, and the last call wins. The station is paused or rotting as the most recent call left it. <span class="tech">(`modId` is checked with the same rule as the other calls that take one, and an invalid one throws an `ArgumentException`.)</span>
-- None of this needs the breeding changes. Breeding is on its own page, [Breeding](breeding.md). <span class="tech">(`Breeding.Bred` uses `Growing.PlantExternal` under its own feature group.)</span>
+- Two mods can call the setters without clashing. The last call wins: the station is paused or rotting as the most recent call left it. <span class="tech">(`modId` is checked with the same rule as the other calls that take one, and an invalid one throws an `ArgumentException`.)</span>
+- None of this needs the framework's breeding changes. Breeding has its own page, [Breeding](breeding.md). <span class="tech">(`Breeding.Bred` uses `Growing.PlantExternal` under its own feature group.)</span>
 
 #### Limits
 
@@ -202,11 +204,12 @@ public sealed class GrowingSlotInfo
 
 - You can't pause or rot one plant from here. The pause and rot here cover the whole station. For one plant, use `PlantActions.Pause` and `PlantActions.SetRotting`.
 - You can't read or change the station's recipes, its output storage or its growing panel here. They are on the [Recipes, crafting and growing](recipes.md) and [Crafting sources](craftingsources.md) pages.
-- Autofarms and breeders that are built on a growing station are listed here too, but their own features are elsewhere. Their replanting times and breeding events are in [Autofarms](autofarms.md) and [Breeding](breeding.md). An autofarm that is not a growing station plants on plain positions, not on growing spots, so its plants are not in `Slots`. Read them with `Plants.All`. <span class="tech">(an autofarm with no `Growing` component plants on plain transforms.)</span>
+- Autofarms and breeders that are built on a growing station are listed here too, but their own features are elsewhere. Their replanting times and breeding events are in [Autofarms](autofarms.md) and [Breeding](breeding.md).
+- An autofarm that is not a growing station plants on plain positions, not on growing spots, so its plants are not in `Slots`. Read them with [`Plants.All`](recipes/growing-plants.md). <span class="tech">(an autofarm with no `Growing` component plants on plain transforms.)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Log name: `obenseuer.moddingframework.growingstations`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -218,4 +221,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-This page changes none of the game's methods, so there is nothing to set up. It has no `IsAvailable` and no feature group that can be turned off. If the game fails while the framework reads, you get an empty list, `null` or `false`, and the first failure goes to the log.
+This page changes none of the game's methods, so there is nothing to set up. It has no `IsAvailable` and no [feature group](../glossary.md#feature-group) that can be turned off. If the game fails while the framework reads, you get an empty list, `null` or `false`, and the first failure goes to the log.

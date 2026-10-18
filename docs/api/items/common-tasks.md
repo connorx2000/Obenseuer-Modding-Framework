@@ -7,10 +7,12 @@ nav_order: 1
 
 # Common tasks
 
+These are short code recipes for common item lookups with [`Items`](lookup.md): by id, icon, category and quality tier.
+
 This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Each of these runs after a save has loaded, for example inside `Events.WhenReady(() => { ... })`.
+Run each one after a save has loaded, for example inside [`Events.WhenReady(() => { ... })`](../core-helpers/events-whenready.md).
 
 Get an item by its id. This returns `null` if no item has that id.
 
@@ -18,7 +20,7 @@ Get an item by its id. This returns `null` if no item has that id.
 ItemDef item = Items.Get(10001);
 ```
 
-Get the item's icon, as a Unity sprite. It is `null` when there is no such item or no sprite.
+Get the item's icon as a Unity sprite (an image prepared for the interface). It is `null` when there is no such item or no sprite.
 
 ```csharp
 Sprite icon = Items.Icon(10001);

@@ -8,9 +8,15 @@ nav_order: 5
 
 # Drones
 
+[`Drones`](drones/reading-and-controlling-drones.md) lets your mod read and steer the drones in the current [scene](../glossary.md#scene) (one loaded area of the game). Use it to start, stop or redirect a drone, or to react when one changes state or passes a waypoint.
+
 ## What it is
 
-Drones are machines in the game that follow a route. The route is a chain of air nodes, which are waypoints the drone moves toward one after another. This API lets your mod list the drones and air nodes in the scene you are in. It can switch a drone on or off, send it to a node, and change its top speed. It tells you when a drone changes state or passes a node.
+Drones are machines in the game that follow a route. The route is a chain of [air nodes](drones/air-nodes.md), which are waypoints the drone moves toward one after another. This API does these jobs:
+
+- List the drones and air nodes in the [scene](../glossary.md#scene) you are in.
+- Switch a drone on or off, send it to a node, and change its top speed.
+- Tell you when a drone changes state or [passes a node](drones/node-passes.md).
 
 ## When to use it
 
@@ -21,7 +27,7 @@ Drones are machines in the game that follow a route. The route is a chain of air
 
 ## Quick example
 
-This mod writes a log line whenever a drone is switched on or off, and another whenever a drone passes a node. When the game is ready, it also logs how many drones are in the scene.
+This mod writes a [log](../guides/getting-started/logging.md) line whenever a drone is switched on or off, and another whenever a drone passes a node. When the game is ready, it also logs how many drones are in the scene.
 
 ```csharp
 using ObenseuerCore;
@@ -39,4 +45,4 @@ public sealed class DroneWatch : FrameworkMod
 }
 ```
 
-`Changed` and `NodePassed` are events: the framework calls your code each time they happen. `DroneId` is null when the framework cannot tell which drone passed the node, which is why a real mod should check it before using it. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Changed` and `NodePassed` are events: the framework calls your code each time they happen. `DroneId` is null when the framework cannot tell which drone passed the node. A real mod should check it before using it. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until the game is ready before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

@@ -7,15 +7,17 @@ nav_order: 4
 
 # Smashed
 
-This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
+Some objects spawn an item when a hit uses up their health. The `Smashed` event tells your mod about the hit and what the object would drop. This page lists the event, its arguments and the rules behind them.
+
+This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what it is.
 {: .unity-types}
 
-Some objects spawn an item when a hit uses up their health. They are not breakables, so `Broken` never fires for them and `Smashed` never fires for a breakable. `Smashed` tells you about the hit and what the object would drop.
+These objects are not breakables, so [`Broken`](listing-and-breaking-objects.md) never fires for them and `Smashed` never fires for a breakable.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breakables</code> <span>smashable objects</span></p>
 
-Listen to `Smashed` to hear when a hit destroys an object that drops an item. The event only reports what happened, and you cannot change the outcome.
+Listen to `Smashed` to hear when a hit destroys an object that drops an item. The event only reports what happened. You cannot change the outcome.
 
 <div class="api-pair" markdown="1">
 
@@ -28,7 +30,7 @@ public static class Breakables
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Smashed` | `SmashedArgs` | A smashable object has just been destroyed by a hit. |
+| `Smashed` | `SmashedArgs` | A hit destroyed a smashable object. |
 
 </div>
 </div>
@@ -36,7 +38,7 @@ public static class Breakables
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SmashedArgs</code> <span>what Smashed tells you</span></p>
 
-`Smashed` hands you this. `SpawnItemId` is the item it drops, or `-1` when it drops none, and `IsAnimal` says whether it was an animal.
+`Smashed` hands you this. `SpawnItemId` is the item it drops, or `-1` when it drops none. `IsAnimal` says whether it was an animal.
 
 <div class="api-pair" markdown="1">
 
@@ -53,7 +55,7 @@ public sealed class SmashedArgs
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `string` | The object's id: its saved number, or a scene path when it has none. |
-| `Position` | `Vector3` | Where the object was, in world coordinates, just before it broke. |
+| `Position` | `Vector3` | Where the object was, in world coordinates, right before it broke. |
 | `IsAnimal` | `bool` | `true` when the object is an animal rather than a thing. |
 | `SpawnItemId` | `int` | The id of the item it drops. `-1` when it drops no item. |
 
@@ -63,12 +65,12 @@ public sealed class SmashedArgs
 ## Things to know
 
 - `Smashed` fires when a hit takes the object's health from above 0 to 0 or less. A hit the object does not accept does not fire it. <span class="tech">(The check is `CheckDamageType(type) && health - damage <= 0`, made before the game's `Damage` runs. An object's `allowedDamageTypes` decide which hits count.)</span>
-- An object that is not removed after it is smashed fires `Smashed` again on every later hit. The game keeps running its break code each time, and drops its item again each time. If your mod counts smashes, remember the `Id` of each one you have already seen. <span class="tech">(While `health` stays 0 or less, the game takes its break branch on every hit and re-spawns the loot.)</span>
-- An animal that dies also fires `Smashed`. The game kills an animal through the same code path, so you can tell it apart by `IsAnimal`. <span class="tech">(`Destroy()`, which `AnimalStats` calls when an animal dies, goes through `SpawnItemOnBreak.Damage`.)</span>
-- The object may already be gone when your handler runs, so read the values in `SmashedArgs` and not the object. The values were taken just before the break. <span class="tech">(The event runs as a Harmony postfix, after the game's break code, so the object may already be destroyed.)</span>
+- An object that is not removed after it is smashed fires `Smashed` again on every later hit. The game runs its break code each time, and drops its item again each time. If your mod counts smashes, remember the `Id` of each one you have already seen. <span class="tech">(While `health` stays 0 or less, the game takes its break branch on every hit and re-spawns the loot.)</span>
+- An animal that dies also fires `Smashed`. The game kills an animal through the same code path. Use `IsAnimal` to tell the two apart. <span class="tech">(`Destroy()`, which `AnimalStats` calls when an animal dies, goes through `SpawnItemOnBreak.Damage`.)</span>
+- The object may already be gone when your handler runs. Read the values in `SmashedArgs`, not the object. The values were taken right before the break. <span class="tech">(The event runs as a Harmony postfix, after the game's break code, so the object may already be destroyed.)</span>
 - `SpawnItemId` is `-1` when the object drops nothing. That includes an item with id 0. <span class="tech">(It is `itemToSpawn.Item.ID`, or -1 when `itemToSpawn` or its `Item` is null or the `ID` is 0.)</span>
 
 ## Limits
 
 - `Smashed` does not fire while a save is loading.
-- `Smashed` only tells you what happened, and you can't change it. You cannot cancel the break, change what drops, or change the crime record or a save through this event.
+- `Smashed` only tells you what happened. You can't change it: you cannot cancel the break, change what drops, or change the crime record or a save through this event.

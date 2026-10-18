@@ -7,10 +7,12 @@ nav_order: 10
 
 # Details
 
+This page gives the tested game build, the namespace, the thread rules and the return values of [`ModNpcs`](types-and-members.md), the [mod NPC](../../glossary.md#mod-npc) API. Read it when a call returns `0`, `null` or `false`.
+
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
 - Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-- Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.modnpcs.log`.
+- Namespace: `ObenseuerCore`. [Logs](../../guides/getting-started/logging.md) go to `BepInEx\logs\obenseuer.moddingframework.modnpcs.log`.
 
 ## When you can call it
 
@@ -18,12 +20,15 @@ Everything not listed in this reference is internal and may change without notic
 
 ## What to check for and what comes back
 
-- A call that can't do its job returns its plain "no" value and does not throw. `Spawn`, `SpawnSaved`, `SpawnWithLook` and `CharacterIdOf` return `0`, `SpawnExtra` and `ExtraObject` return `null`, and `Despawn`, `Clear` and `DespawnExtra` return `false`.
-- The only errors are `ArgumentException` for a bad `modId`, `npcId`, `extraId`, `name`, `scene`, `position` or `yaw`.
+- A call that can't do its job returns its plain "no" value and does not throw:
+  - `Spawn`, `SpawnSaved`, `SpawnWithLook` and `CharacterIdOf` return `0`.
+  - `SpawnExtra` and `ExtraObject` return `null`.
+  - `Despawn`, `Clear` and `DespawnExtra` return `false`.
+- The only errors are `ArgumentException` for a bad `modId`, `npcId`, `extraId`, `name`, `scene`, `position` or `yaw`. The rules for the ids, the name, the position and the yaw are under Limits on [Types and members](types-and-members.md#limits).
 - If the game itself fails while the framework works, you get the same plain "no" value. The first failure of each member goes to the log as an error. Nothing half-built is left behind.
 
 ## If something fails to set up
 
 - This API does not change any game method when it starts.
-- Its feature group, the name you will see in the log, is `obenseuer.moddingframework.modnpcs`. A feature group is the named set of the framework's changes for one feature.
+- Its [feature group](../../glossary.md#feature-group), the name you will see in the log, is `obenseuer.moddingframework.modnpcs`. A feature group is the named set of the framework's changes for one feature.
 - If it has been switched off, `ModNpcs.IsAvailable` is `false` and `Spawn` returns `0`.

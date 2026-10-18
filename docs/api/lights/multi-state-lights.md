@@ -7,12 +7,14 @@ nav_order: 3
 
 # Multi-state lights
 
-A multi-state light has a list of settings, and exactly one of them is lit, or none. The number of the lit setting is the light's state, counted from `0`, and `-1` means all settings are off. `Lights.AllMultiState()` lists these fixtures, and each one is a `MultiStateLightInfo`.
+A multi-state light has a list of settings, and exactly one of them is lit, or none. This page lists the `Lights` calls and event for these lights, with the rules behind them.
+
+The number of the lit setting is the light's state, counted from `0`. `-1` means all settings are off. `Lights.AllMultiState()` lists these fixtures, and each one is a `MultiStateLightInfo`.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Lights</code> <span>multi-state light calls and event</span></p>
 
-Call `AllMultiState()` to find these lights, then `GetState`, `SetState` and `StateCount` with the `Id` you got. `StateChanged` fires when the lit setting changes.
+Call `AllMultiState()` to find these lights. Then call `GetState`, `SetState` and `StateCount` with the `Id` you got. `StateChanged` fires when the lit setting changes.
 
 <div class="api-pair" markdown="1">
 
@@ -30,13 +32,13 @@ public static class Lights
 | Method | Returns | What it does |
 |---|---|---|
 | `AllMultiState()` | `List<MultiStateLightInfo>` | Every multi-state light in the active scene. |
-| `StateCount(id)` | `int` | How many settings. `-1` when the id is not a multi-state light. |
-| `GetState(id)` | `int` | The lit setting. `-1` when all off, and for an unknown id. |
+| `StateCount(id)` | `int` | How many settings the light has. `-1` when the id is not a multi-state light. |
+| `GetState(id)` | `int` | The lit setting. `-1` when all are off, and for an unknown id. |
 | `SetState(id, state)` | `bool` | Lights one setting. `true` when it is now lit. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `StateChanged` | `LightStateArgs`: the light's id and the lit setting after the change. | The lit setting was just changed. |
+| `StateChanged` | `LightStateArgs`: the light's id and the lit setting after the change. | Right after the lit setting changes. |
 
 </div>
 </div>
@@ -59,7 +61,7 @@ public sealed class MultiStateLightInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Its save id, or when it has none, a text path of where it sits in the scene. |
+| `Id` | `string` | Its save id. When it has none, a text path to where it sits in the scene. |
 | `StateCount` | `int` | How many settings it has. |
 | `State` | `int` | The lit setting, counted from 0. `-1` means all off. |
 
@@ -91,9 +93,9 @@ public sealed class LightStateArgs
 
 ## Things to know
 
-- The multi-state calls only see multi-state lights, and the simple-light calls only see simple lights. Use the `Id` from `AllMultiState()` with `StateCount`, `GetState` and `SetState`. <span class="tech">(The id is the multi-state component's own `GUID` when it has one, or its scene path, so it does not collide with the id of a `LightTurnOffOn` on another fixture.)</span>
+- The multi-state calls only see multi-state lights, and the simple-light calls only see [simple lights](simple-lights.md). Use the `Id` from `AllMultiState()` with `StateCount`, `GetState` and `SetState`. <span class="tech">(The id is the multi-state component's own `GUID` when it has one, or its scene path, so it does not collide with the id of a `LightTurnOffOn` on another fixture.)</span>
 - `StateCount(id)` and `GetState(id)` read the light. `StateCount` is the number of settings. `GetState` is the lit setting, and it keeps its value while the whole fixture is switched off. <span class="tech">(They read `lightStates.Count` and `currentState`.)</span>
-- `AllMultiState()` lists the multi-state lights in the scene you are in. It works the same way as `All()`.
+- `AllMultiState()` lists the multi-state lights in the [scene](../../glossary.md#scene) you are in. It works the same way as `All()`.
 - `SetState(id, state)` lights one setting and turns the others off. The materials, the light objects and the signals run as they do in the game. `state` must be `-1` (all settings off) or from `0` to `StateCount(id) - 1`. <span class="tech">(It calls the game's `SetState(int)`, which turns every state off and then turns on `lightStates[state]`.)</span>
 - `SetState` does not change whether the fixture is switched on. It only picks the lit setting.
 - `SetState` returns `true` when `GetState(id)` now equals `state`.
@@ -105,3 +107,9 @@ public sealed class LightStateArgs
 - `SetState` refuses a light that is switched off. It returns `false` and changes nothing. The framework has no call that switches the whole fixture on, so the light has to be switched on in the game first. <span class="tech">(It requires the fixture's `on` flag. The framework has no call for the game's `Toggle` or the `on` flag. After a load, the game lights a setting only when `on` is set, so a setting is only ever lit on a lit fixture.)</span>
 - `Get`, `All` and `SetOn` do not see multi-state lights.
 - Loading a save does not fire `StateChanged`. The game lights the saved setting directly, not through its `SetState`.
+
+**Common problems**
+
+- `SetState` returns `false` and nothing changes: the number is outside `-1` to `StateCount(id) - 1`, the light is switched off, or a save is loading or being written. A switched-off light has to be switched on in the game first.
+- `Get`, `All` or `SetOn` do not find a multi-state light: they only see simple lights. Use `AllMultiState()`, `GetState` and `SetState` with the `Id` from `AllMultiState()`.
+- `StateChanged` does not fire: the setting did not really change, or the change came from loading a save. It also stops when the multi-state feature group is turned off. See [Details](details.md#if-something-fails-to-set-up).

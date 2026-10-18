@@ -8,24 +8,28 @@ nav_order: 8
 
 # NPC control
 
+[`NpcControl`](npc-control/taking-and-releasing-an-npc.md) lets your mod take an [NPC](npcs.md) for a while and switch off parts of what it does by itself. Use it when an NPC must stand still, stay quiet or stay visible while your mod runs a scene.
+
 Status: experimental.
 
 ## What it is
 
-Normally an NPC (a character in the game) looks around, talks, comments on things, walks about and fades out when you are far away, all by itself. This API lets your mod take an NPC for a while and switch some of that off, for example so the NPC stands still and ignores the player while your mod runs a scene. Taking an NPC means your mod holds a claim on it. Each part you switch off is a flag, and `Release` puts everything back.
+An NPC (a character in the game) normally runs by itself. It looks around, talks, comments on things and walks about. It also fades out when you are far away.
+
+This API lets your mod take an NPC for a while and switch some of that off. For example, the NPC can stand still and ignore the player while your mod runs a scene. Taking an NPC means your mod holds a [claim](../glossary.md#claim) on it. Each part you switch off is a flag. `Release` puts everything back.
 
 NPC ids on this page are the ones from the [NPCs](npcs.md) page (`NpcInfo.Id`, `Npcs.All()`). For an NPC your own mod added, the id is `ModNpcs.CharacterIdOf(modId, npcId)` (see [Mod NPCs](modnpcs.md)).
 
 ## When to use it
 
 - Make an NPC stand still, stop seeing the player and stop talking while your mod plays a scene.
-- Stop the game's own comments from an NPC so they do not talk over yours.
+- Stop the game's own comments from an NPC, so they do not talk over yours.
 - Keep an NPC from fading out of the world when the player walks away.
 - Hand the NPC back to the game afterwards.
 
 ## Quick example
 
-This mod waits for a save to load. Then it takes the first living NPC it can in the scene, stops that NPC from seeing the player or talking for 10 seconds, and gives it back.
+This mod waits for a save to load. It then takes the first living NPC it can in the [scene](../glossary.md#scene) (one loaded area of the game). It stops that NPC from seeing the player or talking for 10 seconds, then gives it back.
 
 ```csharp
 using ObenseuerCore;
@@ -66,4 +70,4 @@ public sealed class NpcHold : FrameworkMod
 }
 ```
 
-`Take` returns `false` for an NPC that is not in the loaded scene, so the example tries each NPC until one works. `Mod.Id` is your mod's own id; it is how the framework knows the claim is yours. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+`Take` returns `false` for an NPC that is not in the loaded scene, so the example tries each NPC until one works. `Mod.Id` is your mod's own [mod id](../glossary.md#mod-id). It is how the framework knows the [claim](../glossary.md#claim) is yours. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

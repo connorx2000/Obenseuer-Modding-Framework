@@ -7,12 +7,14 @@ nav_order: 2
 
 # Animals
 
+`Animals` lists the animals in the [scene](../glossary.md#scene), reads their state and hurts them. Use it to find an animal, for example before you give it an order with [Animal actions](animal-actions.md).
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-This API finds, reads and hurts cats, chicks, chickens, pigs and rats. The osrat is [on the weapons page](weapons/osrat-signal-detector.md#osrat-signal-detector), not an animal.
+This API finds, reads and hurts cats, chicks, chickens, pigs and rats. The osrat is not an animal here. It is [on the weapons page](weapons/osrat-signal-detector.md#osrat-signal-detector).
 
 ## Reference
 
@@ -21,7 +23,7 @@ Animal spawners are on [Spawners](spawners.md).
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Animals</code> <span>finds and hurts animals</span></p>
 
-Use `All` to list the animals in the scene, `Count` for the number the game counts as alive, and `Damage` to hurt one by its `Id`.
+Use `All` to list the animals in the [scene](../glossary.md#scene). `Count` gives the number the game counts as alive, and `Damage` hurts one by its `Id`.
 
 <div class="api-pair" markdown="1">
 
@@ -37,7 +39,7 @@ public static class Animals
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<AnimalInfo>` | Lists the animals in the scene, leaving out destroyed ones. |
-| `Damage(animalId, amount)` | `bool` | Hurts the animal. It returns `true` when the hit was made. |
+| `Damage(animalId, amount)` | `bool` | Hurts the animal. `true` when the hit was made. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -49,7 +51,7 @@ public static class Animals
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>AnimalInfo</code> <span>one animal snapshot</span></p>
 
-`All` gives you one of these for each animal. It is a snapshot, so ask again for fresh values, and `Id` is only valid for this session.
+`All` gives you one of these for each animal. It is a snapshot, so ask again for fresh values. `Id` is valid only for this session.
 
 <div class="api-pair" markdown="1">
 
@@ -74,19 +76,19 @@ public sealed class AnimalInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Kind` | `AnimalKind` | The animal's kind. It is `Other` when the animal is not one of the named kinds. |
+| `Kind` | `AnimalKind` | The animal's kind. `Other` when the animal is not one of the named kinds. |
 | `Name` | `string` | The name the animal has in the scene. |
 | `Position` | `Vector3` | The position when `All()` ran. |
-| `Tame` | `bool` | It is `true` when the animal is tame. |
-| `Following` | `bool` | It is `true` when the animal is following you. |
-| `Running` | `bool` | It is `true` when the animal is running. |
-| `Id` | `int` | It is only valid for this session, so look the animal up again after a load. |
+| `Tame` | `bool` | `true` when the animal is tame. |
+| `Following` | `bool` | `true` when the animal is following you. |
+| `Running` | `bool` | `true` when the animal is running. |
+| `Id` | `int` | Valid only for this session, so look the animal up again after a load. |
 | `Health` | `float` | The current health, or `0` when there is no data. |
 | `MaxHealth` | `int` | The maximum health, or `0` when there is no data. |
 | `Hunger` | `float` | The current hunger, or `0` when there is no data. |
 | `MaxHunger` | `int` | The maximum hunger, or `0` when there is no data. |
 | `Age` | `float` | The current age, or `0` when there is no data. |
-| `FullGrownAge` | `int` | The age at which the animal is fully grown. It is `0` until the game sets it. |
+| `FullGrownAge` | `int` | The age at which the animal is fully grown. `0` until the game sets it. |
 
 </div>
 </div>
@@ -122,11 +124,11 @@ public enum AnimalKind
 </div>
 </div>
 
-`Animals.Damage` returns `false` during a save load, before the game is ready, for an unknown `Id`, when the animal is switched off, has no stats, or is already dead.
+`Animals.Damage` returns `false` in these cases: during a save load, before the game is ready, or for an unknown `Id`. It also returns `false` when the animal is switched off, has no stats, or is already dead.
 
 ### Putting it together
 
-Counts followers and hits each wild rat once.
+This mod counts the animals that follow the player and hits each wild rat once.
 
 <div class="api-example" markdown="1">
 
@@ -173,9 +175,14 @@ public sealed class AnimalCheck : FrameworkMod
 - `Damage` throws `ArgumentException` if `amount` is `0`, negative or not a real number.
 - Animation events, attack triggers, food detectors and cat ears are not exposed to mods.
 
+**Common problems**
+
+- `Damage` throws `ArgumentException`: `amount` is `0`, negative or not a real number. Pass a real number above `0`.
+- `Damage` returns `false` for an animal you found earlier: its `Id` is valid only for this session. Look the animal up again with `All()` after a load. The other cases that return `false` are listed above Putting it together.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). [Logs](../guides/getting-started/logging.md) go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
 
 ### When you can call it
 

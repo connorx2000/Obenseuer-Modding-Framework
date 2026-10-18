@@ -7,9 +7,11 @@ nav_order: 4
 
 # Breeding
 
+`Breeding` lists the animal breeders in the scene you are in. It also tells your mod when a breeder makes an offspring and when a rat trap goes off.
+
 ## What it is
 
-Some places in the game breed animals for you: a pen holds animals, and every game hour the game may add a young one. These places are called breeders. This API lists the breeders in the scene you are in, tells you when a breeder makes an offspring, and tells you when a rat trap goes off. It only reads and listens. It cannot start a breed or set off a trap.
+Some places in the game breed animals for you. A pen holds animals, and every game hour the game may add a young one. These places are called breeders. This API lists the breeders in the [scene](../glossary.md#scene) you are in. It tells you when a breeder makes an offspring, and when a rat trap goes off. It only reads and listens. It cannot start a breed or set off a trap.
 
 The animals themselves are on the [Animals page](animals.md) (`Animals.All`). The growing plants in a pen are on the [Recipes page](recipes.md) (`Plants.All`).
 
@@ -22,7 +24,7 @@ The animals themselves are on the [Animals page](animals.md) (`Animals.All`). Th
 
 ## Quick example
 
-This mod writes a log line each time a breeder makes an offspring and each time a rat trap goes off.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a breeder makes an offspring, and each time a rat trap goes off.
 
 ```csharp
 using ObenseuerCore;
@@ -44,7 +46,7 @@ public sealed class BreedWatch : FrameworkMod
 }
 ```
 
-`Bred` and `TrapSprung` are events: the framework calls your code each time the thing happens. `Items.Get` looks up the offspring's item by the id the event gives you.
+`Bred` and `TrapSprung` are events: the framework calls your code each time the thing happens. See [Using events](../guides/getting-started/using-events.md) for more on events. [`Items.Get`](items/lookup.md) looks up the offspring's item by the id the event gives you. It returns an [`ItemDef`](items/itemdef.md).
 
 ## Common tasks
 
@@ -61,7 +63,7 @@ Check that the breeding events work before you rely on them.
 if (!Breeding.IsAvailable) Log.Warn("Breeding events are off in this game version.");
 ```
 
-Ignore breeds that happen while a save is loading. These are the catch-up breeds, and each one has `OfflineCatchUp` set.
+Ignore breeds that happen while a save is loading. These are the catch-up breeds, and each one has `OfflineCatchUp` set. [`SaveData.Busy`](../api-core/savedata.md) is `true` while a save is loading or being written.
 
 ```csharp
 Breeding.Bred += args =>
@@ -77,12 +79,12 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 ### Breeders
 
-`Breeding.All()` gives you one `BreederInfo` for each breeder in the scene you are standing in. A `BreederInfo` is a snapshot taken when you asked, so ask again for fresh numbers.
+`Breeding.All()` gives you one `BreederInfo` for each breeder in the [scene](../glossary.md#scene) you are standing in. A `BreederInfo` is a snapshot taken when you asked, so ask again for fresh numbers.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breeding</code> <span>list the breeders and report whether breeding events work</span></p>
 
-Use `All` to list the breeders in the scene and count their animals. Check `IsAvailable` before you rely on the `Bred` event.
+`All` lists the breeders in the scene and counts their animals. Check `IsAvailable` before you rely on the `Bred` event.
 
 <div class="api-pair" markdown="1">
 
@@ -100,7 +102,7 @@ public static class Breeding
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `true` when the Bred event can fire (see Details). |
+| `IsAvailable` | `bool` | `true` when the `Bred` event can fire (see Details, below). |
 
 </div>
 </div>
@@ -108,7 +110,7 @@ public static class Breeding
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BreederInfo</code> <span>a snapshot of one breeder</span></p>
 
-`All` gives you one of these for each breeder. Its `Id` matches the `BreederId` of a `Bred` event, and `Count` is the number of animals it holds.
+`All` gives you one of these for each breeder. Its `Id` matches the `BreederId` of a `Bred` event. `Count` is the number of animals it holds.
 
 <div class="api-pair" markdown="1">
 
@@ -122,14 +124,14 @@ public sealed class BreederInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | A name for this breeder that stays the same between sessions in most cases. |
+| `Id` | `string` | A name for this breeder. In most cases it stays the same between sessions. |
 | `Count` | `int` | How many animals the breeder holds right now. |
 
 </div>
 </div>
 
-- `All()` lists the breeders in the scene you are in, not the ones in the next level the game loads ahead of time. With no save loaded, or on the main menu, you get an empty list. <span class="tech">(It lists every active `AnimalBreeder` in the active scene.)</span>
-- `Count` is the number of animals the breeder holds. An animal in a pen is a plant to the game, one for each growing spot, so a spot with nothing in it is not counted. <span class="tech">(It counts the `GrowingSpot` slots of the breeder's `Growing` component that have a `Plant`.)</span>
+- `All()` lists the breeders in the scene you are in. It does not list the ones in the next level the game loads ahead of time. With no save loaded, or on the main menu, you get an empty list. <span class="tech">(It lists every active `AnimalBreeder` in the active scene.)</span>
+- `Count` is the number of animals the breeder holds. To the game, an animal in a pen is a plant, one for each growing spot. A spot with nothing in it is not counted. <span class="tech">(It counts the `GrowingSpot` slots of the breeder's `Growing` component that have a `Plant`.)</span>
 - `Id` is the breeder's save id, or a path through the scene when it has none. Use it to match a `Bred` event to a breeder. Do not save a path-style id for later, because it changes when the scene is edited. <span class="tech">(The id is the object's `GUID` field when it is set. Otherwise it is the scene name plus the child path.)</span>
 
 ### Offspring: the Bred event
@@ -137,7 +139,7 @@ public sealed class BreederInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Breeding</code> <span>the Bred event</span></p>
 
-Subscribe with `+=` to hear each time a breeder makes an animal, including the catch-up breeds while a save loads. Each call gets a `BredArgs`.
+Subscribe with `+=` to hear each time a breeder makes an animal. That includes the catch-up breeds while a save loads. Each call gets a `BredArgs`.
 
 <div class="api-pair" markdown="1">
 
@@ -150,7 +152,7 @@ public static class Breeding
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Bred` | `BredArgs` | A breeder has just made an offspring. |
+| `Bred` | `BredArgs` | A breeder made an offspring. |
 
 </div>
 </div>
@@ -174,13 +176,13 @@ public sealed class BredArgs
 | Property | Type | What it means |
 |---|---|---|
 | `BreederId` | `string` | The same id as `BreederInfo.Id`. |
-| `SpeciesId` | `int` | The item id of the new animal. Use it with `Items.Get`. |
+| `SpeciesId` | `int` | The item id of the new animal. Use it with [`Items.Get`](items/lookup.md). |
 | `OfflineCatchUp` | `bool` | `true` for a catch-up breed while a save loads, `false` for a live one. |
 
 </div>
 </div>
 
-- `Bred` fires once for each animal a breeder makes. It only fires when the animal was really placed in an empty spot, so a breed that finds no room does not fire it. <span class="tech">(It fires after `Growing.PlantExternal` places the plant while `AnimalBreeder.Breed` is running.)</span>
+- `Bred` fires once for each animal a breeder makes. It only fires when the animal was really placed in an empty spot. A breed that finds no room does not fire it. <span class="tech">(It fires after `Growing.PlantExternal` places the plant while `AnimalBreeder.Breed` is running.)</span>
 - `Bred` also fires while a save is loading. The game works out the hours you were away and breeds once for each of them. A load can raise several `Bred` events at once, and each has `OfflineCatchUp` set to `true`. A breed in the running game has it set to `false`. <span class="tech">(`LoadDelay` calls `Breed(hours * 3600)` for each missed hour. The live hourly check calls `Breed(1)`. `OfflineCatchUp` is true when the age is above 1 second.)</span>
 - `SpeciesId` is the animal that was made, not something the breeder owns. A breeder has no list of species. It takes the animals inside it, finds a recipe for them, and plants the recipe's result. That result is what `SpeciesId` names. <span class="tech">(`AnimalBreeder.Breed` reads each animal's `breedItem`, looks up a recipe with `GetRecipesForItem`, and plants the output item.)</span>
 
@@ -202,7 +204,7 @@ public static class Breeding
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `TrapSprung` | `TrapSprungArgs` | A rat trap has just gone off. |
+| `TrapSprung` | `TrapSprungArgs` | A rat trap went off. |
 
 </div>
 </div>
@@ -210,7 +212,7 @@ public static class Breeding
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrapSprungArgs</code> <span>what happened</span></p>
 
-`TrapSprung` hands you this. `Catch` says what the trap holds now, and `TrapId` says which trap it was.
+`TrapSprung` hands you this. `Catch` says what the trap holds now. `TrapId` says which trap it was.
 
 <div class="api-pair" markdown="1">
 
@@ -257,12 +259,12 @@ public enum TrapCatch
 
 - `TrapSprung` fires once, when a rat steps in and the trap changes from set to sprung. A trap that has already gone off does not fire it again. <span class="tech">(It fires after `RatTrap.OnTriggerEnter` when `triggered` went from false to true.)</span>
 - `Catch` is what the trap shows after it went off. A rat can also get away. The trap still goes off, so you get `Empty`. <span class="tech">(The game rolls `Random.Range(0, 100) <= 10` for the escape. `Catch` is read from the trap's `state` after the call.)</span>
-- `TrapSprung` does not depend on `Bred`. A missing breeding change never affects `TrapSprung`, and a missing trap change never affects `Bred` or `All()`.
+- `TrapSprung` does not depend on `Bred`. A missing breeding change never affects `TrapSprung`. A missing trap change never affects `Bred` or `All()`.
 
 ### What you can't do (yet)
 
-- You can't read fish catches. The game has no catch method and no catch event for fish. The fish spawner only refreshes its count on a spawn tick, so a change in it does not tell you that a fish was caught, and there is no safe signal to listen for. <span class="tech">(`Fish` and `Fishspawner` have no catch method. `Fishspawner.CurrentFishes` changes only on a spawn tick.)</span>
-- You can't read a breeder's food or growth. A breeder has no food of its own. Each animal is fed on its own, and its growth is on the plant, which you can read through `Plants.All` on the [Recipes page](recipes.md). <span class="tech">(Feeding goes through `AnimalFoodDetector` and `Animal.GetFood`.)</span>
+- You can't read fish catches. The game has no catch method and no catch event for fish. The fish spawner only refreshes its count on a spawn tick. A change in it does not tell you that a fish was caught, and there is no safe signal to listen for. <span class="tech">(`Fish` and `Fishspawner` have no catch method. `Fishspawner.CurrentFishes` changes only on a spawn tick.)</span>
+- You can't read a breeder's food or growth. A breeder has no food of its own. Each animal is fed on its own. Its growth is on the plant, which you can read through [`Plants.All`](recipes/growing-plants.md) on the [Recipes page](recipes.md). <span class="tech">(Feeding goes through `AnimalFoodDetector` and `Animal.GetFood`.)</span>
 - You can't start a breed or set off a trap. Both are driven by the game: the breed by the time of day, and the trap by a rat walking into it. Neither has a safe call for a mod to use. <span class="tech">(`AnimalBreeder.Breed` runs from the time-of-day tick, and `RatTrap.OnTriggerEnter` is a physics callback.)</span>
 
 ## Details
@@ -274,10 +276,16 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when a breed or a trap happens. If a game update breaks one of them, the framework turns off the feature group that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. A feature group is the name for one such set of changes. This page has three: `obenseuer.moddingframework.breeding` (the breeding step), `obenseuer.moddingframework.breeding.planting` (the placing of the offspring) and `obenseuer.moddingframework.breeding.trap` (the rat trap). These are the names you will see in the log.
+The framework changes some of the game's methods when it starts, so it can tell your mod when a breed or a trap happens. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. A feature group is the name for one such set of changes. This page has three: `obenseuer.moddingframework.breeding` (the breeding step), `obenseuer.moddingframework.breeding.planting` (the placing of the offspring) and `obenseuer.moddingframework.breeding.trap` (the rat trap). These are the names you will see in the log.
 
-- A missing breeding or planting change stops `Bred`, and a missing trap change stops `TrapSprung`. Each feature group is turned off on its own and logs its own warning. `All()` keeps working in every case. <span class="tech">(The patched methods are `AnimalBreeder.Breed` (prefix and finalizer), `Growing.PlantExternal` (postfix) and `RatTrap.OnTriggerEnter` (prefix and postfix). If installing them throws an error, such as a method name typo, all three groups are turned off.)</span>
+- A missing breeding or planting change stops `Bred`. A missing trap change stops `TrapSprung`. Each feature group is turned off on its own and logs its own warning. `All()` keeps working in every case. <span class="tech">(The patched methods are `AnimalBreeder.Breed` (prefix and finalizer), `Growing.PlantExternal` (postfix) and `RatTrap.OnTriggerEnter` (prefix and postfix). If installing them throws an error, such as a method name typo, all three groups are turned off.)</span>
 - `Breeding.IsAvailable` tells you whether `Bred` works. It is `true` when the breeding and planting changes both worked. It does not look at the trap change, so it stays `true` when only `TrapSprung` is off.
+
+**Common problems**
+
+- `Bred` never fires and `IsAvailable` is `false`: the breeding or planting change could not be set up. Look for the warning in `BepInEx\logs\obenseuer.moddingframework.breeding.log`. `All()` keeps working.
+- `TrapSprung` never fires while `IsAvailable` is still `true`: the trap change could not be set up. `IsAvailable` does not look at the trap change. Look for the warning in the same log file.
+- Several `Bred` events arrive at once right after a save loads: these are the catch-up breeds. Each has `OfflineCatchUp` set to `true`, so your handler can skip them.
 
 ### When you can call it
 
@@ -287,4 +295,4 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### Save loads
 
-The framework does not hold back these events while a save loads. A handler that should ignore events raised while a save loads can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+The framework does not hold back these events while a save loads. A handler that should ignore events raised while a save loads can check [`SaveData.Busy`](../api-core/savedata.md). It is `true` while a save is loading or being written.

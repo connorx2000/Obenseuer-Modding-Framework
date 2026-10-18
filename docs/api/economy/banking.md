@@ -7,7 +7,7 @@ nav_order: 5
 
 # Banking
 
-`Banking` works with the bank accounts the player has at the game's banks. You can read accounts, open one, deposit and withdraw, take and repay loans, and exchange between OC and RM. Each bank account is a `BankAccount`, a snapshot taken when you asked.
+`Banking` works with the player's accounts at the game's banks. It reads and opens accounts, deposits and withdraws, takes and repays loans, and exchanges between [OC](../../glossary.md#oc) (the everyday coins) and [RM](../../glossary.md#rm) (Real Money). Each bank account is a `BankAccount`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Banking</code> <span>the bank accounts at the bank you are standing at</span></p>
@@ -37,14 +37,14 @@ public static class Banking
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<BankAccount>` | Every bank in the scene you are in. |
-| `Get(bankId)` | `BankAccount` | One bank's account. |
+| `Get(bankId)` | `BankAccount` | The account at one bank. |
 | `OpenAccount(bankId)` | `bool` | Opens an account. `true` when it worked. |
 | `DepositWithdraw(bankId, oc, rm)` | `bool` | Deposits money. A negative number withdraws. |
 | `TakeLoan(bankId, currency, amount)` | `bool` | Takes a loan. |
 | `RepayLoan(bankId, amount)` | `bool` | Repays a loan. |
 | `ExchangeQuote(bankId, amount, toRm)` | `float` | The game's rate for an amount. `-1` when refused. |
 | `ExchangeRate(bankId, toRm)` | `float` | The quote for one unit. |
-| `Exchange(bankId, amount, toRm)` | `bool` | Exchanges money. `toRm` true changes OC to RM. Otherwise it changes RM to OC. |
+| `Exchange(bankId, amount, toRm)` | `bool` | Exchanges money. With `toRm` true it changes OC to RM, otherwise RM to OC. |
 
 </div>
 </div>
@@ -75,7 +75,7 @@ public sealed class BankAccount
 
 | Property | Type | What it means |
 |---|---|---|
-| `BankId` | `string` | Names the bank. Use it with `Get`, `OpenAccount` and the other calls. |
+| `BankId` | `string` | Names the bank. Pass it to `Get`, `OpenAccount` and the other calls. |
 | `BankName` | `string` | The bank's name. |
 | `Exists` | `bool` | `true` when the player has an account here. |
 | `Frozen` | `bool` | `true` when the account is frozen. |
@@ -83,7 +83,7 @@ public sealed class BankAccount
 | `Rm` | `float` | The RM in the account. |
 | `DebtOc` | `int` | The OC loan still owed. |
 | `DebtRm` | `float` | The RM loan still owed. |
-| `LoanCurrency` | `MoneyCurrency` | The money the loan is in. |
+| `LoanCurrency` | `MoneyCurrency` | The currency the loan is in. |
 | `MaxLoanOc` | `int` | The most OC the bank will lend. `0` when there is no account. |
 | `MaxLoanRm` | `float` | The most RM the bank will lend. |
 
@@ -92,15 +92,15 @@ public sealed class BankAccount
 
 ### Things to know
 
-- `bankId` is the `GUID` of the bank object in the scene.
-- `Oc` and `Rm` show what is in the account, even if the account is frozen. The game reports a frozen balance as zero, so check `Frozen` to know which case you are in.
-- Pass a negative `oc` or `rm` to `DepositWithdraw` to withdraw. A deposit larger than the wallet is cut down by the game.
+- `bankId` is the [`GUID`](../../glossary.md#guid) of the bank object in the scene.
+- `Oc` and `Rm` show what is in the account, even when the account is frozen. The game reports a frozen balance as zero, so check `Frozen` to know which case you are in.
+- Pass a negative `oc` or `rm` to `DepositWithdraw` to withdraw. The game cuts down a deposit that is larger than the wallet.
 - `TakeLoan` needs an open, unfrozen account. Open the account first with `OpenAccount`. The game's own loan method does not check the limit, so the framework does.
 - `RepayLoan` pays in the loan's own currency (`LoanCurrency`). The payment is cut down to the debt and to what the player has, as the game does. It returns `false` when nothing can be paid. <span class="tech">(an RM debt is paid in whole units through `Bank.PayLoan`. When `amount` covers one more unit, the rest of the debt is taken from the wallet in whole tenths, the wallet's smallest step (`Money.RMoneyAmount`). The part below 0.1 RM can't be held by the wallet, so it is written off and the debt is cleared to zero. The player is never charged more than the debt, and a payment in tenths that the wallet can't cover is not taken, so the debt stays at 0.1 RM or more and a later call can clear it.)</span>
-- `OpenAccount` skips the requirements the game's dialogue would check, which means the money or items some banks ask for. <span class="tech">(it skips `requiredOC` and the required items.)</span>
-- `ExchangeQuote` is a preview of what an exchange would give. It gives the game's rate for `amount` without cutting it down to the wallet or the bank's supply, and without rounding. <span class="tech">(it uses `Bank.GetExchangeValues`.)</span>
-- `Exchange` returns `true` when the game's exchange ran. The framework never lets the game cut an exchange down. An amount above the wallet or the source supply is refused, so the amount moved is exactly `amount`. <span class="tech">(the refusal uses the game's own limits, and the credit the check tests is the game's formula after those same limits (`Bank.Exchange`).)</span>
-- An exchange moves money in the normal way. `Cash.MoneyChanged` fires for both sides, and it also changes the bank's supplies and the game's "out of funds" and "replenished" triggers. <span class="tech">(it goes through the game's `AddMoney` and `RemoveMoney`.)</span>
+- `OpenAccount` skips the requirements the game's dialogue would check: the money or items some banks ask for. <span class="tech">(it skips `requiredOC` and the required items.)</span>
+- `ExchangeQuote` previews what an exchange would give. It gives the game's rate for `amount` without rounding, and without cutting it down to the wallet or the bank's supply. <span class="tech">(it uses `Bank.GetExchangeValues`.)</span>
+- `Exchange` returns `true` when the game's exchange ran. The framework never lets the game cut an exchange down. It refuses an amount above the wallet or the source supply, so the amount moved is exactly `amount`. <span class="tech">(the refusal uses the game's own limits, and the credit the check tests is the game's formula after those same limits (`Bank.Exchange`).)</span>
+- An exchange moves money in the normal way. [`Cash.MoneyChanged`](money-cash.md) fires for both sides. The exchange also changes the bank's supplies and the game's "out of funds" and "replenished" triggers. <span class="tech">(it goes through the game's `AddMoney` and `RemoveMoney`.)</span>
 - The game's bank interest uses whole-number division (`num / 7` in `Money`). When 7 or more days pass between two checks, the game adds `floor(days / 7)` periods of interest at once and drops the leftover days. Ordinary daily ticks add no interest. OC is cut to whole units and RM is rounded to 2 decimals. The framework does not change this.
 
 ### Limits
@@ -110,25 +110,30 @@ public sealed class BankAccount
 - A withdrawal is also refused when it would push the wallet past the most money the game can store. That is the same limit `Give` uses. A deposit is refused when it would push the account's OC, or the bank's total OC supply, past that limit. The framework counts the amount the way the game rounds it. <span class="tech">(the wallet sum uses the amount as the game rounds it to a float before it truncates to an int. The limit is `int.MaxValue`, and the supply is `TotalOCSupply`. Above 2^24 the game can add a little more than the amount typed.)</span>
 - `TakeLoan` refuses an amount larger than `MaxLoanOc` or `MaxLoanRm`. It also refuses a loan that would overflow where the money goes: the wallet when the bank pays out to the wallet, or the account's OC balance otherwise.
 - A loan taken in the other currency can't be repaid early. `TakeLoan` accepts either currency, but the game's monthly invoices pay back a loan in the other currency.
-- `ExchangeQuote` returns -1 when the bank is missing, the amount is not above 0 or is above 16,000,000, or the result is not a real number. In the RM to OC direction, the credit you really get can be lower than the quote, because the game's quote and its exchange check different supplies.
-- `Exchange` only works while the player has that bank's screen open, and only for banks that exchange money. It works for a bank whose mode is `Exchange` or `Both`, and a bank in `Deposit` or `WithdrawOnly` mode is refused. That mode check is the framework's own rule, because the game's screen does not check it. <span class="tech">(it needs `BankPanel.instance.activeBank` to be that bank, like `DepositWithdraw`.)</span>
-- `Exchange` returns `false` without moving money when it refuses. It refuses when a save is loading or being written, or when a handler is nested too deep.
+- `ExchangeQuote` returns -1 in these cases: the bank is missing, the amount is not above 0 or is above 16,000,000, or the result is not a real number. In the RM to OC direction, the credit you really get can be lower than the quote. The game's quote and its exchange check different supplies.
+- `Exchange` only works while the player has that bank's screen open, and only for banks that exchange money. It works for a bank whose mode is `Exchange` or `Both`. A bank in `Deposit` or `WithdrawOnly` mode is refused. That mode check is the framework's own rule, because the game's screen does not check it. <span class="tech">(it needs `BankPanel.instance.activeBank` to be that bank, like `DepositWithdraw`.)</span>
+- `Exchange` returns `false` without moving money when it refuses. It refuses when a save is loading or being written. It also refuses when a handler is nested too deep (see [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework)).
 - `Exchange` also refuses an amount that is not 1 to 16,000,000, or that is above the wallet or the source supply. The credit must be at least 1, because the game cuts the credit to whole units. The worst-case credit must fit the game's storage limit.
-- An OC to RM exchange is also refused when the bank's OC supply would pass `int.MaxValue`. An RM to OC exchange is refused when the bank's OC supply is below its daily OC spending, because the game would then credit zero OC for the RM it takes.
-- You can freeze and unfreeze a bank account, and read whether it is frozen. `Freeze` and `Unfreeze` change the same flag the game uses, through the game's own setter, so anything the game hangs off it still runs. `IsFrozen` reads the live account record.
-- A frozen account is blocked where the game blocks it: the bank screen refuses deposits and withdrawals and shows `Account frozen`, and the game skips the account's credit interest. Debt interest still runs, and the game's own loan screen is not blocked, because it never checks the flag.
-- The flag is saved with the account, so an account your mod freezes stays frozen after your mod is removed. The player's way out is the legal services unfreeze action. Treat freezing as something you offer to undo, not something you leave behind.
-- The bank screen reads the flag when it refreshes rather than watching it, so a freeze made while the screen is open shows at the next refresh.
+- An OC to RM exchange is also refused when the bank's OC supply would pass `int.MaxValue`. An RM to OC exchange is refused when the bank's OC supply is below its daily OC spending. The game would then credit zero OC for the RM it takes.
+- `Freeze` and `Unfreeze` set and clear the frozen state of a bank account. They change the same flag the game uses, through the game's own setter, so anything the game hangs off it still runs. `IsFrozen` reads whether the account is frozen, from the live account record.
+- A frozen account is blocked where the game blocks it: the bank screen refuses deposits and withdrawals and shows `Account frozen`, and the game skips the account's credit interest. Debt interest still runs. The game's own loan screen is not blocked, because it never checks the flag.
+- The flag is saved with the account, so an account your mod freezes stays frozen after your mod is removed. The player's way out is the [legal services](legal-services.md) unfreeze action. Treat freezing as something you offer to undo, not something you leave behind.
+- The bank screen reads the flag when it refreshes rather than watching it. A freeze made while the screen is open shows at the next refresh.
 - While an account is frozen, the game's scam letter handler adds a second account record with the same bank name <span class="tech">(`Economy/FakeInvoiceReceiver.cs:106` and its else branch)</span>.
+
+**Common problems**
+
+- `DepositWithdraw` or `Exchange` returns `false`: the player does not have that bank's screen open, or another refusal for that call from the bullets above applies. Call them only while the screen for that bank is open.
+- `TakeLoan` returns `false`: the account is not open or is frozen, the amount is above `MaxLoanOc` or `MaxLoanRm`, or the loan would overflow where the money goes. Open the account first with `OpenAccount`.
 
 ### Online banking helpers
 
-These work from any scene and need no bank object. They are for things like paying from the account without standing at a bank. Every one that changes something gives back a `BankResult`, which says what happened.
+These helpers work from any scene and need no bank object. They let you, for example, pay from the account without standing at a bank. Every helper that changes something returns a `BankResult`, which says what happened.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Banking</code> <span>the helpers, usable from any scene</span></p>
 
-`Accounts()` lists the accounts, and `Charge`, `Refund`, `PayInvoiceFromAccount`, `RepayLoanFromAccount` and `WithdrawByPost` move money through them. `HasDebitCard()` tells you whether the player has the debit card.
+`Accounts()` lists the accounts. `Charge`, `Refund`, `PayInvoiceFromAccount`, `RepayLoanFromAccount` and `WithdrawByPost` move money through them. `HasDebitCard()` tells you whether the player has the debit card.
 
 <div class="api-pair" markdown="1">
 
@@ -155,7 +160,7 @@ public static class Banking
 | `Refund(bankName, currency, amount)` | `BankResult` | Puts money into the account only. |
 | `PayInvoiceFromAccount(bankName, invoiceId)` | `BankResult` | Pays an invoice from the account. |
 | `RepayLoanFromAccount(bankName, currency, amount)` | `BankResult` | Repays a loan from the account. |
-| `WithdrawByPost(bankName, currency, amount, fee)` | `BankResult` | Sends cash by post. |
+| `WithdrawByPost(bankName, currency, amount, fee)` | `BankResult` | Sends cash from the account by post. |
 
 </div>
 </div>
@@ -163,7 +168,7 @@ public static class Banking
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BankResult</code> <span>what a helper call returned</span></p>
 
-Each helper that changes money returns one of these. `Ok` means it worked, and every other value says why it did not.
+Each helper that changes money returns one of these. `Ok` means it worked. Every other value says why it did not.
 
 <div class="api-pair" markdown="1">
 
@@ -226,19 +231,25 @@ public sealed class AccountSummary
 
 #### Things to know
 
-- Every helper checks first and changes nothing if a check fails. The checks are, in order: that no save is loading and handlers are not nested too deep (`Busy`), that the currency is a real `MoneyCurrency` (`Refused` if not), that the amount is valid, that the account exists (`NoAccount`), that it is not frozen (`Frozen`, and `Refund` does not check this), and that the balance covers it (`Insufficient`).
-- An amount is valid when it is a real number above 0 and not above 16,000,000, and it is not 0 after RM is rounded to 0.1 or OC drops its fraction (`Refused` if not). A charge changes its account once.
+- Every helper checks first and changes nothing if a check fails. The checks run in this order:
+  - No save is loading and handlers are not nested too deep (`Busy`).
+  - The currency is a real `MoneyCurrency` (`Refused` if not).
+  - The amount is valid.
+  - The account exists (`NoAccount`).
+  - The account is not frozen (`Frozen`). `Refund` does not check this.
+  - The balance covers it (`Insufficient`).
+- An amount is valid when it is a real number above 0 and not above 16,000,000. It must also not be 0 after RM is rounded to 0.1 or OC drops its fraction (`Refused` if not). A charge changes its account once.
 - `Refund` always lands, even on a frozen account. The money can be used once the account is unfrozen. It runs the other checks, and adds the amount instead of taking it. It returns `Refused` when the OC balance would pass `int.MaxValue`.
 - RM amounts are rounded to 0.1 before any charge. The wallet can't hold anything finer, so an amount with two decimals would lose or gain money when the letter arrives.
-- A charge works when the balance is within 0.0001 of the amount, and the balance is then written back rounded to 2 decimals and never below 0. A balance that is not a number gives `Failed` and nothing is written.
-- `GetByName` only reads the account. `BankId` is empty (`""`), `LoanCurrency` is RM (the game's default) and the loan limits are 0, because those need the bank to be loaded in the scene. Use `Get` or `All` when the bank is loaded.
-- `PayInvoiceFromAccount` pays in the invoice's own currency. It gives `NotFound` when the invoice does not exist, and `Refused` when it has expired or its amount can't be paid. <span class="tech">(it follows the order of the game's `InvoiceController.PayInvoice`: the debit, the invoice's paid callback, then removal of the invoice. The fake-invoice achievement runs after removal in its own try, so a failure there is only logged. Then the ledger is reconciled and `Invoices.Paid` is raised. On a failed callback the ledger is reconciled again, so the refunded debit leaves no phantom entry.)</span>
-- `RepayLoanFromAccount` takes whole units. It is cut down to the debt, which can have a fraction, so it never overpays, and an RM debt under 1 is cleared in full. It returns `Insufficient` when the balance does not cover that amount, and `Refused` when nothing is owed.
-- `WithdrawByPost` takes `amount` from the account and posts `amount - fee` as a letter. The game's mail delay applies. The fee is taken from the account and goes to nobody. <span class="tech">(the letter is sent through `Mail.SendMoney`.)</span>
+- A charge works when the balance is within 0.0001 of the amount. The balance is then written back rounded to 2 decimals and never below 0. A balance that is not a number gives `Failed`, and nothing is written.
+- `GetByName` only reads the account. `BankId` is empty (`""`), `LoanCurrency` is RM (the game's default) and the loan limits are 0. Those values need the bank to be loaded in the scene. Use `Get` or `All` when the bank is loaded.
+- `PayInvoiceFromAccount` pays an [invoice](../invoices.md) in the invoice's own currency. It gives `NotFound` when the invoice does not exist, and `Refused` when it has expired or its amount can't be paid. <span class="tech">(it follows the order of the game's `InvoiceController.PayInvoice`: the debit, the invoice's paid callback, then removal of the invoice. The fake-invoice achievement runs after removal in its own try, so a failure there is only logged. Then the ledger is reconciled and `Invoices.Paid` is raised. On a failed callback the ledger is reconciled again, so the refunded debit leaves no phantom entry.)</span>
+- `RepayLoanFromAccount` takes whole units. The amount is cut down to the debt, which can have a fraction, so it never overpays. An RM debt under 1 is cleared in full. It returns `Insufficient` when the balance does not cover that amount, and `Refused` when nothing is owed.
+- `WithdrawByPost` takes `amount` from the account and posts `amount - fee` as a letter. The game's [mail](mail.md) delay applies. The fee is taken from the account and goes to nobody. <span class="tech">(the letter is sent through `Mail.SendMoney`.)</span>
 - `Charge` only changes the account. The bank's money supply is not changed, as in the game's own purchases.
 - `HasDebitCard()` is `true` when the player has the debit card. <span class="tech">(it checks for the task item `debit_card`.)</span>
 
 #### Limits
 
-- If the invoice's "paid" step throws an error before the invoice is removed, the account gets back what it had, the invoice stays open, and the result is `Unavailable`. If that step changed other things before it threw, those changes stay.
-- If the letter can't be queued, `WithdrawByPost` puts the money back and the result is `Unavailable`. If `Mail.SendMoney` says it failed after the letter was queued, the withdrawal stands, the result is `Ok`, and one error goes to the log.
+- If the invoice's "paid" step throws an error before the invoice is removed, three things happen: the account gets back what it had, the invoice stays open, and the result is `Unavailable`. If that step changed other things before it threw, those changes stay.
+- If the letter can't be queued, `WithdrawByPost` puts the money back and the result is `Unavailable`. If `Mail.SendMoney` says it failed after the letter was queued, the withdrawal stands, the result is `Ok`, and one error goes to the [log](../../guides/getting-started/logging.md).

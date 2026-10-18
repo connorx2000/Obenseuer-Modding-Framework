@@ -7,12 +7,12 @@ nav_order: 2
 
 # Reading and controlling gates
 
-`FloodGates` reads and controls the flood gates in the scene you are in. Each gate is a `FloodGateInfo`, a snapshot of its state when you asked.
+`FloodGates` reads and controls the flood gates in the [scene](../../glossary.md#scene) you are in. Each gate is a `FloodGateInfo`: a snapshot of its state when you asked. This page lists every call, property and event, with the rules behind them.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FloodGates</code> <span>read and control the flood gates</span></p>
 
-This is the class you start from. `All()` and `Get(id)` find gates, `Open` and `Close` move them, and `Changed` tells you when a gate has been told to open or to close.
+This is the class you start from. `All()` and `Get(id)` find gates. `Open` and `Close` move them. `Changed` tells you when a gate has been told to open or to close.
 
 <div class="api-pair" markdown="1">
 
@@ -36,7 +36,7 @@ public static class FloodGates
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<FloodGateInfo>` | Every flood gate in the scene you are in. |
-| `Get(id)` | `FloodGateInfo` | The gate with this id. `null` when none has it. |
+| `Get(id)` | `FloodGateInfo` | The gate with this id. `null` when no gate has it. |
 | `IsOpen(id)` | `bool` | `true` when the gate is open or opening. `false` when it is closed or the id is unknown. |
 | `IsPowered(id)` | `bool` | `true` when the gate has power. `false` when it has none or the id is unknown. |
 | `Open(id)` | `bool` | Tells the gate to open. `true` when it started to open. |
@@ -84,7 +84,7 @@ public sealed class FloodGateInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FloodGateChangedArgs</code> <span>what the Changed event tells you</span></p>
 
-`Changed` gives you this. The framework builds it from a hook on the game's gate commands, and only when the open state really changes, so it is the framework's own type.
+`Changed` gives you this. The framework builds it from a hook on the game's gate commands, only when the open state really changes. So it is the framework's own type.
 
 <div class="api-pair" markdown="1">
 
@@ -106,10 +106,10 @@ public sealed class FloodGateChangedArgs
 
 ## Things to know
 
-- `All()` lists the gates that are switched on in the scene you are in. A gate that is switched off in the scene does not appear. The id is how you point at one gate in the other calls. <span class="tech">(The id is the object's save GUID (see the [glossary](../../glossary.md#guid)), or the scene path when it has none. `All` looks at active `FloodGateControl` objects only.)</span>
-- `IsOpen` follows the command, not the gate's position. It becomes `true` the moment the gate is told to open, and it becomes `false` the moment it is told to close. A gate that is still closing already reads as closed. <span class="tech">(It reads the game's `open` flag.)</span>
+- `All()` lists the gates that are switched on in the [scene](../../glossary.md#scene) you are in. A gate that is switched off in the scene does not appear. The id is how you point at one gate in the other calls. <span class="tech">(The id is the object's save GUID (see the [glossary](../../glossary.md#guid)), or the scene path when it has none. `All` looks at active `FloodGateControl` objects only.)</span>
+- `IsOpen` follows the command, not the gate's position. It becomes `true` the moment the gate is told to open, and `false` the moment it is told to close. A gate that is still closing already reads as closed. <span class="tech">(It reads the game's `open` flag.)</span>
 - `IsPowered` is `false` once the gate's power has been turned off. <span class="tech">(It is the game's `powerOff` flag, turned around.)</span>
-- `Open` and `Close` ask the gate to move, and they return `true` only when the state really changed.
+- `Open` and `Close` ask the gate to move. They return `true` only when the state really changed.
 - `SetPowered` turns the gate's power on or off. It returns `true` when the gate's power is now what you asked for. It does not pretend to succeed when nothing changed. <span class="tech">(It calls the game's `TurnOn` or `TurnOff`.)</span>
 - The power is saved with the game. A power state you set survives a save and a load. <span class="tech">(The `powerOff` field is a `[fsProperty]` that `OnSavingGame` writes.)</span>
 - `Changed` fires when a gate is told to open or to close, no matter who caused it. It fires only when `IsOpen` really changes.
@@ -117,7 +117,15 @@ public sealed class FloodGateChangedArgs
 
 ## Limits
 
-- `Open` and `Close` return `false` for an unknown or empty id, for a gate that is already in that state, and while a save is loading or saving. The game also refuses in these cases, and then you get `false` too: the gate is in an alarm, it has no power, or it is moving and its "press while blinking" setting is off. <span class="tech">(They call the game's `OpenFloodGate` and `CloseFloodGate`. The game refuses when `alert` or `powerOff` is set, or when `isBlinking` is set and `allowPressOnBlinking` is false.)</span>
+- `Open` and `Close` return `false` for an unknown or empty id, or for a gate already in that state. They also return `false` while a save is loading or saving. The game itself refuses in these cases, and you get `false` then too:
+  - the gate is in an alarm;
+  - it has no power;
+  - it is moving and its "press while blinking" setting is off. <span class="tech">(They call the game's `OpenFloodGate` and `CloseFloodGate`. The game refuses when `alert` or `powerOff` is set, or when `isBlinking` is set and `allowPressOnBlinking` is false.)</span>
 - `SetPowered` returns `false` for an unknown or empty id, when the gate already has that power state, and while a save is loading or saving.
 - `Changed` does not fire while a save is loading.
 - `IsAvailable` is `false` when the change event could not be set up. Then `Changed` never fires. The reads, `Open`, `Close` and `SetPowered` keep working.
+
+**Common problems**
+
+- `Open` or `Close` returns `false` and the gate does not move: one of the causes in the first bullet above applies. When the cause is no power, `SetPowered(id, true)` restores it.
+- `Changed` does not fire: it never fires when `IsAvailable` is `false`, and [Details](details.md) says what the log then shows. It also does not fire while a save is loading, or for a change of power alone.

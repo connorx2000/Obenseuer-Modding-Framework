@@ -7,10 +7,12 @@ nav_order: 15
 
 # ComputerApps
 
+`ComputerApps` puts an app of your own on the game's computer desks, and can open it in a full-screen window. It also gives any object in the world a use prompt. Use it when your mod needs its own screen inside the game.
+
 This page uses `GameObject`, `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-The game has computer desks the player can sit at. `ComputerApps` puts an app on them. An app is an icon on each desk's screen that opens your own interface, and it can also open in a full-screen window. The API also gives any object in the world a use prompt like the game's own ("Use", "Read" and so on). You draw the interface yourself, using the [UI kit](../api/ui.md) page.
+The game has computer desks the player can sit at. An app is an icon on each desk's screen that opens your own interface. The use prompt looks like the game's own ("Use", "Read" and so on). You draw the interface yourself, using the [UI kit](../api/ui.md) page.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerApps</code> <span>apps on the desk computers</span></p>
@@ -37,15 +39,15 @@ public static class ComputerApps
 | Method | Returns | What it does |
 |---|---|---|
 | `Register(modId, appId, title, icon, open)` | `bool` | Adds an app icon to every desk, the ones that exist now and the ones made later. |
-| `Close(appId)` | `void` | Hides the app on every desk, and closes its full-screen window if it shows that app. |
+| `Close(appId)` | `void` | Hides the app on every desk. Also closes the full-screen window if it shows that app. |
 | `RemoveAll(modId)` | `void` | Removes all of your mod's apps, icons, windows and use prompts. |
 | `OpenStandalone(modId, appId)` | `bool` | Opens an app in a full-screen window over the game. |
 | `AddInteraction(target, modId, title, message, onUse)` | `bool` | Gives an object a use prompt. |
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `true` when apps can be used. See Things to know. |
-| `ActiveScreen` | `RectTransform` | The screen of the computer the player is using now. `null` when none. |
+| `IsAvailable` | `bool` | `true` when apps can be used. See Apps on the desks, below. |
+| `ActiveScreen` | `RectTransform` | The screen of the computer the player is using now. `null` when there is none. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -58,7 +60,7 @@ public static class ComputerApps
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerAppClosedArgs</code> <span>what AppClosed tells you</span></p>
 
-`AppClosed` hands you this when an app view closes. `ModId` and `AppId` tell you which mod and app it was.
+`AppClosed` hands you this when an app view closes. `ModId` is the [mod id](../glossary.md#mod-id) of the mod that registered the app, and `AppId` is the app's id.
 
 <div class="api-pair" markdown="1">
 
@@ -80,7 +82,7 @@ public sealed class ComputerAppClosedArgs
 
 ### Putting it together
 
-Adds a Notes app, and a prompt on an object called Whiteboard that opens it in a full-screen window.
+This plugin adds a Notes app. It also puts a prompt on an object called Whiteboard that opens the app in a full-screen window.
 
 <div class="api-example" markdown="1">
 
@@ -119,26 +121,31 @@ public class NotesApp : BaseUnityPlugin
 
 ### Apps on the desks
 
-- `IsAvailable` is `true` when the framework may change game methods and the feature group has not been turned off. The desk changes are made the first time `Register` is called, not at start-up. The feature group is `obenseuer.moddingframework.computerapps`, the name you will see in the log. <span class="tech">(`Core.PatchingAllowed` is true and the feature group has not been disabled.)</span>
-- `Register` returns `false` when the desk changes cannot be made, or when `appId` is already used. Changes are refused when `Core.PatchingAllowed` is false. The first registration of an `appId` wins, and a warning is logged for the second. An empty `appId`, an `appId` that contains `/`, or an empty `title` also returns `false` and logs once.
+- `IsAvailable` is `true` when the [framework](../glossary.md#framework) may change game methods and the [feature group](../glossary.md#feature-group) has not been turned off. The desk changes are made the first time `Register` is called, not at start-up. The feature group is `obenseuer.moddingframework.computerapps`, the name you will see in the log. <span class="tech">(`Core.PatchingAllowed` is true and the feature group has not been disabled.)</span>
+- `Register` returns `false` when the desk changes cannot be made, or when `appId` is already used. Changes are refused when [`Core.PatchingAllowed`](plugin.md) is false. The first registration of an `appId` wins, and a warning is logged for the second. An empty `appId`, an `appId` that contains `/`, or an empty `title` also returns `false` and logs once.
 - `Register` throws for a bad `modId` or `open`. A null or empty `modId` throws `ArgumentException`, and a null `open` throws `ArgumentNullException`.
 - `title` must not be empty. `icon` may be `null`, and then the title is drawn on the tile.
 - The icons form a grid at the top right of each desk. Each icon is 84 x 72. There are 5 rows, columns are 96 pixels apart, rows are 84 pixels apart, and the margin is 12 pixels.
 - An icon is created once for every desk and app, and reused after that.
-- When the player clicks the icon, `open(host)` is called. `host` is a `RectTransform` that fills the desk's wallpaper, one for each desk and app, and it is an empty area you build your interface in.
+- When the player clicks the icon, `open(host)` is called. `host` is a `RectTransform` that fills the desk's wallpaper, one for each desk and app. It is an empty area you build your interface in.
 - The framework clears `host` before every `open` call: each child is renamed, deactivated and destroyed. You always build into an empty area, the same as with `OpenStandalone`. Nothing you leave in the area survives the next click, so keep your own state in your mod.
-- If `open` throws, the error is logged to your mod's log and the area is hidden.
-- The area needs a click catcher above it, or its buttons receive no clicks. The desk logs one warning when none is found above the area. Each time an app is shown, the framework makes sure the scene has an event system, which the interface needs. <span class="tech">(The host must sit under a `GraphicRaycaster`. The event system is an EventSystem.)</span>
+- If `open` throws, the error is logged to your mod's [log](../guides/getting-started/logging.md) and the area is hidden.
+- The area needs a click catcher above it, or its buttons receive no clicks. The desk logs one warning when none is found above the area. Each time an app is shown, the framework makes sure the [scene](../glossary.md#scene) has an event system, which the interface needs. <span class="tech">(The host must sit under a `GraphicRaycaster`. The event system is an EventSystem.)</span>
 - Typing in an app does not make the player leave the computer. While an input field in an app has focus, the desk's own key handling is skipped.
+
+**Common problems**
+
+- Buttons in your app receive no clicks: put a click catcher above the area. The desk logs one warning when none is found.
+- `Register` returns `false`: the desk changes cannot be made, or `appId` is already registered, empty or contains `/`, or `title` is empty. Changes are refused when `Core.PatchingAllowed` is false.
 
 ### Closing and events
 
-- Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and closes the full-screen window if it shows that app. `Close` always runs, even while a save loads or saves. Each close raises `AppClosed`.
+- Apps hide when the player leaves the computer. `Close(appId)` hides the app on every desk, and closes the full-screen window if it shows that app. `Close` always runs, even while a [save](../guides/getting-started/save-data.md) loads or saves. Each close raises `AppClosed`.
 - A desk view raises `AppClosed` when it was showing and then one of these happens: `Close(appId)`, the player leaving the computer (`HideAll`), a single scene load (not an additive one), `RemoveAll` for its mod, or an `open` that throws. A view that was already hidden raises nothing.
 - The full-screen window raises `AppClosed` when it closes: its Close button, Esc, a single scene load, `RemoveAll` for its mod, or `OpenStandalone` of another app.
 - `AppClosed` fires once for each view that closes. Its `ModId` is the mod that registered the app, and `AppId` is the app's id.
 - A handler cannot tell a desk view from the full-screen window. The arguments carry only `ModId` and `AppId`. If you need to tell them apart, track your own view. Handlers are kept apart from each other, and you unsubscribe with `-=`.
-- `ActiveScreen` is the screen of the computer the player is using now, or `null`. It is set when the player starts using a computer, and cleared when the use stops or a single scene load happens. `ScreenChanged` fires with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see [Web UI](../api/webui.md)). <span class="tech">(`ActiveScreen` is the desk's wallpaper `RectTransform`. It is set in `InteractableComputer.Use` and cleared in `StopUse`.)</span>
+- `ActiveScreen` is the screen of the computer the player is using now, or `null`. It is set when the player starts using a computer. It is cleared when the use stops or a single scene load happens. `ScreenChanged` fires with the new value on each change, not on every frame. A `WebView` can follow it with `PinTo` (see [Web UI](../api/webui.md)). <span class="tech">(`ActiveScreen` is the desk's wallpaper `RectTransform`. It is set in `InteractableComputer.Use` and cleared in `StopUse`.)</span>
 
 ### The full-screen window
 
@@ -153,7 +160,7 @@ public class NotesApp : BaseUnityPlugin
 - `AddInteraction` gives an object the game's own use prompt. The prompt shows `title` and `(message)` the way the game shows its own prompts, and `onUse` runs when the player uses it. An error in `onUse` is logged to your mod's log.
 - The object needs a collider. `target` needs a `Collider`, and the game's `InteractObjects` must exist.
 - Calling it again from the same mod updates the title, message and `onUse`.
-- `AddInteraction` returns `false` while a save loads or saves, when changes are not allowed (`Core.PatchingAllowed` is false), when there is no collider or interact system, when no usable layer is found, or when another mod owns the object. It also returns `false` when the object already has a game component that handles use, because the game would show its own prompt instead. A warning is logged once. <span class="tech">(A "game component that handles use" is any MonoBehaviour that implements `IInteractable`, except the framework's own prompt.)</span>
+- `AddInteraction` returns `false` in these cases: a save is loading or saving, changes are not allowed (`Core.PatchingAllowed` is false), or there is no collider or interact system. It also returns `false` when no usable layer is found, or when another mod owns the object. It returns `false` too when the object already has a game component that handles use, because the game would show its own prompt instead. A warning is logged once. <span class="tech">(A "game component that handles use" is any MonoBehaviour that implements `IInteractable`, except the framework's own prompt.)</span>
 - The object keeps its layer when that layer can be used. Otherwise it gets the first usable layer of 17, 23, 29, 20 and 15. `RemoveAll` puts the original layer back. <span class="tech">(A usable layer is one that is in `InteractObjects.MaskList`.)</span>
 - `RemoveAll(modId)` removes your mod's apps and icons, closes its window, and removes its use prompts.
 

@@ -7,12 +7,14 @@ nav_order: 4
 
 # Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.timecontrol.log`.
+The build this API targets and where it logs. Also when it is safe to call it, and what happens when the framework cannot change the game method it needs.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Namespace: `ObenseuerCore`. [Logs](../../guides/getting-started/logging.md) go to `BepInEx\logs\obenseuer.moddingframework.timecontrol.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 
-The framework changes one game method when it starts, so it can scale the clock. This page calls that a feature group: its name is `obenseuer.moddingframework.timecontrol`, the name you will see in the log.
+The framework changes one game method when it starts, so it can scale the clock. This page calls that a [feature group](../../glossary.md#feature-group) (a named set of framework changes). Its name is `obenseuer.moddingframework.timecontrol`, the name you will see in the log.
 
 ## When you can call it
 
@@ -21,10 +23,11 @@ The framework changes one game method when it starts, so it can scale the clock.
 
 ## What to check for and what comes back
 
-- `TimeControl.IsAvailable` tells you whether the clock speed works. It is `false` when the framework could not set it up, or when the feature group was turned off. Then `TimeScale` stays at `1`. `In`, `Cancel`, `MinutePassed` and `SecondsPassed` keep working.
+- [`TimeControl.IsAvailable`](clock-speed-timers-and-the-minute-event.md) tells you whether the clock speed works. It is `false` when the framework could not set it up, or when the feature group was turned off.
+- When `IsAvailable` is `false`, `TimeScale` stays at `1`. `In`, `Cancel`, `MinutePassed` and `SecondsPassed` keep working.
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the framework cannot change the game's day length method, the clock speed stops working and the rest keeps working. `IsAvailable` becomes `false`. <span class="tech">(The method is `AzureTimeController.SetNewDayLength(float)`. The framework adds a prefix to it.)</span>

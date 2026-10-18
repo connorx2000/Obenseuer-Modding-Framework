@@ -7,9 +7,19 @@ nav_order: 10
 
 # Scene logic
 
+`SceneLogic` lets your mod list, fire and switch the [relays](../glossary.md#relay) (hidden switch-like objects) of the [scene](../glossary.md#scene) (one loaded area of the game) you are in. Use it to react to a scripted scene event, or to trigger one from your mod.
+
 ## What it is
 
-Each scene (a level of the game) has hidden switch-like objects called relays. When a relay is triggered, it passes the signal on to a list of other things, such as opening a door, starting a sound or moving a quest on to its next step. Much of the game's scripting, including quest steps, is built from relays. This API lists the relays in the scene you are in, triggers one, switches one on or off, and tells you when one fires. It also switches the trigger volumes (areas that react when something enters them) on or off.
+Each scene has its own relays. When a relay is triggered, it passes the signal on to a list of other things. Examples are opening a door, starting a sound or moving a quest on to its next step. Much of the game's scripting, including quest steps, is built from relays.
+
+This API does these jobs:
+
+- List the relays in the scene you are in.
+- Trigger a relay.
+- Switch a relay on or off.
+- Tell you when a relay fires.
+- Switch the trigger volumes (areas that react when something enters them) on or off.
 
 Be careful: firing or switching off the wrong relay can break a quest.
 
@@ -21,7 +31,7 @@ Be careful: firing or switching off the wrong relay can break a quest.
 
 ## Quick example
 
-This mod logs a line each time a relay fires in the scene. Once a save is loaded, it also logs how many relays the scene has.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a relay fires in the scene. Once a save is loaded, it also logs how many relays the scene has.
 
 ```csharp
 using ObenseuerCore;
@@ -38,7 +48,7 @@ public sealed class RelayWatch : FrameworkMod
 }
 ```
 
-`Fired` is an event: the framework calls your code each time it happens. `WhenReady` runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on both.
+`Fired` is an event: the framework calls your code each time it happens. [`WhenReady`](core-helpers/events-whenready.md) runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on both.
 
 ## Common tasks
 
@@ -67,7 +77,7 @@ SceneLogic.SetEnabled(id, true);
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Relays
 
@@ -76,7 +86,7 @@ A relay is named by an id, a text name for that relay in the scene. You get the 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SceneLogic</code> <span>lists, fires and switches relays</span></p>
 
-This is the class to start from: `Relays()` lists the relays in the scene, and `Fire` and `SetEnabled` act on one by its id. Firing a relay runs everything it is wired to, so be careful with it.
+This is the class to start from. `Relays()` lists the relays in the scene, and `Fire` and `SetEnabled` act on one by its id. Firing a relay runs everything it is wired to, so be careful with it.
 
 <div class="api-pair" markdown="1">
 
@@ -103,7 +113,7 @@ public static class SceneLogic
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Fired` | `RelayArgs`: the relay's id, whether it can fire only once, and whether it was enabled. | A relay has just fired. |
+| `Fired` | `RelayArgs`: the relay's id, whether it can fire only once, and whether it was enabled. | Right after a relay fires. |
 
 </div>
 </div>
@@ -111,7 +121,7 @@ public static class SceneLogic
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelayInfo</code> <span>one relay</span></p>
 
-`Relays()` gives you one of these for each relay in the scene. Pass `Id` to `Fire` and `SetEnabled`, and use `FireOnce` and `Fired` to see whether it can still fire.
+`Relays()` gives you one of these for each relay in the scene. Pass `Id` to `Fire` and `SetEnabled`. Use `FireOnce` and `Fired` to see whether the relay can still fire.
 
 <div class="api-pair" markdown="1">
 
@@ -163,9 +173,9 @@ public sealed class RelayArgs
 ### Things to know
 
 - `Relays()` lists the relays in the scene you are in. <span class="tech">(It lists every `Relay` and its subclasses, such as `RelayTimer`, `RelayLookAt` and `RelayRandomDelay`, using `FindObjectsByType`, which skips inactive objects. `RelayAuto`, `RelayRandom`, `RelayRandomValue` and `RelayPlayerDistance` are not `Relay` subclasses and are not listed.)</span>
-- `Id` is a saved name when the relay has one, and a place in the scene when it does not. The place looks like `SceneName:Root[0]/Child[2]` and changes if objects in the scene are reordered. <span class="tech">(It is the object's `GUID` when it has one, otherwise the scene path.)</span>
+- `Id` is a saved name when the relay has one, and a place in the scene when it does not. The place looks like `SceneName:Root[0]/Child[2]`. It changes if objects in the scene are reordered. <span class="tech">(It is the object's `GUID` when it has one, otherwise the scene path.)</span>
 - `Relays()` can be slow, so do not call it every frame. Call it when something happens and keep the result.
-- `Fire(id)` triggers a relay the way the game does. It runs everything the relay is wired to. Otherwise it returns `true`. <span class="tech">(It calls `Relay.triggerOutputs()` after checking `activeInHierarchy`, `firedOnce` with `fireOnceOnly`, and the required task items, objectives and dialogue variables.)</span>
+- `Fire(id)` triggers a relay the way the game does. It runs everything the relay is wired to. When it can fire, it returns `true`. <span class="tech">(It calls `Relay.triggerOutputs()` after checking `activeInHierarchy`, `firedOnce` with `fireOnceOnly`, and the required task items, objectives and dialogue variables.)</span>
 - `SetEnabled(id, enabled)` switches a relay or a trigger volume on or off. It returns `true` when the relay or volume is now in the state you asked for. <span class="tech">(It calls the game's `enableOutputs()` or `disableOutputs()` on the `Relay`, or on a `TriggerMultiple` when no relay has that id.)</span>
 - `Fired` fires for every fire that the relay accepts, including fires the game made by itself. <span class="tech">(It is raised from a Harmony postfix on `Relay.triggerOutputs(object)`. The prefix records whether the relay can fire. `RelayRandomDelay` and `RelayStartSelection` override that method and call the base one, so the same hook covers them.)</span>
 - `Fired` is raised after the relay's outputs have run. If one relay starts another, the inner relay reports first and the outer one after it.
@@ -173,14 +183,19 @@ public sealed class RelayArgs
 
 ### Limits
 
-- A relay on an object that is switched off is not listed and can't be fired by id. A few scene scripts that work like relays but are built differently are not listed either.
-- `Fire(id)` returns `false` and does not trigger anything when the relay can't fire: its object is switched off, it is a once-only relay that has fired already, or something it needs is missing, such as a quest item, a quest objective or a story flag.
+- A relay on an object that is switched off is not listed, and it can't be fired by id. A few scene scripts that work like relays but are built differently are not listed either.
+- `Fire(id)` returns `false` and triggers nothing when the relay can't fire. That is the case when its object is switched off, or when it is a once-only relay that has fired already. It is also the case when something it needs is missing, such as a quest item, a quest objective or a story flag.
 - `SetEnabled(id, false)` gives `false` for a relay with no outputs, because such a relay always counts as on.
-- A relay that was switched on or off may or may not stay that way after a save. We have not confirmed whether a state set with `SetEnabled` is kept in the save. <span class="tech">(A relay saves its own state in `OnSavingGame`.)</span>
-- `Fired` is not raised for a fire that the relay refuses (for example a once-only relay that is spent), and it is not raised for a trigger volume.
+- A relay that was switched on or off may or may not stay that way after a save. It has not been confirmed whether a state set with `SetEnabled` is kept in the save. <span class="tech">(A relay saves its own state in `OnSavingGame`.)</span>
+- `Fired` is not raised for a fire that the relay refuses, for example a once-only relay that is spent. It is not raised for a trigger volume either.
 - A `Fired` handler that fires the same relay again can loop for ever. This happens when the relay is not a once-only relay. Do not call `Fire` on the same relay from inside its own `Fired` handler.
-- `Fired` does not wait for a save load to finish. A handler that should ignore relays that fire while a save is loading can check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- `Fired` does not wait for a save load to finish. A handler that should ignore relays that fire while a save is loading can check [`SaveData.Busy`](../api-core/savedata.md#savedatabusy). It is `true` while a save is loading or being written.
 - Firing a once-only relay too early uses it up for good. The game saves that it has fired, so a relay fired before its quest step is ready can't fire again. <span class="tech">(`firedOnce` is saved with the relay.)</span>
+
+**Common problems**
+
+- Your `Fired` handler loops for ever: it fires the same relay again, and that relay is not a once-only relay. Do not call `Fire` on the same relay from inside its own `Fired` handler.
+- Your `Fired` handler reacts to relays that fire while a save is loading: `Fired` does not wait for a save load to finish. Check `SaveData.Busy` in the handler.
 
 ### What you can't do (yet)
 
@@ -190,17 +205,17 @@ public sealed class RelayArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.scenelogic.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 
-The framework changes one game method when it starts, so it can tell your mod when a relay fires. This page calls that a feature group: its name is `obenseuer.moddingframework.scenelogic`, the name you will see in the log.
+The framework changes one game method when it starts, so it can tell your mod when a relay fires. This page calls that a feature group. Its name is `obenseuer.moddingframework.scenelogic`, the name you will see in the log.
 
 ### When you can call it
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Fired` too.
-- It is safe to call any of it at any time, even on the main menu. With no scene to look in, `Relays()` gives an empty list and `Fire` and `SetEnabled` give `false`. `Fire` and `SetEnabled` also give `false` while a save is loading or being written.
+- It is safe to call any of it at any time, even on the main menu. With no scene to look in, `Relays()` gives an empty list, and `Fire` and `SetEnabled` give `false`. `Fire` and `SetEnabled` also give `false` while a save is loading or being written.
 
 ### What to check for and what comes back
 
@@ -209,6 +224,6 @@ The framework changes one game method when it starts, so it can tell your mod wh
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it. Then it turns the group off and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the framework cannot change the game's relay method, `Fired` stops and the rest keeps working. `IsAvailable` becomes `false`. <span class="tech">(The method is `Relay.triggerOutputs(object)`. The patch does not touch the janitor actions: `JanitorsPatches` changes `RelayJanitor.TriggerAction`, a different method, and a janitor action does not call `Relay.triggerOutputs`, so both patches run side by side.)</span>

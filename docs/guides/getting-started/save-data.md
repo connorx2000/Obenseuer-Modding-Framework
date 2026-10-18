@@ -6,9 +6,11 @@ nav_order: 6
 
 # Save data
 
-Save data is information your mod remembers for each save game, such as how many days the player has played with your mod. The framework writes it next to the save, and reads it back when the player loads that save. You register it once, in `OnLoad`, which the framework runs when your mod loads. A BepInEx plugin registers in `Awake` instead.
+Save data is information your mod remembers for each save game, such as how many days the player has played with your mod. The framework writes it next to the save, and reads it back when the player loads that save. You register it once, in `OnLoad`, which the framework runs when your mod loads.
 
-This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below, then run `dotnet build -c Release -p:DeployToGame=true` with the game closed. `HelloState` is a plain class that holds what you want to keep. `SaveData.Register` takes your mod id and two methods: one that hands over the data to save, and one that receives the data after a load.
+## The example
+
+This page continues the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below. `HelloState` is a plain class that holds what you want to keep. [`SaveData.Register`](../../api-core/savedata.md) takes your [mod id](../../glossary.md#mod-id) and two methods: one that hands over the data to save, and one that receives the data after a load.
 
 ```csharp
 using System;
@@ -43,15 +45,28 @@ public class ExampleHello : FrameworkMod
 }
 ```
 
-Start the game, load a save and let a game day pass. Save, quit, load the same save and let another day pass. The log line `days seen` continues from the old number instead of starting at 1.
+Then build and check the result:
+
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game, load a save and let a game day pass.
+3. Save, quit, load the same save and let another day pass.
+4. Open `BepInEx\logs\example.hello.log`. The `days seen` line continues from the old number instead of starting at 1.
+
+The number survives a reload. Things to know, below, covers where the data lives and what it may hold.
+
+### Common problems
+
+- The count starts at 1 again after the reload: the loaded value was `null`, so `s ?? new HelloState()` started empty. The value is `null` when `<mod id>.json` is missing or cannot be read. The framework writes that file when the player saves, so save before you quit (step 3).
+
+## Things to know
 
 - **Your data is kept per save, in one file.** It is `<mod id>.json` in the `mods` folder of that save, so each save game has its own numbers.
 - **Save a plain class.** It needs a constructor with no parameters. Public fields and `[SerializeField]` fields are saved. Properties are not.
-- **Common types work.** Numbers, text, lists, arrays, dictionaries, `Vector2`, `Vector3`, `Vector4`, `Quaternion` and `Color` are saved. A field that holds different subclasses (a polymorphic type) does not work, and neither does an array as the top-level type.
+- **Common types work.** Numbers, text, lists, arrays, dictionaries, `Vector2`, [`Vector3`](../../glossary.md#vector3), `Vector4`, [`Quaternion`](../../glossary.md#quaternion) and [`Color`](../../glossary.md#color) are saved. A field that holds different subclasses (a polymorphic type) does not work, and neither does an array as the top-level type.
 - **The framework asks for your data when the player saves, and gives it back after a load.** On a save it calls the first method you passed, which returns your data. When a load finishes, it calls the second method with the data it read.
 - **A new save has no data yet.** The loaded value is `null` when the file is missing or cannot be read, so write `s ?? new HelloState()` to start empty.
 - **Do not change game state while `SaveData.Busy` is `true`.** It is `true` during a load and in the frame a save starts. Wait for it to be `false` before you touch anything.
-- **Register in `OnLoad`.** A framework mod's `OnLoad` runs when the framework starts the mod. If a save is already open by then, the framework loads your data at once. A BepInEx plugin does the same call in `Awake`.
+- **Register in `OnLoad`.** The `OnLoad` of a [framework mod](../../api/framework-mods.md) runs when the framework starts the mod. If a save is already open by then, the framework loads your data at once. A [BepInEx plugin](../../glossary.md#plugin) does the same call in `Awake`.
 - **Register once.** A second `Register` with the same id throws `InvalidOperationException`.
 - **For several separate pieces of data, or data with no null to check, use `SaveData.Bind`.** It returns a slot whose `Value` is never `null`. The [Pay the player](../cookbook/pay-the-player.md) recipe uses it.
 

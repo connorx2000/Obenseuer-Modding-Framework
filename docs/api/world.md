@@ -8,9 +8,18 @@ nav_order: 18
 
 # World
 
+The world API is about the place the player is in and the conditions around them: weather, power, water, radiation, location and the clock. Use it when your mod needs to read or change these, or react when they change.
+
 ## What it is
 
-The world API is about the place the player is in and the conditions around them. It has six parts. `WorldWeather` reads and changes the weather, including local weather zones. `WorldPower` tells you about blackouts and generators and lets you control the player's wake-up after a blackout. `WorldWater` reads the water supply and the water the player swims in. `WorldRadiation` reads how much radiation the player has taken in. `WorldLocation` tells you which scene the player is in and which ones they have visited. `WorldClock` reads the calendar and sets the time of day and the date.
+It has six parts, one class each:
+
+- [`WorldWeather`](world/worldweather.md) reads and changes the weather, including local weather zones.
+- [`WorldPower`](world/worldpower.md) tells you about blackouts and generators. It also lets you control the player's wake-up after a blackout.
+- [`WorldWater`](world/worldwater.md) reads the water supply and the water the player swims in.
+- [`WorldRadiation`](world/worldradiation.md) reads how much radiation the player has taken in.
+- [`WorldLocation`](world/worldlocation.md) tells you which [scene](../glossary.md#scene) (one loaded area of the game) the player is in, and which ones they have visited.
+- [`WorldClock`](world/worldclock.md) reads the calendar and sets the time of day and the date.
 
 ## When to use it
 
@@ -23,7 +32,7 @@ The world API is about the place the player is in and the conditions around them
 
 ## Quick example
 
-This mod logs a line when the weather changes, a blackout starts or the player goes under water. Once a save is loaded, it logs the current weather, the date and the scene.
+This mod writes a [log](../guides/getting-started/logging.md) line when the weather changes, a blackout starts or the player goes under water. Once a save is loaded, it logs the current weather, the date and the scene.
 
 ```csharp
 using ObenseuerCore;
@@ -48,4 +57,4 @@ public sealed class WorldWatch : FrameworkMod
 }
 ```
 
-`WeatherChanged`, `BlackoutStarted` and `PlayerSubmerged` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`WeatherChanged`, `BlackoutStarted` and `PlayerSubmerged` are events: the framework calls your code each time they happen. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

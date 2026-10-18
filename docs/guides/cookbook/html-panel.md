@@ -6,12 +6,15 @@ nav_order: 5
 
 # Add an HTML panel
 
-Show a web page from your mod's `web` folder in a panel inside the game when the player presses F9. Use it when you want a screen that looks and works like a web page, with HTML and CSS. The panel needs the WebUi module, the part of the framework that shows web pages.
+Show a web page from your mod's `web` folder in a panel inside the game when the player presses F9. Use it when you want a screen that looks and works like a web page, with HTML and CSS. The panel needs the [WebUi](../../glossary.md#webui) module, the part of the framework that shows web pages.
 
-`WebUi.Open` opens a page and gives you a `WebView`, which is the open panel. The code keeps the `WebView` in a field, so pressing F9 again hides or shows the same panel.
+## Prepare the project
 
-1. Install the WebUi zip. See [Install](../../install.md#optional-webui).
-2. Make a folder named `web` inside your project folder, and add a file named `index.html` to it. This one is enough to test:
+The project needs WebUi, a test page and a reference to the WebUi file.
+
+First, install the WebUi zip. See [Install](../../install.md#optional-webui).
+
+Next, make a folder named `web` inside your project folder, and add a file named `index.html` to it. This one is enough to test:
 
 ```html
 <!DOCTYPE html>
@@ -22,7 +25,7 @@ Show a web page from your mod's `web` folder in a panel inside the game when the
 </html>
 ```
 
-3. Open your `.csproj` file in a text editor. Find the `<ItemGroup>` that holds the other `<Reference>` lines, and add this reference inside it, before its closing `</ItemGroup>`. It points at the WebUi file that the WebUi zip put in the game. On BepInEx 5, use `ObenseuerCore.WebUi.BepInEx5.dll` instead. `Private` set to `false` keeps the build from copying that file into your output.
+Then open your `.csproj` file in a text editor. Find the `<ItemGroup>` that holds the other `<Reference>` lines. Add this reference inside it, before its closing `</ItemGroup>`. On BepInEx 5, use `ObenseuerCore.WebUi.BepInEx5.dll` instead.
 
 ```xml
 <Reference Include="ObenseuerCore.WebUi">
@@ -31,7 +34,15 @@ Show a web page from your mod's `web` folder in a panel inside the game when the
 </Reference>
 ```
 
-4. Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with this code.
+The reference points at the WebUi file that the WebUi zip put in the game. `Private` set to `false` keeps the build from copying that file into your output.
+
+The project is ready. Next, add the panel code.
+
+## The example
+
+[`WebUi.Open`](../../api/webui/the-webui-class.md) opens a page and gives you a [`WebView`](../../api/webui/the-webview-class.md), which is the open panel. The code keeps the `WebView` in a field, so pressing F9 again hides or shows the same panel.
+
+Replace the code in `Plugin.cs` of your project from [Your first mod](../getting-started/first-mod.md) with this code.
 
 ```csharp
 using System.IO;
@@ -83,19 +94,32 @@ public class Panel : FrameworkMod
 }
 ```
 
-5. Close the game and run `dotnet build -c Release -p:DeployToGame=true`. The build copies only the DLL, so copy your `web` folder into the same `BepInEx\plugins\<name>\` folder as the DLL, where `<name>` is your project's name. From a terminal in your project folder, this line does it, with your own game path in place of the example:
+The build copies only the DLL, so you copy the `web` folder yourself. It goes into the same `BepInEx\plugins\<name>\` folder as the DLL, where `<name>` is your project's name. From a terminal in your project folder, this line does it, with your own game path in place of the example:
 
 ```
 xcopy /E /I /Y web "C:\Program Files (x86)\Steam\steamapps\common\Obenseuer\BepInEx\plugins\MyFirstMod\web"
 ```
 
-6. Start the game, load a save and press F9. The panel shows "Hello from my mod". Press F9 again to hide it.
+Then build and open the panel:
 
-Notes:
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Run the `xcopy` line above to copy the `web` folder.
+3. Start the game, load a save and press F9. The panel shows "Hello from my mod".
+4. Press F9 again to hide it.
 
-- `WebUi.Open` returns `null` when the view cannot open. `WebUi.LastError` says why.
+The panel opens and hides on F9. Things to know, below, covers messages between the page and the mod.
+
+### Common problems
+
+- The framework skips the mod and logs a warning: the WebUi plugin is missing. The second `ModDependency` line causes the skip. Install the WebUi zip, see [Install](../../install.md#optional-webui).
+- F9 logs a warning that starts with `WebUi is unavailable`: `WebUi.IsAvailable` is `false` when the native part of WebUi, the shim `ObxWebView.dll`, is missing or cannot start. The code then does not open the view. The rest of the warning is `WebUi.LastError`. Work through [WebUi is unavailable](../../faq.md#webui-is-unavailable).
+- F9 logs a warning that starts with `the view did not open`: `WebUi.Open` returns `null` when the view cannot open. The rest of the warning is `WebUi.LastError`, which says why.
+- The log shows an error about the other WebUi copy: delete the file for the loader you do not use, `ObenseuerCore.WebUi.dll` or `ObenseuerCore.WebUi.BepInEx5.dll`. See [BepInEx 5 or 6?](../../faq.md#bepinex-5-or-6).
+
+## Things to know
+
 - The page sends messages to the mod through `view.Message`, and the mod replies with `view.Post`. See [WebUi](../../api/webui.md).
-- If the WebUi plugin is missing, the framework skips this mod and logs a warning, because of the `ModDependency` line. `WebUi.IsAvailable` is false when the native part is missing, so the code checks it first. See [WebUi is unavailable](../../faq.md#webui-is-unavailable).
+- `true` as the last argument of `WebUi.Open` makes the panel take the player's mouse and keys while it is open. Such a view is a [modal view](../../glossary.md#modal-view).
 
 ## Where to go next
 

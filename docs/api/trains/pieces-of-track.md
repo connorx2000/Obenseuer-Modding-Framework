@@ -7,11 +7,11 @@ nav_order: 5
 
 # Pieces of track
 
-A track segment is one piece of track. Each piece can lead on to one or more next pieces.
+A track segment is one piece of track, and each piece can lead on to one or more next pieces. Use `Segments()` to find which pieces a train is on and where each piece leads.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>lists the pieces of track</span></p>
-Use `Segments()` to list the pieces of track in the loaded scene.
+`Segments()` lists the pieces of track in the loaded [scene](../../glossary.md#scene).
 
 <div class="api-pair" markdown="1">
 
@@ -62,9 +62,9 @@ public sealed class TrackSegmentInfo
 ## Things to know
 
 - `Segments()` gives an empty list when no level is loaded. <span class="tech">(It searches the active objects of the active scene for `Track_Segment`, as `Switches` does.)</span>
-- A piece's id is its save GUID, or a scene path when it has none.
+- A piece's id is its save GUID, or a scene path when it has none. See [object id](../../glossary.md#object-id) in the glossary.
 - `ActiveBranch` follows the switch that controls the piece. After the switch has changed, it matches the switch's branch. <span class="tech">(A minitrain switch writes `activeBranchIndex` through `SetBranchIndex` when its own branch changes, for a forced change too.)</span>
 
 ## Limits
 
-- You can't set a piece of track's branch yourself. Doing so would send trains down one branch while the switch still shows another. Use `SetBranch` on the switch instead. <span class="tech">(`Track_Segment.SetBranchIndex` changes the routing without moving the switch.)</span>
+- You can't set a piece of track's branch yourself. Doing so would send trains down one branch while the switch still shows another. Use `SetBranch` on the switch instead (see [Switches and loaders](switches-and-loaders.md)). <span class="tech">(`Track_Segment.SetBranchIndex` changes the routing without moving the switch.)</span>

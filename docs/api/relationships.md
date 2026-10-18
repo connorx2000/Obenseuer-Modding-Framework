@@ -7,9 +7,11 @@ nav_order: 12
 
 # Relationships
 
+Use this page to read relationship scores from your mod, or to run code when the game's daily check changes one.
+
 ## What it is
 
-This API reads the player's relationship scores and tells you when one changes.
+[`Relationships`](#reference) reads the player's relationship scores. It also tells your mod when a score changes.
 
 ## Reference
 
@@ -18,7 +20,7 @@ Scores run from -100 to 100.
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Relationships</code> <span>scores and change event</span></p>
 
-Use `GetDisposition` or `All()` to read the scores, `Has` to check whether the player has one, and `RelationshipChanged` to hear when a score changes.
+`GetDisposition` and `All()` read the scores. `Has` checks whether the player has a relationship. `RelationshipChanged` tells you when a score changes.
 
 <div class="api-pair" markdown="1">
 
@@ -36,16 +38,16 @@ public static class Relationships
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<RelationshipValue>` | Every relationship the framework tracks. |
-| `GetDisposition(id)` | `float` | The score, or `0` if the player does not have it. |
-| `Has(id)` | `bool` | It is `true` when the player has it. |
+| `GetDisposition(id)` | `float` | The score. `0` if the player does not have it. |
+| `Has(id)` | `bool` | `true` when the player has it. |
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | It is `false` when the change event is off. |
+| `IsAvailable` | `bool` | `false` when the change event is off. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `RelationshipChanged` | `RelationshipChange` | It fires when the game's daily check changes a score. |
+| `RelationshipChanged` | `RelationshipChange` | When the game's daily check changes a score. |
 
 </div>
 </div>
@@ -53,7 +55,7 @@ public static class Relationships
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelationshipValue</code> <span>one relationship</span></p>
 
-`Relationships.All()` gives you one of these for each relationship the framework tracks. `Disposition` is the score now, and `Target` is the score it moves toward.
+`Relationships.All()` gives you one of these for each relationship the framework tracks. `Disposition` is the score now. `Target` is the score it moves toward.
 
 <div class="api-pair" markdown="1">
 
@@ -74,7 +76,7 @@ public sealed class RelationshipValue
 | `Name` | `string` | The name the game shows the player. |
 | `Disposition` | `float` | The current score. |
 | `Target` | `float` | The score it moves toward. |
-| `Enabled` | `bool` | It is `true` when the player has it. |
+| `Enabled` | `bool` | `true` when the player has it. |
 
 </div>
 </div>
@@ -82,7 +84,7 @@ public sealed class RelationshipValue
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RelationshipChange</code> <span>a score change</span></p>
 
-`Relationships.RelationshipChanged` hands you one of these when the game's daily check changes a score. `Previous` and `Current` are the scores before and after.
+`Relationships.RelationshipChanged` hands you one of these when the game's daily check changes a score. `Previous` is the score before, and `Current` the score after.
 
 <div class="api-pair" markdown="1">
 
@@ -108,7 +110,7 @@ public sealed class RelationshipChange
 
 ### Putting it together
 
-Logs any relationship that drops below zero.
+This mod [logs](../guides/getting-started/logging.md) any relationship that drops below zero.
 
 <div class="api-example" markdown="1">
 
@@ -146,20 +148,22 @@ public sealed class MoodWatch : FrameworkMod
 
 </div>
 
+[`Events.WhenReady`](core-helpers/events-whenready.md) runs its code once a save is loaded.
+
 ### Things to know
 
 - `RelationshipChanged` does not fire on add, remove or save load.
 
 ### Limits
 
-- Scores are per player, not per NPC.
+- Scores are per player, not per [NPC](npcs.md).
 - You can't set scores or targets, because the framework has nothing safe to call.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
 
-Relationships use feature group `obenseuer.moddingframework.npcs.relationship`.
+Relationships use the [feature group](../glossary.md#feature-group) (a named set of framework changes) `obenseuer.moddingframework.npcs.relationship`.
 
 ### When you can call it
 

@@ -7,17 +7,19 @@ nav_order: 2
 
 # Finding doors
 
+How to list the doors in the [scene](../../glossary.md#scene) (one loaded area of the game), look one up by id and read its state. Every other door call takes the id you get here.
+
 This page uses `Vector3`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of what the API gives you.
+This is the full list of what the API gives you for finding doors.
 
 Every door is addressed by an id. `Doors.All()` and `Doors.Get(id)` give you a `DoorInfo`, a snapshot of one door taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Doors</code> <span>finds doors and reads their state</span></p>
 
-Call `All()` or `Get(id)` to read doors, and `IsOpen(id)` when you only need the open flag.
+Call `All()` or `Get(id)` to read doors. Call `IsOpen(id)` when you only need the open flag.
 
 <div class="api-pair" markdown="1">
 
@@ -39,7 +41,7 @@ public static class Doors
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `true` when the `Opened` and `Closed` events work (see Details). |
+| `IsAvailable` | `bool` | `true` when the [`Opened` and `Closed`](door-events.md) events work (see [Details](details.md)). |
 
 </div>
 </div>
@@ -67,9 +69,9 @@ public sealed class DoorInfo
 |---|---|---|
 | `Id` | `string` | The door's id. Use it with the other calls. |
 | `Name` | `string` | The name of the door's object in the scene. |
-| `IsOpen` | `bool` | `true` when the door was open when you asked. |
+| `IsOpen` | `bool` | `true` when the door was open at the moment you asked. |
 | `Moving` | `bool` | `true` when the door is swinging or sliding. |
-| `Position` | `Vector3` | Where the door's object is, in world coordinates, when you asked. |
+| `Position` | `Vector3` | Where the door's object was, in world coordinates, at the moment you asked. |
 | `StandPosition` | `Vector3?` | Where NPCs wait for the door. `null` when there is no such spot. |
 
 </div>
@@ -77,7 +79,7 @@ public sealed class DoorInfo
 
 ## Things to know
 
-- The id is the door's own save id. A door that has none uses a path through the scene instead. The path is the scene name plus the door's place in the scene, so it still works as an id. It changes if someone edits the scene. <span class="tech">(The id is the door's `GUID` field. A door with an empty `GUID` uses the scene name plus the child path.)</span>
+- The id is the door's own save id. A door that has none uses a path through the [scene](../../glossary.md#scene) instead. The path is the scene name plus the door's place in the scene, so it still works as an id. It changes if someone edits the scene. <span class="tech">(The id is the door's `GUID` field. A door with an empty `GUID` uses the scene name plus the child path.)</span>
 - `All()` lists the doors in the scene you are in, including the ones with no save id. A door that is switched off is left out. <span class="tech">(It uses `FindObjectsByType<Door>`, which skips inactive objects. Elevator car doors and floor doors are `Door` objects too, so they are in the list and they raise `Opened` and `Closed` when the elevator moves them.)</span>
 - Two doors can share an id, and then you get the first one. Ids are only unique inside one scene, not between scenes.
 - `Get` gives `null` and `IsOpen` gives `false` for an id the game does not know.

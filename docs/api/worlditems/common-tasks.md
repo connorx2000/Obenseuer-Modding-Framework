@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short code recipes for [`WorldItems`](events.md): watching item uses, finding and removing one world item, and changing how long new items last.
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -16,7 +18,7 @@ Log each time the player uses a held item.
 WorldItems.Used += args => Log.Info("Used item " + args.ItemId);
 ```
 
-Find the world item under a game object, look it up again later, and remove it.
+Find the world item under a game object and take its [id](../../glossary.md#object-id) (a piece of text that names it). Then look the item up again by that id, and remove it. [World item ids](world-item-ids.md) explains the ids.
 
 ```csharp
 GameObject target = GameObject.Find("Some Item");
@@ -28,7 +30,7 @@ if (id != null)
 }
 ```
 
-Make new items last 30 minutes on average, and set it again after every load because the game does not keep it.
+Make new items last 30 minutes on average. Set it again after every load, because the game does not keep it. [Expiry default](expiry-default.md) has the rules for this timer.
 
 ```csharp
 Events.SceneLoaded += scene => WorldItems.SetExpiryOverride(Mod.Id, 30);

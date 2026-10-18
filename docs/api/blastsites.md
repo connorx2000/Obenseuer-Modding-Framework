@@ -7,9 +7,11 @@ nav_order: 1
 
 # Blast sites
 
+`BlastSites` lists the blast sites (spots that take dynamite) in the scene you are in, and tells you when one goes off. Use it to react when the player blows a site up, or to check which sites have already blown.
+
 ## What it is
 
-A blast site is a spot in the game that takes dynamite. The player places dynamite on it, then sets it off with the detonator. Some blast sites are linked in a group, and all of them need dynamite before any of them will go off. This API lets your mod list the blast sites in the scene you are in, read whether each one has dynamite or has already blown, and get told when one goes off. It only reads. It cannot place dynamite or set a site off.
+A blast site is a spot in the game that takes dynamite. The player places dynamite on it, then sets it off with the detonator. Some blast sites are linked in a group. All of them need dynamite before any of them will go off. This API lets your mod list the blast sites in the [scene](../glossary.md#scene) you are in. It reads whether each one has dynamite or has already blown, and tells you when one goes off. It only reads. It cannot place dynamite or set a site off.
 
 ## When to use it
 
@@ -19,7 +21,7 @@ A blast site is a spot in the game that takes dynamite. The player places dynami
 
 ## Quick example
 
-This mod writes a log line each time a blast site goes off. Once a save is loaded, it also logs how many blast sites are in the scene and how many of them have dynamite on them.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a blast site goes off. Once a save is loaded, it also logs how many blast sites are in the scene and how many of them have dynamite on them.
 
 ```csharp
 using ObenseuerCore;
@@ -42,7 +44,7 @@ public sealed class BlastWatch : FrameworkMod
 }
 ```
 
-`Detonated` is an event: the framework calls your code each time it happens. `WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
+`Detonated` is an event: the framework calls your code each time it happens. [`WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
 
 ## Common tasks
 
@@ -75,7 +77,7 @@ The game calls the part you place dynamite on a cone, so the names below say "co
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlastSites</code> <span>list blast sites and listen for them going off</span></p>
 
-Use `All` or `Get` to find blast sites, and listen to `Detonated` for the id of each one that goes off. `IsAvailable` is `false` when that event could not be set up.
+`All` and `Get` find blast sites. `Detonated` gives you the id of each one that goes off. `IsAvailable` is `false` when that event could not be set up.
 
 <div class="api-pair" markdown="1">
 
@@ -91,7 +93,7 @@ public static class BlastSites
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<BlastSiteInfo>` | Every blast site in the scene you are in. |
+| `All()` | `List<BlastSiteInfo>` | Every blast site in the [scene](../glossary.md#scene) you are in. |
 | `Get(id)` | `BlastSiteInfo` | The blast site with this id. `null` when there is none. |
 
 | Property | Type | What it means |
@@ -108,7 +110,7 @@ public static class BlastSites
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BlastSiteInfo</code> <span>a snapshot of one blast site</span></p>
 
-`All` and `Get` give you one of these for each site. `DynamitePlaced` and `Detonated` say where the site is in the blast, and the `Linked` counts describe its group.
+`All` and `Get` give you one of these for each site. `DynamitePlaced` and `Detonated` say where the site is in the blast. The `Linked` counts describe its group.
 
 <div class="api-pair" markdown="1">
 
@@ -136,9 +138,9 @@ public sealed class BlastSiteInfo
 
 ### Things to know
 
-- `All()` and `Get()` only see blast sites that are switched on in the scene you are in. A site that the game has switched off, or one in a scene that is not loaded, is not in the list, and `Get` returns null for it. When no save is loaded, `All()` returns an empty list. <span class="tech">(Both use `FindObjectsByType` on `InteractableDynamiteCone`, which skips inactive objects and other scenes.)</span>
+- `All()` and `Get()` only see blast sites that are switched on in the scene you are in. A site that the game has switched off, or one in a scene that is not loaded, is not in the list. `Get` returns null for it. When no save is loaded, `All()` returns an empty list. <span class="tech">(Both use `FindObjectsByType` on `InteractableDynamiteCone`, which skips inactive objects and other scenes.)</span>
 - `Get()` returns null for an empty or unknown id. It never throws.
-- `Id` is a name that identifies one blast site. It normally stays the same every time the game runs. A site the game has no unique id for gets an id made from its place in the scene, and that id changes when the scene changes, so do not save it. <span class="tech">(The id is the cone's `GUID` field, else the unique id of the world object it sits on, else a scene path.)</span>
+- `Id` is a name that identifies one blast site. It normally stays the same every time the game runs. A site the game has no unique id for gets an id made from its place in the scene. That id changes when the scene changes, so do not save it. <span class="tech">(The id is the cone's `GUID` field, else the unique id of the world object it sits on, else a scene path.)</span>
 - `DynamitePlaced` is `false` once a site has gone off, and `Detonated` is `true`. So a site that blew is no longer "placed". A site the player has not touched has both set to `false`.
 - `LinkedCount` and `LinkedPlaced` describe the whole group, not only this site. A site that is not linked to anything counts as a group of one. <span class="tech">(They follow the game's own `CountLinkedCones`, and the site counts itself even when the game's list does not hold it. The framework reads the list without writing to it.)</span>
 - `Detonated` fires once for each site that goes from "dynamite placed" to "gone off". A group of N linked sites fires N times, once for each site's id. The linked sites fire first and the site the player pressed fires last.
@@ -156,10 +158,16 @@ Everything not listed in this reference is internal and may change without notic
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call at any time, even on the main menu or while a save is loading. If there is nothing to read yet, you get an empty list or null.
 - Your `Detonated` handler runs inside the game's own call. If your handler throws an error, the framework logs it and the game carries on.
-- Reading blast sites from inside a handler is safe, but the group is still going off: the site the player pressed still reads as having dynamite until its own event fires. Use a timer if you need the final state of the whole group.
+- Reading blast sites from inside a handler is safe, but the group is still going off. The site the player pressed still reads as having dynamite until its own event fires. Use a timer if you need the final state of the whole group.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when dynamite goes off. If a game update breaks that change, only the `Detonated` event turns off, and the framework writes error lines and a warning to the log. `All()` and `Get()` keep working. Its feature group is `obenseuer.moddingframework.blastsites`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
+The framework changes some of the game's methods when it starts, so it can tell your mod when dynamite goes off. If a game update breaks that change, only the `Detonated` event turns off. The framework writes error lines and a warning to the log. `All()` and `Get()` keep working. Its [feature group](../glossary.md#feature-group) is `obenseuer.moddingframework.blastsites`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
 
 - `BlastSites.IsAvailable` is `false` when the `Detonated` event is switched off. <span class="tech">(It is true only when the `Detonate` method was changed and the private `linkedCones` field was found.)</span>
+
+**Common problems**
+
+- `Detonated` never fires: check `BlastSites.IsAvailable`. When it is `false`, the event is switched off and the log has a warning. `All()` and `Get()` keep working.
+- `Detonated` does not fire when the player presses the detonator: one linked site has no dynamite, so the game refuses to set any of them off. Compare `LinkedPlaced` with `LinkedCount`.
+- Inside a `Detonated` handler, the pressed site still reads as having dynamite: the group is still going off. Use a timer to read the final state.

@@ -6,23 +6,27 @@ nav_order: 4
 
 # Building UI
 
-This guide covers the four ways a mod can put something on the player's screen: an HTML panel in its own window, a settings page in the Mods menu, an app on the in-game computer, and notices and screen effects. The last section builds a small info panel. It is an HTML window that shows the player's balance and a press count, and it sends each button press back to the mod.
+This guide covers the four ways a mod can put something on the player's screen: an HTML panel in its own window, a settings page in the Mods menu, an app on the in-game computer, and notices and screen effects. The last section builds a small info panel: an HTML window that shows the player's balance and a press count, and sends each button press back to the mod.
 
-You can read the four routes in any order. Each one starts from the project in the next section.
+The four routes can be read in any order. Each one starts from the project in the next section.
 
 ## What you need
 
-- Obenseuer 0.5.08 with the framework installed (see the [install page](../install.md)), and BepInEx 5.4.23 or later (Mono) or BepInEx 6 Unity.Mono.
+- Obenseuer 0.5.08 with the [framework](../glossary.md#framework) installed (see the [install page](../install.md)). [BepInEx](../glossary.md#bepinex) (the game's mod loader) 5.4.23 or later (Mono), or BepInEx 6 Unity.Mono.
 - The .NET 10 SDK, to build your mod with `dotnet build`.
-- For HTML panels, the WebView2 Runtime. This is the component that shows web pages inside a program. Windows 10 and 11 have it already. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
-- For HTML panels, the framework's optional WebUi module, which is installed with the framework (see [install](../install.md#optional-webui)).
+- For HTML panels, the [WebView2](../glossary.md#webview2) Runtime. It is the component that shows web pages inside a program. Windows 10 and 11 have it already. If it is missing, `WebUi.Open` returns `null` and `WebUi.IsAvailable` becomes `false`.
+- For HTML panels, the framework's optional [WebUi](../glossary.md#webui) module (mod pages in HTML and CSS). It is installed from its own WebUi zip (see [install](../install.md#optional-webui)).
 
 ## Set up the project
 
-The mods in this guide are BepInEx plugins, because they use `Update` and BepInEx's settings. A framework mod, like the one in [Your first mod](getting-started/first-mod.md), does not have these.
+The mods in this guide are BepInEx [plugins](../glossary.md#plugin), because they use `Update` and BepInEx's settings. A [framework mod](../api/framework-mods.md), like the one in [Your first mod](getting-started/first-mod.md), does not have these.
 
 1. Do the steps in [Your first mod](getting-started/first-mod.md) up to the point where it builds. That gives you a folder with `MyFirstMod.csproj`, `Plugin.cs` and `Directory.Build.props`.
-2. Open the `.csproj`. In the `<ItemGroup>` that holds the other `<Reference>` lines, add these. They give your code the BepInEx plugin base class, the framework's WebUi module, the game's classic UI classes (used by the `ModUi` snippets) and Unity's keyboard input (used by `Input.GetKeyDown`):
+2. Open the `.csproj`. In the `<ItemGroup>` that holds the other `<Reference>` lines, add the references below. They give your code:
+   - the BepInEx plugin base class
+   - the framework's WebUi module
+   - the game's classic UI classes, used by the `ModUi` snippets
+   - Unity's keyboard input, used by `Input.GetKeyDown`
 
 ```xml
 <Reference Include="BepInEx.Core">
@@ -51,19 +55,23 @@ The mods in this guide are BepInEx plugins, because they use `Update` and BepInE
 </Reference>
 ```
 
-3. Your plugin needs the framework and, for HTML panels, WebUi to start first. Put these two lines above your plugin class:
+3. Your plugin needs the framework to start first, and for HTML panels WebUi too. Put these two lines above your plugin class:
 
 ```csharp
 [BepInDependency("obenseuer.moddingframework", ">=0.11.0")]
 [BepInDependency("obenseuer.moddingframework.webui", ">=0.11.0")]
 ```
 
-- **On BepInEx 5, change two things.** Write `"0.11.0"` instead of `">=0.11.0"`, because BepInEx 5 cannot read a version range, and remove `using BepInEx.Unity.Mono;`, because `BaseUnityPlugin` then comes from `BepInEx`. The WebUi file is `ObenseuerCore.WebUi.BepInEx5.dll` on BepInEx 5. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
+- **On BepInEx 5, change two things.** Write `"0.11.0"` instead of `">=0.11.0"`, because BepInEx 5 cannot read a version range. Remove `using BepInEx.Unity.Mono;`, because `BaseUnityPlugin` then comes from `BepInEx`. The WebUi file on BepInEx 5 is `ObenseuerCore.WebUi.BepInEx5.dll`. See [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
 - **The `using` lines each snippet needs:** `System.IO`, `System.Reflection`, `BepInEx`, `BepInEx.Configuration`, `BepInEx.Unity.Mono`, `BepInEx.Unity.Mono.Configuration`, `ObenseuerCore`, `ObenseuerCore.Ui` and `UnityEngine`. `KeyboardShortcut` needs `BepInEx.Unity.Mono.Configuration`. On BepInEx 5, leave out the two `BepInEx.Unity.Mono` lines, or wrap them in `#if BEPINEX6` and `#endif`, as shown in [Supporting BepInEx 5 too](getting-started/packaging.md#supporting-bepinex-5-too).
-- **You can use newer C# than the framework.** The framework is built as C# 5, but your project uses the latest version.
+- **Newer C# works in your project.** The framework is built as C# 5, but your project uses the latest version.
 - **`UnityEngine.UIModule.dll` is not needed.**
 
+The project is set up. Next, pick a route from the table below.
+
 ## Pick a route
+
+Each route has its own numbered section on this page.
 
 | You want | Use | Section |
 |---|---|---|
@@ -74,7 +82,7 @@ The mods in this guide are BepInEx plugins, because they use `Update` and BepInE
 
 ## 1. HTML panels with WebUi
 
-A view is a window that shows a web page from your mod's `web` folder. The page is ordinary HTML, CSS and JavaScript. The framework gives that folder an address of the form `<modid>.obx`, for example `example-infopanel.obx`. The page is served from there and from nowhere else, apart from the framework's shared files.
+A view is a window that shows a web page from your mod's `web` folder. [WebUi](../api/webui.md) opens it. The page is ordinary HTML, CSS and JavaScript. The framework gives that folder an address of the form `<modid>.obx`, for example `example-infopanel.obx`. The page is served only from there and from the framework's shared files.
 
 ### Step 1: ship the web folder
 
@@ -100,13 +108,13 @@ bin\web\panel.css
 bin\web\app.js
 ```
 
-To install, copy `bin\InfoPanel.dll` and the `bin\web\` folder into `BepInEx\plugins\InfoPanel\`, so the `web` folder sits next to the DLL.
+To install, copy `bin\InfoPanel.dll` and the `bin\web\` folder into `BepInEx\plugins\InfoPanel\`. The `web` folder must sit next to the DLL.
 
 **Pass the page as a relative path, such as `index.html`.** `WebUi.Open` returns `null` for a path that starts with `/` or `\`, or that contains `:`, `\`, `%` or `..`.
 
 ### Step 2: open the view
 
-`WebUi.Open` makes the window and gives you a `WebView` to talk to it. This is the code for the plugin's `Update` or a key handler. The last argument says whether the view is modal, which means it takes over the game: the player's controls are locked and the mouse cursor is shown.
+[`WebUi.Open`](../api/webui/the-webui-class.md) makes the window and gives you a [`WebView`](../api/webui/the-webview-class.md) to talk to it. Put this code in the plugin's `Update` or in a key handler. The last argument says whether the view is [modal](../glossary.md#modal-view). A modal view takes over the game: the player's controls are locked and the mouse cursor is shown.
 
 ```csharp
 string folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "web");   // the web folder next to your DLL
@@ -119,16 +127,21 @@ if (view == null)
 view.Message += OnMessage;   // be told when the page sends a message
 ```
 
-**`ModId` must be 1 to 64 characters of letters, digits, `.`, `_` or `-`.** A bad id throws `ArgumentException`. Call `Open` from your mod's normal code (for example `Update`), not from a background thread you started.
+**`ModId` must be 1 to 64 characters of letters, digits, `.`, `_` or `-`.** A bad id throws `ArgumentException`. Call `Open` from your mod's normal code on the [main thread](../glossary.md#main-thread) (for example `Update`), not from a background thread you started.
 
 **Pass `false` for the last argument if the window should open anyway.** A non-modal view skips the check for a busy game.
 
 `Open` returns `null` when:
 
-- **`modal` is `true` and the game is busy.** That covers a menu, shop or dialogue open, the developer console open, the pause menu active, the main menu showing, or the player's controls already switched off by another modal view or by computer use.
+- **`modal` is `true` and the game is busy.** Busy means one of these:
+  - a menu, shop or dialogue is open
+  - the developer console is open
+  - the pause menu is active
+  - the main menu is showing
+  - the player's controls are already switched off by another modal view or by computer use
 - **`folder` does not exist, or `page` is not a relative path.**
 - **The game window does not have focus.** The log says the window opens once the game has focus.
-- **The framework's web page helper is missing or failed to start.** See "If WebView2 is missing" below.
+- **The framework's web page helper is missing or failed to start.** The section If WebView2 is missing, below, covers this case.
   - Technical: the helper is the WebView2 helper, `ObxWebView.dll` in the WebUi folder.
 
 ### Step 3: link the shared theme
@@ -143,7 +156,7 @@ The framework serves two shared style files at `https://obx-core.obx/`. They mak
 - **`obx-theme.css` gives you colours, spacing, text sizes and ready-made parts.** The parts are the classes `.obx-brand`, `.obx-btn` (with `primary`, `danger`, `ghost`, `sm` or `block`), `.obx-card`, `.obx-label`, `.obx-value`, `.obx-table`, `.obx-input`, `.obx-tabs`, `.obx-tab`, `.obx-badge` and `.obx-seg`.
 - **`obx-base.css` is optional.** It sets `box-sizing`, a see-through full-height body with no scrolling and no text selection, and the `[hidden]` rule.
 
-These are the values you will use most, with their light-theme values:
+The table lists the tokens you will use most, with their light-theme values:
 
 | Token | Light value | Use |
 |---|---|---|
@@ -181,7 +194,7 @@ private void OnMessage(string json)   // json is the text the page sent
 }
 ```
 
-- **The handler gets the text, not separate fields.** Read it yourself, and treat it as untrusted input. `UnityEngine.JsonUtility.FromJson<T>` reads it into a `[Serializable]` class, and needs a reference to `UnityEngine.JSONSerializeModule.dll`. The `json.Contains(...)` check in the example is fine for a demo, not for real data.
+- **The handler gets the text, not separate fields.** Read it yourself, and treat it as untrusted input. `UnityEngine.JsonUtility.FromJson<T>` reads it into a `[Serializable]` class. It needs a reference to `UnityEngine.JSONSerializeModule.dll`. The `json.Contains(...)` check in the example is fine for a demo, not for real data.
 - **A message longer than 16384 characters is dropped.**
 - **A message whose `type` starts with `obx.` is dropped.** Those names belong to the framework.
 - **A message with no `type`, or one that is not a JSON object, reaches your handler as raw text.**
@@ -218,12 +231,12 @@ view.MapFolder("frames", Path.Combine(folder, "frames"));   // name, folder on d
 ```
 
 - **Files from the extra address can be shown, but pages there cannot send messages to your mod.**
-- **Your page's security policy must name the extra address.** The policy rule `'self'` only covers the view's own address. See "Security" below.
+- **Your page's security policy must name the extra address.** The policy rule `'self'` only covers the view's own address. The Security section, below, has the policy.
 
 ### Step 7: hide, close and Escape
 
 - **`view.Show()` and `view.Hide()` toggle the view.** `view.Close()` destroys it. A closed view stays closed, and `Open` makes a new one.
-- **Escape hides a visible view when `view.EscapeHides` is `true`, which is the default.** With no `KeyPressed` handler, that is any visible view. With a handler, your handler runs first, and the framework then hides only a modal view. Set `view.EscapeHides = false` to handle Escape yourself, then call `Hide` or `Close`.
+- **Escape hides a visible view when `view.EscapeHides` is `true`, which is the default.** With no `KeyPressed` handler, that is any visible view. With a handler, your handler runs first, and the framework then hides only a modal view. To handle Escape yourself, set `view.EscapeHides = false`, then call `Hide` or `Close`.
 - **`view.KeyPressed` tells you about two keys.** It is a public `Action<int>` event. The framework raises it with the key code of Escape (27) or F10 (121), when the key is pressed in the focused view. No other key reaches it, so F9 does not while the panel has focus.
 - **A scene load hides modal views.** That is a plain `Hide`, so `Dismissed` does not run.
 - **`view.Dismissed` runs after the framework hides the view because the player pressed Escape.** It does not run when your mod calls `Hide`.
@@ -249,7 +262,7 @@ With this policy, keep your scripts and styles in their own files, not inside th
 
 ### If WebView2 is missing
 
-`WebUi.IsAvailable` becomes `false` when the framework's page helper is missing or WebView2 fails to start. `WebUi.LastError` says why. After `Open` returns `null`, check both. If WebUi is not available, build the same panel as a classic game-style window with `ModWindow` and `ModUi`:
+`WebUi.IsAvailable` becomes `false` when the framework's page helper is missing or WebView2 fails to start. `WebUi.LastError` says why. After `Open` returns `null`, check both. If WebUi is not available, build the same panel as a classic game-style window with [`ModWindow`](../api/ui/windows.md) and [`ModUi`](../api/ui/controls.md):
 
 ```csharp
 if (view == null && !WebUi.IsAvailable)
@@ -264,7 +277,7 @@ if (view == null && !WebUi.IsAvailable)
 }
 ```
 
-**Before the first `Open`, `IsAvailable` is still `true` if the helper file is there.** Only the `Open` call shows whether the runtime is installed.
+**Before the first `Open`, `IsAvailable` is still `true` if the helper file is there.** Only the `Open` call shows whether the runtime is installed. If WebUi stays unavailable, follow [WebUi is unavailable](../faq.md#webui-is-unavailable) in the FAQ.
 
 ### Common mistakes
 
@@ -279,7 +292,7 @@ if (view == null && !WebUi.IsAvailable)
 
 ## 2. Settings pages in the Mods menu
 
-The Mods menu opens from the Mods tab in the pause menu, and from the MODS button on the main menu. Every loaded plugin that has settings the player can see gets a settings page there. Custom pages made with `ModMenu.AddPage` are listed next to them.
+The Mods menu opens from the Mods tab in the pause menu, and from the MODS button on the main menu. Every loaded plugin that has settings the player can see gets a settings page there. Custom pages made with [`ModMenu.AddPage`](../api-core/modmenu.md) are listed next to them.
 
 ### Step 1: bind config entries
 
@@ -298,7 +311,7 @@ private void Awake()   // runs once when the game starts
 }
 ```
 
-The kind of row depends on the type of the entry:
+The type of the entry sets the kind of row:
 
 | Entry type | Row |
 |---|---|
@@ -313,7 +326,7 @@ Most rows save at once. Sliders save 0.25 seconds after the last change, and aga
 
 ### Step 2: add a custom page
 
-Use `ModMenu.AddPage` when the page needs more than rows of settings. The framework calls your function when the page is opened, and gives it the page's content area. You fill it with controls from `ModUi`. Put this in `Awake`, after the entries above:
+Use `ModMenu.AddPage` when the page needs more than rows of settings. The framework calls your function when the page is opened, and gives it the page's content area. Fill that area with controls from [`ModUi`](../api/ui/controls.md). Put this in `Awake`, after the entries above:
 
 ```csharp
 ModMenu.AddPage("example.settingsdemo", "Settings demo", content =>   // mod id, page title, function that builds the page
@@ -335,7 +348,7 @@ ModMenu.AddPage("example.settingsdemo", "Settings demo", content =>   // mod id,
 
 - **Expecting the Mods menu to change the game's own options.** It edits your config. The game's display and quality options are read only (see [settings](../api/settings.md)).
 - **A `ModUi` function that throws closes the Mods window.** It closes with the reason `Fault`. Keep the functions short, and do the work in your mod.
-- **Expecting a page for a plugin with no visible config entries.** It gets no settings page.
+- **Expecting a page for a plugin with no visible config entries.** It gets no settings page. If your settings do not show at all, see [my settings do not show in the Mods menu](../faq.md#my-settings-do-not-show-in-the-mods-menu).
 
 ## 3. Apps on the in-game computer
 
@@ -348,7 +361,7 @@ ComputerApps.Register("example.notesapp", "notes", "Notes", null, host => Build(
 ```
 
 - **`appId` must not be empty and must not contain `/`.** Registering a second app with the same id returns `false` and writes a warning that names both mods. The first one stays.
-- **`Register` returns `false` when `ComputerApps.IsAvailable` is `false`,** because the desk changes are then not installed.
+- **[`Register`](../api-core/computerapps.md) returns `false` when `ComputerApps.IsAvailable` is `false`,** because the desk changes are then not installed.
 - **`icon` may be `null`.** The title is then drawn on the icon.
 - **The `open` function receives the host.** If it throws, the error goes to your mod's log and the host is hidden.
 
@@ -370,7 +383,11 @@ private void Build(RectTransform host)
 
 ### Step 3: an HTML app on the monitor
 
-A `WebView` can follow the monitor the player is using. This code opens it the first time a monitor is used, pins it to the screen each time the player starts using a computer, and hides it when they stop:
+A [`WebView`](../api/webui/the-webview-class.md) can follow the monitor the player is using. This code does three things:
+
+- It opens the view the first time a monitor is used.
+- It pins the view to the screen each time the player starts using a computer.
+- It hides the view when the player stops.
 
 ```csharp
 string folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "web");   // your web folder
@@ -410,7 +427,7 @@ ComputerApps.AddInteraction(board, "example.notesapp", "Whiteboard", "Read", () 
 
 ## 4. HUD and screen effects
 
-The HUD is what the game shows over the picture: notices, subtitles and hints. `ScreenFx` is shaking and fading the screen. Put calls like these in an event handler or a key press.
+The HUD is what the game shows over the picture: notices, subtitles and hints. [`ScreenFx`](../api/screen-fx.md) shakes and fades the screen. Put calls like these in an event handler or a key press.
 
 ```csharp
 Hud.Notify("Example notice");                                           // a notice box
@@ -422,9 +439,9 @@ ScreenFx.FadeToBlack(0.1f);                                             // fade 
 ScreenFx.FadeIn(0.1f);                                                  // fade back in
 ```
 
-- **`Hud.Notify(text)` shows the game's notice box with the type line `Notice`.** `Hud.Notify(title, body)` shows the same box with your own title line.
+- **[`Hud.Notify(text)`](../api/hud/hud.md) shows the game's notice box with the type line `Notice`.** `Hud.Notify(title, body)` shows the same box with your own title line.
 - **`Hud.ShowSubtitle(text, fadeSeconds)` types the text on screen, then fades it out.** It types 20 characters per second, then fades over `fadeSeconds`.
-- **`Hud.ShowHint(modId, title, lines)` shows one hint per mod id.** Each line is a paragraph. The hint appears in the game's hint box, the one the card game rules use, so the player can switch it with the Hints key (K by default). `Hud.HideHint(modId)` removes it.
+- **`Hud.ShowHint(modId, title, lines)` shows one hint per [mod id](../glossary.md#mod-id).** Each line is a paragraph. The hint appears in the game's hint box, the one the card game rules use. The player can switch it with the Hints key (K by default), see [my hint does not show](../faq.md#my-hint-does-not-show). `Hud.HideHint(modId)` removes it.
 - **`Hud.ShowNote(noteId)` opens a note the player already has.** It cannot show text of your own.
 - **`ScreenFx.Shake(duration, amount)` shakes the camera.** A new shake replaces the one in progress.
 - **`ScreenFx.FadeToBlack(speed)` leaves the screen black until `ScreenFx.FadeIn` runs.** Call both.
@@ -444,7 +461,7 @@ ScreenFx.FadeIn(0.1f);                                                  // fade 
 
 ## The finished mod: info panel
 
-The info panel opens with F9. It shows the player's balance and a press count. The page asks for the state when it loads, and each button press goes back to the mod, which updates the count and sends the state again.
+The info panel opens with F9. It shows the player's balance and a press count. The page asks for the state when it loads. Each button press goes back to the mod, which updates the count and sends the state again.
 
 Make this folder, with the files below in it. `InfoPanel.cs` takes the place of `Plugin.cs` in your project. Add the `CopyWeb` block from Section 1, Step 1 to your `.csproj`.
 
@@ -575,7 +592,23 @@ host.addEventListener("message", (e) => {
 host.postMessage({ type: "hello" });
 ```
 
-Build with `dotnet build -c Release`. Copy `InfoPanel.dll` and the `web` folder from the build output into `BepInEx\plugins\InfoPanel\`, as in Section 1, Step 1. Run the game and load a save. Press F9 to open the panel, press the button and watch the count change. Press Escape to hide it, then F9 to show it again. If it does not open, read `BepInEx\LogOutput.log` for the line that starts `InfoPanel: the view did not open`.
+### Build and test the panel
+
+1. Build with `dotnet build -c Release`.
+2. Copy `InfoPanel.dll` and the `web` folder from the build output into `BepInEx\plugins\InfoPanel\`, as in Section 1, Step 1.
+3. Run the game and load a save.
+4. Press F9 to open the panel. Press the button and watch the count change.
+5. Press Escape to hide the panel, then F9 to show it again.
+
+The info panel is working. The links under Where to go next lead to the full references.
+
+### Common problems
+
+- The panel does not open: read `BepInEx\LogOutput.log` for the line that starts `InfoPanel: the view did not open`. The rest of that line is `WebUi.LastError`, which says why. The cases in which `Open` returns `null` are listed in Section 1, under Step 2 and under Common mistakes.
+- WebUi is not available: follow [WebUi is unavailable](../faq.md#webui-is-unavailable). Install the WebUi zip into the game folder, check that the WebView2 Runtime is installed, and read `BepInEx\logs\obenseuer.moddingframework.webui.log`. WebUi works on Windows only.
+- The panel opens without the shared styles: the security policy needs `https://obx-core.obx` in `style-src`.
+- The build says it could not find the game, BepInEx or the framework: the message names the missing piece. Finish the [install](../install.md), start the game once, then build again.
+- The mod does not load at all: follow [my mod does not load](../faq.md#my-mod-does-not-load).
 
 ## Where to go next
 

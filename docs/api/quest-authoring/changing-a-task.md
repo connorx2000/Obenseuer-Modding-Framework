@@ -7,12 +7,12 @@ nav_order: 4
 
 # Changing a task
 
-These calls change a task your mod made.
+These calls change a task your mod made with [`Create`](making-a-task.md). Use them while the task is running, to add or change steps and to end it.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestAuthoring</code> <span>changing a running task</span></p>
 
-Use these calls to add a step to a running task, change a step or its counter, or end the task.
+These calls add a step to a running task, change a step or its counter, or end the task.
 
 <div class="api-pair" markdown="1">
 
@@ -40,8 +40,8 @@ public static class QuestAuthoring
 
 ## Things to know
 
-- `AddObjective` adds an active step to a running task of yours. It returns `false` when the key is already used in that task or the task already has 12 objectives.
-- `SetObjective` accepts `Failed`, `Finished` and `Abandoned` for an active objective. It works the same as `Quests.SetObjective`.
+- `AddObjective` adds an active step to a running task of yours. It returns `false` when the key is already used in that task, or the task already has 12 objectives.
+- `SetObjective` accepts `Failed`, `Finished` and `Abandoned` for an active objective. It works the same as [`Quests.SetObjective`](../../api-story/quests-experimental.md).
 - A step with a `Target` above 0 has a counter. When the counter reaches the target, the game finishes the step. `SetCounter` sets the counter to an exact number from 0 to the target. For a change by a relative amount, use `Quests.AddProgress`.
 - `SetCounter` returns `true` when the counter changed. A number outside 0 to the target is refused. Setting the target finishes the objective.
 - `Finish` and `Fail` need a task that is still active. The game marks every step that is still active as abandoned.
@@ -49,4 +49,4 @@ public static class QuestAuthoring
 
 ## Limits
 
-- Every change returns `false` when it is refused. That is for another mod's task or a game task, during a save or a load, and when quest authoring is switched off.
+- Every change returns `false` when it is refused. That happens for another mod's task or a game task, during a save or a load, and when quest authoring is switched off.

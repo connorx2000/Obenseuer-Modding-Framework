@@ -7,12 +7,12 @@ nav_order: 4
 
 # Localization
 
-`Localization` reads the language the game is set to, and finds the game's own text in that language.
+`Localization` reads the language the game is set to, and finds the game's own text in that language. Use it when your mod should show text in the language the player picked.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Localization</code> <span>reads the language and text</span></p>
 
-This is the class to start from. `Language()` gives the language the game is set to, and `Localize` finds the game's text for a key in that language.
+This is the class to start from. `Language()` gives the language the game is set to. `Localize` finds the game's text for a key in that language.
 
 <div class="api-pair" markdown="1">
 
@@ -37,8 +37,8 @@ public static class Localization
 ## Things to know
 
 - `Language()` gives the name of the language the player picked, for example `English`. <span class="tech">(it reads `LocalizationSettings.SelectedLocale.LocaleName`)</span>
-- `Localize(key)` gives the game's text for a key, in the player's language. A key is the name the game uses for a piece of text. It looks in the `Menu` table, which is the only table the game itself reads.
-- `Localize(table, key)` looks in any other table of text.
+- `Localize(key)` gives the game's text for a key, in the player's language. A key is the name the game uses for a piece of text.
+- `Localize(key)` looks in the `Menu` table, which is the only table the game itself reads. `Localize(table, key)` looks in any other table of text.
 - The framework finds the Unity localization code only when it runs. It does not need a reference to it to build. <span class="tech">(the class reaches `UnityEngine.Localization` through reflection)</span>
 
 ## Limits

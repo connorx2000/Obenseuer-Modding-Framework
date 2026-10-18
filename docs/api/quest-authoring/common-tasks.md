@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short examples for changing a task your mod made with [`QuestAuthoring`](changing-a-task.md). Each one uses the task id for the key `lost_key` of the mod `example.questy`.
+
 Count progress on an objective, then finish the task. The counter of `search` reaches its target of 3, which finishes that objective:
 
 ```csharp

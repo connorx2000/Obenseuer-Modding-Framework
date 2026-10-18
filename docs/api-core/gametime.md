@@ -7,7 +7,9 @@ nav_order: 6
 
 # GameTime
 
-`GameTime` reads the game's own clock: which day it is, the day of the week, the hour and the minute. It only reads. To change the date or the time of day, see [World](../api/world.md). To make the clock run faster or slower, see [Time control](../api/timecontrol.md).
+`GameTime` reads the game's own clock: the day, the day of the week, the hour and the minute. Use it when your code needs to know the in-game time.
+
+It only reads. To change the date or the time of day, see [World](../api/world.md). To make the clock run faster or slower, see [Time control](../api/timecontrol.md).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameTime</code> <span>the game's clock, read only</span></p>
@@ -42,7 +44,7 @@ public static class GameTime
 
 ## Putting it together
 
-Logs the day when the clock reaches 9:00 and the game is not paused.
+This plugin logs the day when the clock reaches 9:00 and the game is not paused.
 
 <div class="api-example" markdown="1">
 
@@ -73,5 +75,5 @@ public class NineOClock : BaseUnityPlugin
 
 ## Things to know
 
-- Before a save is loaded, the day and time read as `0`, and `IsDaytime` reads as `false`. The clock does not exist on the main menu. <span class="tech">(`Day` reads `dayCounter` and `IsDaytime` calls the game's `IsItDay()`, both on `TimeOfDayAzure.instance`. With no instance they return `0` and `false`.)</span>
+- Before a [save](../guides/getting-started/save-data.md) is loaded, the day and time read as `0`, and `IsDaytime` reads as `false`. The clock does not exist on the main menu. <span class="tech">(`Day` reads `dayCounter` and `IsDaytime` calls the game's `IsItDay()`, both on `TimeOfDayAzure.instance`. With no instance they return `0` and `false`.)</span>
 - `IsPaused` is true when the game stops its clock, not only when the pause menu is open. Anything that sets the game's time scale to 0 pauses it. <span class="tech">(It is `Time.timeScale == 0`.)</span>

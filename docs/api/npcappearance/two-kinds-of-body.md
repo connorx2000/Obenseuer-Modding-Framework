@@ -7,12 +7,12 @@ nav_order: 3
 
 # Two kinds of body
 
-The game gives each character one of two kinds of body, and `ShapeKind` tells you which. It is read while the game runs.
+The game gives each character one of two kinds of body, and `ShapeKind` tells you which. The kind is read while the game runs.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAppearance</code> <span>body kind call</span></p>
 
-Call `ShapeKind(npcId)` first to see which kind of body the character has, since the look and shape calls depend on it.
+Call `ShapeKind(npcId)` first to see which kind of body the character has. The look and shape calls depend on it.
 
 <div class="api-pair" markdown="1">
 
@@ -25,7 +25,7 @@ public static partial class NpcAppearance
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ShapeKind(npcId)` | `NpcShapeKind` | Which kind of body this character has. |
+| `ShapeKind(npcId)` | `NpcShapeKind` | The kind of body this character has. |
 
 </div>
 </div>
@@ -33,7 +33,7 @@ public static partial class NpcAppearance
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcShapeKind</code> <span>what kind of body a character has</span></p>
 
-`ShapeKind(npcId)` gives you one of these. `None` means the character is not in the loaded scene, or has neither kind of body.
+`ShapeKind(npcId)` gives you one of these. `None` means the character is not in the loaded [scene](../../glossary.md#scene), or has neither kind of body.
 
 <div class="api-pair" markdown="1">
 
@@ -59,3 +59,4 @@ public enum NpcShapeKind
 
 - A character built from sliders can only be told apart once the game has built its body. A change made in the very first frame of a scene can be refused, so make your changes after the scene has settled. <span class="tech">(`Sliders` needs an active `Appearance` component that `PlayerLook.IsReady` accepts. `BlendShapes` needs an active `CharacterAppearance` component.)</span>
 - With `None`, the look and shape calls give empty answers or `false`.
+- [Looks of slider characters](looks-of-slider-characters.md) covers the slider calls. [Blend shapes](blend-shapes.md) covers the blend shape calls.

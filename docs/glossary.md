@@ -5,9 +5,11 @@ nav_order: 10
 
 # Glossary
 
+Short definitions of the terms the docs use, for when a page uses a word you do not know. Most entries link to the page that covers the term in depth. The entries at the end explain the Unity types that appear in some signatures.
+
 ## Framework
 
-The Obenseuer Modding Framework, the DLL that mods use, in a BepInEx 6 and a BepInEx 5 build. The DLL name also shows in some code names, such as `CoreLog` and `CorePatcher`, and in the log file `ObenseuerCore.log`.
+The Obenseuer Modding Framework, the DLL that mods use. It comes in a BepInEx 6 and a BepInEx 5 build. The DLL name also shows in some code names, such as `CoreLog` and `CorePatcher`, and in the log file `ObenseuerCore.log`.
 
 ## BepInEx
 
@@ -15,15 +17,15 @@ The mod loader for Unity games. It loads plugins from `BepInEx\plugins\`. The fr
 
 ## Harmony
 
-A library that changes methods while the game runs, called patching. BepInEx ships it. The framework uses it inside `CorePatcher`. Mods should patch through `CorePatcher`, not with Harmony directly. See [Patching](guides/getting-started/patching.md).
+A library that changes methods while the game runs. This is called patching. BepInEx ships it. The framework uses it inside `CorePatcher`. Mods should patch through `CorePatcher`, not with Harmony directly. See [Patching](guides/getting-started/patching.md).
 
 ## Plugin
 
-A BepInEx mod. It is a class that derives from `BaseUnityPlugin` and has a `[BepInPlugin]` attribute. Each plugin has its own folder under `BepInEx\plugins\`. The framework also has [framework mods](api/framework-mods.md), a simpler form for new mods: one DLL with no BepInEx reference, which runs on BepInEx 5 and 6.
+A BepInEx mod. It is a class that derives from `BaseUnityPlugin` and has a `[BepInPlugin]` attribute. Each plugin has its own folder under `BepInEx\plugins\`. The framework also has [framework mods](api/framework-mods.md), a simpler form for new mods. A framework mod is one DLL with no BepInEx reference, and it runs on BepInEx 5 and 6.
 
 ## GUID
 
-The unique id of a plugin. It is the first value in `[BepInPlugin]`. The framework's GUID is `obenseuer.moddingframework`. Pick your own GUID, and do not use one that starts with `obenseuer.moddingframework` or `nomad.obenseuer.core`. Both prefixes are reserved for the framework. A plugin GUID is not the id the framework gives an object in a scene; see [Object id](#object-id).
+The unique id of a plugin. It is the first value in `[BepInPlugin]`. The framework's GUID is `obenseuer.moddingframework`. Pick your own GUID. Do not use one that starts with `obenseuer.moddingframework` or `nomad.obenseuer.core`. Both prefixes are reserved for the framework. A plugin GUID is not the id the framework gives an object in a scene; see [Object id](#object-id).
 
 ## Publicizer
 
@@ -31,7 +33,7 @@ A tool that makes some private game members public at build time, so the framewo
 
 ## Mod id
 
-The id your mod uses for its config file, its log file, its save data and its keybinds, such as `example.hello`. It is usually the same as your plugin's GUID.
+The id your mod uses for its config file, its log file, its [save data](guides/getting-started/save-data.md) and its keybinds, such as `example.hello`. It is usually the same as your plugin's GUID.
 
 ## WebUi
 
@@ -43,11 +45,11 @@ A crafting blueprint for a piece of mod furniture, with its inputs, craft time a
 
 ## Flatpack
 
-The packed form of a piece of mod furniture, given as the game's Furniture Flatpack item. See [Furniture](api/furniture/blueprints-and-flatpacks.md#blueprints-and-flatpacks).
+The packed form of a piece of mod furniture. It is given as the game's Furniture Flatpack item. See [Furniture](api/furniture/blueprints-and-flatpacks.md#blueprints-and-flatpacks).
 
 ## Owner
 
-The mod id a mod passes to a call that holds a change for it, such as a speed factor or a camera hold. Each owner keeps its own claim, so two mods do not overwrite each other. An owner is not a [feature group](#feature-group). See [Using the framework alongside other mods](guides/multiple-mods.md).
+The mod id a mod passes to a call that holds a change for it, such as a speed factor or a camera hold. Each owner keeps its own [claim](#claim), so two mods do not overwrite each other. An owner is not a [feature group](#feature-group). See [Using the framework alongside other mods](guides/multiple-mods.md).
 
 ## Player shop
 
@@ -63,23 +65,23 @@ Real Money, the game's second currency (`MoneyCurrency.RM`). It is counted in te
 
 ## Main thread
 
-The one thread the game and Unity use to run the game. Your mod's normal code, such as `OnLoad` and your event handlers, runs on it. A background thread you start yourself is not the main thread, and it must not call the game or the framework.
+The one thread the game and Unity use to run the game. Your mod's normal code, such as `OnLoad` and your event handlers, runs on it. A background thread you start yourself is not the main thread. It must not call the game or the framework.
 
 ## Feature group
 
-A named set of the framework's changes to the game for one feature, such as `obenseuer.moddingframework.npcs`. If one change in the group fails to install, the framework writes a "patch failed on" error line, removes all of that group's changes, turns the group off, and writes a second error line, "core patch failed, all patches from ...". Both lines go to `BepInEx\logs\<feature group>.log`, and the rest of the framework keeps working. A feature group is not an [Owner](#owner).
+A named set of the framework's changes to the game for one feature, such as `obenseuer.moddingframework.npcs`. If one change in the group fails to install, the framework writes a "patch failed on" error line. It then removes all of that group's changes and turns the group off. It writes a second error line, "core patch failed, all patches from ...". Both lines go to `BepInEx\logs\<feature group>.log`. The rest of the framework keeps working. A feature group is not an [Owner](#owner).
 
 ## Interceptor
 
-A handler your mod adds to run before the game acts, which can stop the game from acting. `Survival.Consumables.Intercept` runs before an item is used, and `Dialogue.Intercept` runs before a conversation starts. The handler gets an args object, and setting `args.Cancel = true` skips the action. See [Survival](api-core/survival.md#survival) and [Story](api-story.md).
+A handler your mod adds to run before the game acts. It can stop the game from acting. `Survival.Consumables.Intercept` runs before an item is used, and `Dialogue.Intercept` runs before a conversation starts. The handler gets an args object. Setting `args.Cancel = true` skips the action. See [Survival](api-core/survival.md#survival) and [Story](api-story.md).
 
 ## Modal view
 
-A WebUi page opened with `WebUi.Open(..., modal)` set to `true`. While it is showing, the page takes over the game's controls and the cursor is shown, so the player cannot move or look around. A view that is not modal leaves the controls alone. See [WebUi](api/webui.md).
+A WebUi page opened with `WebUi.Open(..., modal)` set to `true`. While it is showing, the page takes over the game's controls and the cursor is shown. The player cannot move or look around. A view that is not modal leaves the controls alone. See [WebUi](api/webui.md).
 
 ## WebView2
 
-The Microsoft Edge component that draws a WebUi page. The framework talks to it through a small native library, the WebUi shim `ObxWebView.dll`, which sits next to `ObenseuerCore.WebUi.dll`. If the shim is missing or cannot start, `WebUi.IsAvailable` is `false`. See [WebUi](api/webui.md).
+The Microsoft Edge component that draws a WebUi page. The framework talks to it through a small native library, the WebUi shim `ObxWebView.dll`. The shim sits next to `ObenseuerCore.WebUi.dll`. If the shim is missing or cannot start, `WebUi.IsAvailable` is `false`. See [WebUi](api/webui.md).
 
 ## Relay
 
@@ -95,15 +97,15 @@ A named spawn point in a level. The game uses entrypoints when the player change
 
 ## Claim
 
-What your mod holds on an NPC when it takes the NPC over, for example so the NPC stands still while your mod runs a scene. Each mod has its own claim, and the NPC goes back to normal once no mod holds it any more. See [NPC control](api/npc-control.md) and [NPC movement](api/npc-movement.md).
+What your mod holds on an NPC when it takes the NPC over. One use is to keep the NPC standing still while your mod runs a scene. Each mod has its own claim. The NPC goes back to normal once no mod holds it any more. See [NPC control](api/npc-control.md) and [NPC movement](api/npc-movement.md).
 
 ## Object id
 
-The text the framework uses to name one object in the world, also called a scene id. It is the object's own `GUID` field if it has one, then its save id if it can be saved, and otherwise its path in the scene. A path id changes when objects next to it in the scene are added, removed or moved. Not the same as a plugin [GUID](#guid).
+The text the framework uses to name one object in the world, also called a scene id. It is the object's own `GUID` field if it has one. Otherwise it is the object's save id if it can be saved, and otherwise its path in the scene. A path id changes when objects next to it in the scene are added, removed or moved. Not the same as a plugin [GUID](#guid).
 
 ## Savable object
 
-A game object the game's own save system can store, which has a `GUID`. `SaveData.Capture` reads its saved state as text, and `Apply` writes it back. See [Game save data](api/savedata-game.md).
+A game object the game's own save system can store. It has a `GUID`. `SaveData.Capture` reads its saved state as text, and `Apply` writes it back. See [Game save data](api/savedata-game.md).
 
 ## Building area
 
@@ -119,7 +121,7 @@ A new person your mod adds to the game. The framework builds it as a copy of a p
 
 ## Lobby
 
-A group of players connected to each other through Steam, which mods can host or join. Every player in it needs the same mods. See [Networking](api/net.md).
+A group of players connected to each other through Steam. Mods can host or join one. Every player in it needs the same mods. See [Networking](api/net.md).
 
 ## Peer
 
@@ -131,15 +133,15 @@ The number that names one Steam account. The framework uses it as the id of a pl
 
 ## Lua
 
-The small scripting language the game's dialogue system uses. A dialogue line can have a Lua condition, which decides whether the line is offered, and a Lua script, which runs when the line is reached. See [Dialogue authoring](api/dialogue-authoring.md).
+The small scripting language the game's dialogue system uses. A dialogue line can have a Lua condition, which decides whether the line is offered. It can also have a Lua script, which runs when the line is reached. See [Dialogue authoring](api/dialogue-authoring.md).
 
 ## Template
 
-An existing game item, recipe or piece of furniture that a new mod item is copied from. The copy starts with the template's look and behaviour, and your mod then changes what it needs. Furniture names its template with `TemplatePath`. See [Registry](api/registry.md) and [Furniture](api/furniture.md).
+An existing game item, recipe or piece of furniture that a new mod item is copied from. The copy starts with the template's look and behaviour. Your mod then changes what it needs. Furniture names its template with `TemplatePath`. See [Registry](api/registry.md) and [Furniture](api/furniture.md).
 
 ## Types that come from Unity
 
-Some calls take or return a type the framework did not invent. They belong to Unity, the engine Obenseuer is built on, so they behave the same way they do in any Unity game. You do not need to learn Unity to use the framework, but here is what each one is when you meet it in a signature.
+Some calls take or return a type the framework did not invent. These types belong to Unity, the engine Obenseuer is built on. They behave the same way they do in any Unity game. You do not need to learn Unity to use the framework. The entries below say what each type is when you meet it in a signature.
 
 ## KeyCode
 
@@ -151,11 +153,11 @@ A point or a direction in the world, as three numbers: x across, y up, z forward
 
 ## Quaternion
 
-A rotation. You rarely build one by hand: use `Quaternion.identity` for no rotation, or `Quaternion.Euler(0f, 90f, 0f)` to turn 90 degrees around the up axis. Full reference: [UnityEngine.Quaternion](https://docs.unity3d.com/ScriptReference/Quaternion.html).
+A rotation. You rarely build one by hand. Use `Quaternion.identity` for no rotation, or `Quaternion.Euler(0f, 90f, 0f)` to turn 90 degrees around the up axis. Full reference: [UnityEngine.Quaternion](https://docs.unity3d.com/ScriptReference/Quaternion.html).
 
 ## GameObject
 
-One thing in the scene: an item, a door, an NPC, a light. Everything the player can see is a `GameObject`, and each one carries components that give it behaviour. Full reference: [UnityEngine.GameObject](https://docs.unity3d.com/ScriptReference/GameObject.html).
+One thing in the scene: an item, a door, an NPC, a light. Everything the player can see is a `GameObject`. Each one carries components that give it behaviour. Full reference: [UnityEngine.GameObject](https://docs.unity3d.com/ScriptReference/GameObject.html).
 
 ## Transform
 
@@ -167,7 +169,7 @@ A piece of behaviour attached to a `GameObject`, such as a collider, a light or 
 
 ## Color
 
-A colour as four numbers from 0 to 1: red, green, blue and alpha, where alpha is how solid it is. `Color.white`, or `new Color(1f, 0f, 0f, 1f)` for solid red. Full reference: [UnityEngine.Color](https://docs.unity3d.com/ScriptReference/Color.html).
+A colour as four numbers from 0 to 1: red, green, blue and alpha. Alpha is how solid it is. `Color.white`, or `new Color(1f, 0f, 0f, 1f)` for solid red. Full reference: [UnityEngine.Color](https://docs.unity3d.com/ScriptReference/Color.html).
 
 ## Sprite and Texture2D
 
@@ -183,7 +185,7 @@ The shape of a model: its points and the triangles between them. `ModelHandle.Cr
 
 ## Scene
 
-One loaded area of the game, such as an apartment interior or the sewer. Scenes have names, and the framework uses those names in its scene events and in world placement. Full reference: [UnityEngine.SceneManagement.Scene](https://docs.unity3d.com/ScriptReference/SceneManagement.Scene.html).
+One loaded area of the game, such as an apartment interior or the sewer. Scenes have names. The framework uses those names in its scene events and in world placement. Full reference: [UnityEngine.SceneManagement.Scene](https://docs.unity3d.com/ScriptReference/SceneManagement.Scene.html).
 
 ## Action and Action&lt;T&gt;
 

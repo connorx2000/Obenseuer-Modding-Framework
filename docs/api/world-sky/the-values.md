@@ -7,7 +7,7 @@ nav_order: 3
 
 # The values
 
-`SkyOverride` is what you hand to `Set`. Every property is nullable: a property you leave `null` is not changed by your mod. `SkyState` is what you get from `Current`. It has the same names, and every value is read only.
+`SkyOverride` is what you hand to `Set`. Every property is nullable: a property you leave `null` is not changed by your mod. `SkyState` is what you get from `Current`, with the same names, and every value is read only.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkyOverride</code> <span>the values your mod wants to change</span></p>
@@ -55,7 +55,7 @@ public sealed class SkyOverride
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkyState</code> <span>what the sky looks like now</span></p>
-[`WorldSky.Current`](setting-and-clearing.md) gives you one of these, which is the sky as it looks at that moment.
+[`WorldSky.Current`](setting-and-clearing.md) gives you one of these: the sky as it looks at that moment.
 
 <div class="api-pair" markdown="1">
 
@@ -99,9 +99,9 @@ public sealed class SkyState
 
 ## Things to know
 
-- The fog and ambient values in `SkyState` always have a value. The others are `null` when the scene does not contain the object that holds them. A scene can use a different mix of sky systems than another, so a value you can read in one scene may be `null` in the next. <span class="tech">(the game's scenes use `SunDirection`, the Azure sky controllers, or both. A property whose object is missing is skipped, and `Current` reports it as `null`.)</span>
+- The fog and ambient values in `SkyState` always have a value. The others are `null` when the [scene](../../glossary.md#scene) does not contain the object that holds them. One scene can use a different mix of sky systems than another. So a value you can read in one scene may be `null` in the next. <span class="tech">(the game's scenes use `SunDirection`, the Azure sky controllers, or both. A property whose object is missing is skipped, and `Current` reports it as `null`.)</span>
 - `AmbientColor` sets every kind of ambient light to the same colour. <span class="tech">(flat, sky, equator and ground ambient colours all get the value.)</span>
-- `SkyboxExposure` changes the sky's brightness whichever way the scene draws its sky. It sets the `_Exposure` property of the current skybox material when it has one, and the exposure of the Azure sky controller when one is in the scene.
+- `SkyboxExposure` changes the sky's brightness whichever way the scene draws its sky. It sets the `_Exposure` property of the current skybox material when it has one. It also sets the exposure of the Azure sky controller when one is in the scene.
 - `SunColor` and `SunIntensity` change every sun light the sky systems drive. In the game the sun and the moon share one light, so this changes the moonlight too.
 
 ## Limits

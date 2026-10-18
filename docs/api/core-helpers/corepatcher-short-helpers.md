@@ -7,7 +7,7 @@ nav_order: 3
 
 # CorePatcher short helpers
 
-A prefix runs your method before the game method, a postfix runs it after, and a finalizer runs it when the game method throws an error. These helpers set one of those up in one line. The `owner` is your mod id (see [Owner](../../glossary.md#owner)).
+A prefix runs your method before the game method, and a postfix runs it after. A finalizer runs it when the game method throws an error. These helpers set one of those up in one line. The `owner` is your mod id (see [Owner](../../glossary.md#owner)).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CorePatcher</code> <span>one-line prefix, postfix and finalizer helpers</span></p>
@@ -43,13 +43,18 @@ public static class CorePatcher
 ### Things to know
 
 - The result is `true` when the change was made and `false` when it was not. It is `false` when it failed, and the reason goes to `<owner>.log`, or when the owner has been turned off. <span class="tech">(Each helper calls `CorePatcher.Patch` with only the one handler it names filled in and its `core` argument set to `false`, and the result is the `bool` that `Patch` returns.)</span>
-- The handler can keep its Harmony settings. `[HarmonyPriority]`, `[HarmonyBefore]` and `[HarmonyAfter]` on your method still apply, the same as with `Patch`. See [Harmony](../../glossary.md#harmony).
+- The handler can keep its [Harmony](../../glossary.md#harmony) settings (Harmony is the patching library). `[HarmonyPriority]`, `[HarmonyBefore]` and `[HarmonyAfter]` on your method still apply, the same as with `Patch`.
 
 ### Limits
 
 - `handlerName` is the name of a static method on `handlerType`, and it may be private. If there is no such method, you get a `MissingMethodException`.
 - Use an owner that is not reserved. A reserved owner throws an `ArgumentException`. The rules for the owner are the rules of `CorePatcher.Patch`, described on the [framework core page](../../api-core/corepatcher.md#corepatcher).
-- Without `args`, the name must match exactly one method on the target. The method may be public or private, and an instance method or a static one. A name that is missing, or that has several versions, returns `false` and writes one line to the owner's log. For a method with several versions, use the version with `Type[] args`.
+- Without `args`, the name must match exactly one method on the target. The method may be public or private, an instance method or a static one. A name that is missing, or that has several versions, returns `false` and writes one line to the owner's [log](../../guides/getting-started/logging.md). For a method with several versions, use the version with `Type[] args`.
+
+**Common problems**
+
+- The helper returns `false`: the change failed and the reason is in `<owner>.log`, or the owner has been turned off. One failure is a method name that is missing on the target or has several versions. For several versions, use the version with `Type[] args` to name the one you mean.
+- `MissingMethodException`: there is no static method called `handlerName` on `handlerType`. The method may be private, but it must be static.
 
 ### Example
 

@@ -7,7 +7,7 @@ nav_order: 3
 
 # Events
 
-Amounts are in OC. All events fire from your mod's normal code, inside the game's own call. If one of your handlers throws an error, the framework logs it and still runs the others.
+This page lists the five casino events, what each one hands you, and the rules behind them. Amounts are in OC (see the [glossary](../../glossary.md#oc)). All events fire from your mod's normal code, inside the game's own call. If one of your handlers throws an error, the framework writes it to the [log](../../guides/getting-started/logging.md) and still runs the others.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Casino</code> <span>the casino events and their totals</span></p>
@@ -49,7 +49,7 @@ public static class Casino
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CasinoPlayedArgs</code> <span>what Played tells you</span></p>
 
-`Played` hands you this when a paid round starts. `Machine` says which machine, and `Stake` is the stake for the round in OC.
+`Played` hands you this when a paid round starts. `Machine` says which machine, as a [`CasinoMachineInfo`](the-machines.md). `Stake` is the stake for the round in OC.
 
 <div class="api-pair" markdown="1">
 
@@ -145,7 +145,7 @@ public sealed class CasinoDoubledArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScratchcardArgs</code> <span>what Scratched tells you</span></p>
 
-`Scratched` hands you this each time a scratchcard is used, win or not. `Prize` is what the game paid, and `Won` is `true` when it is above 0.
+`Scratched` hands you this each time a scratchcard is used, win or not. `Prize` is what the game paid, and `Won` is `true` when it is above 0. A prize can be in RM (Real Money, see the [glossary](../../glossary.md#rm)) instead of OC.
 
 <div class="api-pair" markdown="1">
 
@@ -198,4 +198,4 @@ public sealed class ScratchcardArgs
 - `Scratched.Prize` is worked out from the gambling totals. The framework reads how much the game says the player has won before and after the card is used. Any other change made to that total during the use is counted as part of the prize. <span class="tech">(The payout is read from the gambling tally `OCWon` before and after `Use`. Only another mod's change can make that total move during the use.)</span>
 - `LastPayout` is the payout of the last `Won` event since the game started. It is `0` before the first win and is not saved. It stays up to date even when nobody listens to `Won`.
 - `IsAvailable` is `false` when a needed event could not be set up. A missing part stops only its own events, and the reads are not affected.
-- `LastPayout` only changes for a win whose part is set up. If only the doubling change is missing, only `Doubled` stops. See "If something fails to set up" below.
+- `LastPayout` only changes for a win whose part is set up. If only the doubling change is missing, only `Doubled` stops. See "If something fails to set up" on the [Details](details.md#if-something-fails-to-set-up) page.

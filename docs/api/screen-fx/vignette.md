@@ -7,12 +7,12 @@ nav_order: 7
 
 # Vignette
 
-A vignette darkens the edges of the screen with a colour. Each mod has its own vignette.
+A vignette darkens the edges of the screen with a colour. Each mod has its own vignette, held under its [owner](../../glossary.md#owner) (the mod id that holds a change).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>darken the screen edges</span></p>
 
-`ScreenFx.Vignette` darkens the screen edges with a colour, and `ClearVignette(owner)` removes your mod's vignette.
+`ScreenFx.Vignette` darkens the screen edges with a colour. `ClearVignette(owner)` removes your mod's vignette.
 
 <div class="api-pair" markdown="1">
 
@@ -26,20 +26,20 @@ public static bool ClearVignette(string owner);
 |---|---|---|
 | `Vignette(owner, color, strength)` | `bool` | Darkens the screen edges with a colour. |
 | `Vignette(owner, color, strength, fadeSeconds)` | `bool` | The same, changing over `fadeSeconds` seconds. |
-| `ClearVignette(owner)` | `bool` | Removes your vignette. It returns `true` when it removed one and `false` when your mod had none. It always runs. |
+| `ClearVignette(owner)` | `bool` | Removes your vignette. `true` when it removed one, `false` when your mod had none. It always runs. |
 
 </div>
 </div>
 
 ## Things to know
 
-- It is drawn over the game's picture. It does not change the game's own vignette, its picture settings or its camera. <span class="tech">(It is a screen-space canvas with its own object, kept across scenes, that does not block input. It draws over the 3D picture and under the game's own overlay canvases, such as the HUD, menus and the black fade. The framework's computer app overlay and mod windows draw above it. A game canvas in Screen Space Camera or World Space mode draws under the vignette whatever its sort order. It does not read or write the game's post-process settings.)</span>
-- `color` is the tint, and its alpha makes it more or less see-through.
-- `strength` goes from 0 to 1 and changes two things at once. It sets how far the darkening reaches in from the edges, and how dark it is at the very edge. So a strength of 0.5 looks much weaker than half of a strength of 1. A strength of 0 shows nothing but keeps your entry.
-- `fadeSeconds` makes the vignette change gradually. It moves from what is on the screen now to the new colour and strength over that many seconds, and keeps going while the game is paused. `0` is the same as the version without it. A new change during a fade starts from what is on the screen, so it does not jump.
+- The vignette is drawn over the game's picture. It does not change the game's own vignette, its picture settings or its camera. <span class="tech">(It is a screen-space canvas with its own object, kept across scenes, that does not block input. It draws over the 3D picture and under the game's own overlay canvases, such as the HUD, menus and the black fade. The framework's computer app overlay and mod windows draw above it. A game canvas in Screen Space Camera or World Space mode draws under the vignette whatever its sort order. It does not read or write the game's post-process settings.)</span>
+- `color` is the tint. Its alpha makes the tint more or less see-through.
+- `strength` goes from 0 to 1 and changes two things at once: how far the darkening reaches in from the edges, and how dark it is at the very edge. So a strength of 0.5 looks much weaker than half of a strength of 1. A strength of 0 shows nothing but keeps your entry.
+- `fadeSeconds` makes the vignette change gradually. It moves from what is on the screen now to the new colour and strength over that many seconds. It keeps going while the game is paused. `0` is the same as the version without it. A new change during a fade starts from what is on the screen, so it does not jump.
 - Each mod has one vignette, and the one set last is shown. When that mod clears its vignette, the one set before it shows again, with the values it had.
-- Setting a vignette works during a save, and does not depend on the field of view override. It keeps working when `IsAvailable` is `false`.
-- A normal level load removes every vignette, and loading extra scenes in the background keeps them. Nothing is saved. <span class="tech">(A Single scene load removes every entry. An additive load keeps them.)</span>
+- Setting a vignette works during a save. It does not depend on the field of view override, and keeps working when `IsAvailable` is `false`.
+- A normal level load removes every vignette. Loading extra [scenes](../../glossary.md#scene) in the background keeps them. Nothing is saved. <span class="tech">(A Single scene load removes every entry. An additive load keeps them.)</span>
 
 ## Limits
 

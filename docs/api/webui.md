@@ -8,6 +8,8 @@ nav_order: 6
 
 # Web UI
 
+The [WebUi](../glossary.md#webui) module lets your mod show its own HTML page inside the game and swap messages with it. Use it when your mod needs a screen of its own built as a web page.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,21 +17,23 @@ Status: experimental.
 
 ## What it is
 
-WebUi lets your mod show a web page, written in HTML, CSS and JavaScript, inside the game. The page is shown in a view that the framework hosts with WebView2, which is the web browser part that Windows already has. Your mod opens the view with `WebUi.Open`, and then the mod and the page talk to each other by sending messages. This page is the reference for the `WebUi` and `WebView` classes. For a step-by-step walkthrough, start with the [UI guide](../guides/ui.md). If you would rather build the screen from game-style controls in C#, see the [Ui page](ui.md).
+WebUi shows a web page, written in HTML, CSS and JavaScript, inside the game. The framework hosts the page in a view drawn by [WebView2](../glossary.md#webview2) (the browser part Windows already has). Your mod opens the view with `WebUi.Open`. Then the mod and the page talk to each other by sending messages.
+
+This page is the reference for the [`WebUi`](webui/the-webui-class.md) and [`WebView`](webui/the-webview-class.md) classes. For a step-by-step walkthrough, start with the [UI guide](../guides/ui.md). To build the screen from game-style controls in C# instead, see the [Ui page](ui.md).
 
 ## When to use it
 
 - Show a screen that is easier to write as a web page than as C# controls, such as a shop, a form or a menu.
 - Send numbers from your mod to a page, and get button presses back.
 - Put a page on a computer monitor in the game while the player uses the computer.
-- Show a live website inside your page, for example the game's wiki, in a frame.
+- Show a live website, for example the game's wiki, in a frame inside your page.
 - Make your page follow the light or dark look the player chose.
 
 ## Quick example
 
-This mod shows a page when you press F9, and hides it when you press F9 again. The page has a button. When you press the button, the page sends a message to your mod, and your mod sends an answer back.
+This mod shows a page when you press F9, and hides it when you press F9 again. The page has a button. Pressing it sends a message to your mod, and your mod sends an answer back.
 
-Your project is a BepInEx plugin. It needs references to `ObenseuerCore.dll` and `ObenseuerCore.WebUi.dll`, and your build must copy the `web` folder next to your DLL. The [UI guide](../guides/ui.md) shows the project set-up step by step. Put this C# in your plugin.
+Your project is a [BepInEx](../glossary.md#bepinex) plugin (a mod that BepInEx loads). It needs references to `ObenseuerCore.dll` and `ObenseuerCore.WebUi.dll`. Your build must copy the `web` folder next to your DLL. The [UI guide](../guides/ui.md) shows the project set-up step by step. Put this C# in your plugin.
 
 ```csharp
 using System.IO;
@@ -106,4 +110,4 @@ Put this page in a file `web\index.html` next to your project file.
 </html>
 ```
 
-`modal` is `true` here, so the view takes over the player's controls while it is shown. `Message` is an event: the framework calls your code each time the page sends a message. The page sends one with `chrome.webview.postMessage`, and your mod sends one back with `Post`.
+`modal` is `true` here, so this is a [modal view](../glossary.md#modal-view): it takes over the player's controls while it is shown. `Message` is an event: the framework calls your code each time the page sends a message. The page sends one with `chrome.webview.postMessage`, and your mod sends one back with `Post`.

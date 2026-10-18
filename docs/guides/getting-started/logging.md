@@ -6,11 +6,18 @@ nav_order: 2
 
 # Logging
 
-A log is a text file where your mod writes notes about what it is doing. When something goes wrong, the log is the first place to look. Every framework mod gets its own log through `Log`, with no setup.
+A log is a text file where your mod writes notes about what it is doing. When something goes wrong, the log is the first place to look. Every [framework mod](../../api/framework-mods.md) gets its own log through `Log`, with no setup.
 
-This page adds logging calls to the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below, then run `dotnet build -c Release -p:DeployToGame=true` with the game closed, start the game and load a save.
+## The example
 
-Each call writes one line at a different level: `Info` for normal news, `Warn` for something odd that still works, `Error` for something that failed, and `Debug` for detail you only want while testing. `Core.GameBuild` is the game's version and build id.
+This page adds logging calls to the project from [Your first mod](first-mod.md). Replace the code in `Plugin.cs` with the code below. Each call writes one line at a different level:
+
+- `Info` for normal news.
+- `Warn` for something odd that still works.
+- `Error` for something that failed.
+- `Debug` for detail you only want while testing.
+
+[`Core.GameBuild`](../../api-core/plugin.md) is the game's version and build id.
 
 ```csharp
 using ObenseuerCore;
@@ -33,14 +40,22 @@ public class ExampleHello : FrameworkMod
 }
 ```
 
-After the game starts, open `BepInEx\logs\example.hello.log` in the game folder. You see one line for each call, except `Debug`.
+Then build and check the result:
 
-- **Your log file is named after your mod id.** `Log` writes to `BepInEx\logs\<mod id>.log`, so the log above is `example.hello.log`. The file starts empty each time the game starts.
-- **`Info` and `Warn` write one line each.** `Error` also writes one line, but the same error is written at most once every 10 seconds, and at most 20 error lines are written in any 10 second stretch.
+1. Close the game and run `dotnet build -c Release -p:DeployToGame=true` in your mod folder.
+2. Start the game and load a save.
+3. Open `BepInEx\logs\example.hello.log` in the game folder. There is one line for each call, except `Debug`.
+
+The log is written. Next, what each line means, and why one is missing.
+
+## Things to know
+
+- **Your log file is named after your [mod id](../../glossary.md#mod-id).** `Log` writes to `BepInEx\logs\<mod id>.log`, so the log above is `example.hello.log`. The file starts empty each time the game starts.
+- **`Info` and `Warn` write one line each.** `Error` also writes one line, but with limits: the same error is written at most once every 10 seconds, and at most 20 error lines are written in any 10 second stretch.
   - Technical: each log writes at most 100 lines a second. Lines over a limit are counted, and a `WARN` line reports the count later. While the master trace switch on the [Debug page](../../api/debug.md) is on, the error limits are off and the trace log allows 1000 lines a second.
-- **`Debug(key, message)` is off by default.** It writes only when `Verbose` is `true` under `[Debug]` in `BepInEx\config\obenseuer.moddingframework.cfg`. It writes only when the message for that key changes, so you can call it every frame without filling the file.
+- **`Debug(key, message)` is off by default.** It writes only when `Verbose` is `true` under `[Debug]` in `BepInEx\config\obenseuer.moddingframework.cfg`. It also writes only when the message for that key changes, so you can call it every frame without filling the file.
 - **Log the game build once.** `Core.GameBuild` is the game version and build id, so a bug report shows which build it came from.
-- **Use `Log`, not `Logger.LogInfo`.** `Logger.LogInfo` is a [BepInEx](../../glossary.md#bepinex) call that writes to `BepInEx\LogOutput.log`. It only exists in a BepInEx plugin, see [Packaging](packaging.md#bepinex-plugins-advanced).
+- **Use `Log`, not `Logger.LogInfo`.** `Logger.LogInfo` is a [BepInEx](../../glossary.md#bepinex) call that writes to `BepInEx\LogOutput.log`. It only exists in a BepInEx [plugin](../../glossary.md#plugin), see [Packaging](packaging.md#bepinex-plugins-advanced).
 
 ## Where to go next
 

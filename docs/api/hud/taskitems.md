@@ -7,12 +7,12 @@ nav_order: 7
 
 # TaskItems
 
-A task item is a quest item the player carries, such as a key or a recipe. `TaskItems` lists what the player holds, adds and removes them, and tells you when a count changes. It covers only the counts of these items. The quest list and its goals are on the [Quests](../quest-authoring.md) page.
+A task item is a quest item the player carries, such as a key or a recipe. `TaskItems` lists what the player holds, adds and removes items, and tells you when a count changes. It covers only the counts of these items. The quest list and its goals are on the [Quests](../quest-authoring.md) page.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TaskItems</code> <span>the task items the player holds</span></p>
 
-This is the class you start from. `All()`, `Has` and `Amount` read what the player holds, `Add` and `Remove` change it, and `Changed` tells you when a count moves.
+This is the class you start from. `All()`, `Has` and `Amount` read what the player holds. `Add` and `Remove` change it. `Changed` tells you when a count moves.
 
 <div class="api-pair" markdown="1">
 
@@ -32,7 +32,7 @@ public static class TaskItems
 |---|---|---|
 | `All()` | `List<TaskItemCount>` | Every task item the player holds. |
 | `Has(id)` | `bool` | `true` when the player holds this item. |
-| `Amount(id)` | `int` | How many the player holds. `0` for none or an unknown id. |
+| `Amount(id)` | `int` | How many the player holds. `0` for none or for an unknown id. |
 | `Add(id, amount)` | `bool` | Gives the player some. `true` when the count went up. |
 | `Remove(id, amount)` | `bool` | Takes some away. `true` when the count went down. |
 
@@ -75,7 +75,7 @@ public sealed class TaskItemCount
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TaskItemChangedArgs</code> <span>what Changed tells you</span></p>
 
-`Changed` gives you this, once for each change. `OldAmount` and `NewAmount` give the count before and after, and `Held` says whether the player still has the item.
+`Changed` gives you this once for each change. `OldAmount` and `NewAmount` are the count before and after. `Held` says whether the player still has the item.
 
 <div class="api-pair" markdown="1">
 
@@ -109,18 +109,21 @@ public sealed class TaskItemChangedArgs
 - `Add(id, amount)` gives the player the item, and `Remove(id, amount)` takes it away. `amount` must be above 0. <span class="tech">(They call `TaskItemsManager.AddTaskItem(taskItem, amount)` and `TaskItemsManager.RemoveItem(taskItem, amount)`.)</span>
 - `Add` gives back `true` only when the count for that id went up. `Remove` gives back `true` when the count went down or the entry was removed. <span class="tech">(`Remove` gives back `true` when the first record with that id lost count or was removed, so a record at count 0 that the game removes also counts.)</span>
 - `Remove` works from what the player already holds, so the item does not need to be loaded.
-- `Add` and `Remove` only change the count. They do not run the item's give-item or send-mail steps, the same as the console's `add_task_item` command. <span class="tech">(They skip the item's `GiveItem` and `SendMail`.)</span>
+- `Add` and `Remove` only change the count. They do not run the item's give-item or send-mail steps, the same as the `add_task_item` command of the [developer console](consolecommands.md). <span class="tech">(They skip the item's `GiveItem` and `SendMail`.)</span>
 - `Has(id)` is `true` when the player holds a record with that id, even at count 0. It gives back `false` for a null or empty id.
 - `Type` and `Details` are for information. `Type` is the name of the kind of item the game gives it, such as `Keys` or `Recipes`. `Details` is its description text. <span class="tech">(`Type` is the name of the game's `TaskItem.Type` member (`Keys`, `Recipes`, `TaskItems` and so on). `Details` is `itemDetails`.)</span>
 - `Changed` fires for every change, whether it comes from this API or from the game itself. Recipes are added at count 0, so they fire `Changed` too, with `Type` set to the recipe's type name. <span class="tech">(It comes from any source that goes through the game's `AddTaskItem` or `RemoveItem`.)</span>
-- `Held` tells you whether the player still has the item after the change. A new item has `OldAmount` 0. An item whose count reaches 0 but stays on the list has `NewAmount` 0 and `Held` `true`. `Held` is `false` only when the item was removed from the list, and then `NewAmount` is 0.
-- A handler may call `Add` or `Remove`. A change made inside a handler fires its own event before the rest of the first change's events. This can go eight levels deep, the same as `Cash.MoneyChanged`.
-- The quest list is on another page. `TaskController` is the same system as `Quests`, so this page does not cover it again. `TaskPanel` is the task list screen and holds no game state a mod needs.
-- `Add` does not give a blueprint. A blueprint also needs to be registered with the game's building system, which this API does not do. To give the player a blueprint for your mod's furniture, use `FurnitureRegistry.DefineBlueprint` and `FurnitureRegistry.GiveBlueprint` on the [custom furniture](../furniture.md) page. <span class="tech">(The item is a `TaskItemBlueprint`, and the game's add also registers it with `BuildingSystem`.)</span>
+- `Held` tells you whether the player still has the item after the change:
+  - A new item has `OldAmount` 0.
+  - An item whose count reaches 0 but stays on the list has `NewAmount` 0 and `Held` `true`.
+  - `Held` is `false` only when the item was removed from the list, and then `NewAmount` is 0.
+- A handler may call `Add` or `Remove`. A change made inside a handler fires its own event before the rest of the first change's events. This can go eight levels deep, the same as [`Cash.MoneyChanged`](../economy/money-cash.md).
+- The quest list is on another page. `TaskController` is the same system as [`Quests`](../../api-story/quests-experimental.md), so this page does not cover it again. `TaskPanel` is the task list screen and holds no game state a mod needs.
+- `Add` does not give a [blueprint](../../glossary.md#blueprint). A blueprint also needs to be registered with the game's building system, which this API does not do. To give the player a blueprint for your mod's furniture, use `FurnitureRegistry.DefineBlueprint` and `FurnitureRegistry.GiveBlueprint` on the [custom furniture](../furniture.md) page. <span class="tech">(The item is a `TaskItemBlueprint`, and the game's add also registers it with `BuildingSystem`.)</span>
 
 ## Limits
 
 - Both `Add` and `Remove` give back `false` while a save is loading or being written, and when the game's task item list is not loaded. <span class="tech">(The list check is `TaskItemsManager.instance` being null.)</span>
-- You can only add an item the game has already loaded. A mod can't create a new task item, and an item the game has not loaded yet is not found, so `Add` gives back `false`.
+- You can only add an item the game has already loaded. A mod can't create a new task item. An item the game has not loaded yet is not found, so `Add` gives back `false`.
 - `Changed` does not fire while a save is loading.
-- An `Add` or `Remove` made while the eighth event runs does not fire another event, and that is logged once.
+- An `Add` or `Remove` made while the eighth event runs does not fire another event. That is [logged](../../guides/getting-started/logging.md) once.

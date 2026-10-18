@@ -7,9 +7,18 @@ nav_order: 15
 
 # Signs
 
+`Signs` reads and writes the signs the player can write on, and tells you when a sign's text changes. Use it to put your own text on a sign, or to react to what the player writes.
+
 ## What it is
 
-Some signs in the game can be written on: the player walks up, types a message, and the sign keeps it. This API lets your mod list those signs in the scene you are in, read what each one says, change what it says, and get told when the text changes. The text is part of the save, so it is still there after a load.
+Some signs in the game can be written on: the player walks up, types a message, and the sign keeps it. This API gives your mod these jobs:
+
+- List those signs in the [scene](../glossary.md#scene) you are in.
+- Read what each one says.
+- Change what it says.
+- Get told when the text changes.
+
+The text is part of the [save](../guides/getting-started/save-data.md), so it is still there after a load.
 
 ## When to use it
 
@@ -19,7 +28,7 @@ Some signs in the game can be written on: the player walks up, types a message, 
 
 ## Quick example
 
-This mod writes a log line each time a sign's text changes, either because the player wrote on it or because a mod did. Once a save is loaded, it also logs how many signs are in the scene.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a sign's text changes, whether the player or a mod changed it. Once a save is loaded, it also logs how many signs are in the scene.
 
 ```csharp
 using ObenseuerCore;
@@ -36,7 +45,7 @@ public sealed class SignWatch : FrameworkMod
 }
 ```
 
-`TextChanged` is an event: the framework calls your code each time it happens. `WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
+`TextChanged` is an event: the framework calls your code each time it happens. [`WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on both.
 
 ## Common tasks
 
@@ -62,7 +71,7 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Signs</code> <span>finds, reads and writes signs</span></p>
 
-This is the class to start from. `All()` and `Get(id)` read signs, `SetText` writes on one, and `TextChanged` tells you when a sign's text changes.
+Start here. `All()` and `Get(id)` read signs, and `SetText` writes on one. `TextChanged` tells you when a sign's text changes.
 
 <div class="api-pair" markdown="1">
 
@@ -85,7 +94,7 @@ public static class Signs
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` when edits by the player could not be tracked. |
+| `IsAvailable` | `bool` | `false` when the player's edits could not be tracked. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -97,7 +106,7 @@ public static class Signs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SignInfo</code> <span>a snapshot of one sign</span></p>
 
-`All()` and `Get(id)` give you one of these, a copy of the sign at the moment you asked. Use `Text` to read what it says, and `MaxLines` and `MaxLength` to check a text before you pass it to `SetText`.
+`All()` and `Get(id)` give you one of these, a copy of the sign at the moment you asked. `Text` is what it says. Check a text against `MaxLines` and `MaxLength` before you pass it to `SetText`.
 
 <div class="api-pair" markdown="1">
 
@@ -113,7 +122,7 @@ public sealed class SignInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | A name for this sign that you can use with `Get` and `SetText`. |
+| `Id` | `string` | A name for this sign. Use it with `Get` and `SetText`. |
 | `Text` | `string` | What the sign says now. |
 | `MaxLines` | `int` | The most lines it holds. 1 for a one-line sign. |
 | `MaxLength` | `int` | The most characters it holds. 0 when there is no limit. |
@@ -148,12 +157,28 @@ public sealed class SignTextChangedArgs
 
 - `All()` lists the signs that are switched on in the scene you are in. A sign the game has switched off is not listed. With no save loaded, or on the main menu, it gives an empty list. <span class="tech">(It lists every `EditableSign` on an active object in the active scene.)</span>
 - `Get(id)` returns `null` when no sign has that id. A null or empty id finds nothing.
-- `Id` is a name that identifies one sign. It normally stays the same each time the game runs. A sign the game gave no unique id gets one made from its place in the scene, and that id changes when the scene changes. <span class="tech">(It is the save GUID, else the scene path.)</span>
+- `Id` is a name that identifies one sign. It normally stays the same each time the game runs. A sign the game gave no unique id gets one made from its place in the scene. That id changes when the scene changes. <span class="tech">(It is the save GUID, else the scene path.)</span>
 - `SetText` writes the text on the sign and updates what the player sees. It does the same as the game does after the player finishes typing. It returns `true` when the text was written. <span class="tech">(It sets `EditableSign.text` and then calls the game's `UpdateText`.)</span>
-- `SetText` returns `false` when the sign does not accept the text. That is when no sign has that id, when a save is loading or being written, when the player is typing on that sign right now (the game would overwrite the text every frame), when the text has more characters than `MaxLength` allows (if that is above 0), and when the text has more lines than `MaxLines`. A new line in your text starts a new line on the sign. <span class="tech">(`MaxLength` is the `characterLimit` of the sign's input field. Lines are counted by splitting the text on `\n`.)</span>
+- `SetText` returns `false` when the sign does not accept the text. That is the case when:
+  - no sign has that id
+  - a save is loading or being written
+  - the player is typing on that sign right now (the game would overwrite the text every frame)
+  - the text has more characters than `MaxLength` allows (if that is above 0)
+  - the text has more lines than `MaxLines`
+
+  A new line in your text starts a new line on the sign. <span class="tech">(`MaxLength` is the `characterLimit` of the sign's input field. Lines are counted by splitting the text on `\n`.)</span>
 - `SetText` never cuts your text short. A mod that wants a shorter text must shorten it before the call.
 - `SetText` throws `ArgumentException` when `text` is `null`. Pass an empty string to clear a sign.
-- `TextChanged` fires in two cases. It fires after a `SetText` that really changed the text, and it fires when the player finishes typing and the text is different from what it was when they started. It does not fire when the text is the same, and it does not fire when a save loads, because a load puts the text back without going through either path. <span class="tech">(The player's edit is seen through the game's `EditableSign.StartEditing` and `StopEditing`. If those changes could not be made, `TextChanged` still fires for `SetText`, because `SetText` raises it directly.)</span>
+- `TextChanged` fires in two cases:
+  - after a `SetText` that really changed the text
+  - when the player finishes typing and the text is different from what it was when they started
+
+  It does not fire when the text is the same. It does not fire when a save loads either, because a load puts the text back without going through either path. <span class="tech">(The player's edit is seen through the game's `EditableSign.StartEditing` and `StopEditing`. If those changes could not be made, `TextChanged` still fires for `SetText`, because `SetText` raises it directly.)</span>
+
+**Common problems**
+
+- `SetText` returns `false`: no sign has that id, a save is loading or being written, or the player is typing on that sign right now. The text may also be too long for `MaxLength` or have more lines than `MaxLines`. On the main menu or with no save loaded it also gives `false`. Shorten a long text yourself before the call, because `SetText` never cuts it.
+- `SetText` throws `ArgumentException`: `text` is `null`. Pass an empty string to clear a sign.
 
 ### What you can't do (yet)
 
@@ -162,7 +187,7 @@ public sealed class SignTextChangedArgs
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.signs.log`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -172,10 +197,14 @@ Everything not listed in this reference is internal and may change without notic
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
 - It is safe to call any of it at any time. On the main menu or with no save loaded, `All()` gives an empty list, `Get` gives `null` and `SetText` gives `false`.
 - Nothing throws an error to you, except `SetText` with a `null` text.
-- Your `TextChanged` handlers run inside the game's own call, right after the text has changed, one at a time. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
+- Your `TextChanged` handlers run inside the game's own call, one at a time, right after the text has changed. If one of your handlers throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
-The framework changes two of the game's methods when it starts, so it can see when the player edits a sign. If a game update breaks one of them, only the tracking of the player's edits turns off, and the framework writes error lines and a warning to the log. Its feature group is `obenseuer.moddingframework.signs`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
+The framework changes two of the game's methods when it starts, so it can see when the player edits a sign. If a game update breaks one of them, only the tracking of the player's edits turns off. The framework then writes error lines and a warning to the log. Its [feature group](../glossary.md#feature-group) is `obenseuer.moddingframework.signs`, the name you will see in the log. A feature group is the named set of the framework's changes for one feature.
 
 - `Signs.IsAvailable` is `false` when the tracking is switched off. `All`, `Get` and `SetText` keep working. `TextChanged` stops for the player's edits, but it still fires for `SetText`. <span class="tech">(The methods are `EditableSign.StartEditing` and `StopEditing`.)</span>
+
+**Common problems**
+
+- `TextChanged` does not fire when the player edits a sign, and `IsAvailable` is `false`: the tracking of the player's edits is switched off, because a game update broke one of the two changed methods. Look for the error lines and the warning in `BepInEx\logs\obenseuer.moddingframework.signs.log`. `TextChanged` still fires for `SetText`.

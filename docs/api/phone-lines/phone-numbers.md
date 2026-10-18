@@ -7,7 +7,7 @@ nav_order: 2
 
 # Phone numbers
 
-A phone number here is a string of digits, with `*` standing for key 10 and `#` for key 11, the same form `Phones.All()` gives you. The number has to be one the game's phone book knows, so an empty string, any other character, or a number that matches nothing makes the call fail.
+A phone number here is a string of digits, with `*` standing for key 10 and `#` for key 11. It is the same form [`Phones.All()`](../phones.md) gives you. The number has to be one the game's phone book knows: an empty string, any other character, or a number that matches nothing makes the call fail.
 
 ## Limits
 

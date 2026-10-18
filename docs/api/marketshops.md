@@ -7,11 +7,18 @@ nav_order: 7
 
 # Market shops
 
+`MarketShops` lets your mod read and lock the market stalls in the [scene](../glossary.md#scene), and react when the player pays at one. Use it when a stall's till should be part of a quest, a message or a reward.
+
 ## What it is
 
-A market shop is a stall in the game that an NPC runs. The player puts the goods they want on the stall's conveyor and pays at its till. This API lets your mod list the stalls in the scene, see the name, the lock and the price at the till, lock or unlock a stall, and hear when the player pays.
+A market shop is a stall in the game that an NPC runs. The player puts the goods they want on the stall's conveyor and pays at its till. This API gives your mod these jobs:
 
-The shop the player runs themselves is a different thing. It is called a player shop and it is on the [economy page](economy/player-shops.md#player-shops). This API does not buy or sell anything. See [What you can't do (yet)](#what-you-cant-do-yet).
+- List the stalls in the [scene](../glossary.md#scene).
+- See the name, the lock and the price at the till.
+- Lock or unlock a stall.
+- Hear when the player pays.
+
+The shop the player runs themselves is a different thing. It is called a [player shop](../glossary.md#player-shop), and its API is on the [economy page](economy/player-shops.md#player-shops). This API does not buy or sell anything. See [What you can't do (yet)](#what-you-cant-do-yet).
 
 ## When to use it
 
@@ -21,7 +28,7 @@ The shop the player runs themselves is a different thing. It is called a player 
 
 ## Quick example
 
-This mod writes a log line each time the player pays at a market stall. It also logs each stall's name and price when a save is loaded.
+This mod writes a [log](../guides/getting-started/logging.md) line each time the player pays at a market stall. When a save is loaded, it also logs each stall's name and price.
 
 ```csharp
 using ObenseuerCore;
@@ -42,7 +49,7 @@ public sealed class MarketWatch : FrameworkMod
 }
 ```
 
-`Paid` is an event: the framework calls your code each time it happens. `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), as described in the [glossary](../glossary.md#oc). See [Using events](../guides/getting-started/using-events.md).
+`Paid` is an event: the framework calls your code each time it happens. `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), as described in the [glossary](../glossary.md#oc). [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -72,7 +79,7 @@ foreach (MarketShopInfo shop in MarketShops.All())
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+The full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders; you can skip it on a first read.
 
 ### Market shops
 
@@ -81,7 +88,7 @@ Each stall is a `MarketShopInfo`, a snapshot taken when you asked. The snapshot 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MarketShops</code> <span>lists stalls, locks them and reports payments</span></p>
 
-Call `All()` to list the stalls and `SetLocked` to lock one. `Paid` fires when the player pays at a till.
+`All()` lists the stalls and `SetLocked` locks or unlocks one. `Paid` fires when the player pays at a till.
 
 <div class="api-pair" markdown="1">
 
@@ -98,7 +105,7 @@ public static class MarketShops
 | Method | Returns | What it does |
 |---|---|---|
 | `All()` | `List<MarketShopInfo>` | Every market stall in the scene the player is in. |
-| `SetLocked(id, locked)` | `bool` | Locks or unlocks a stall. Returns `true` when it is now as you asked. |
+| `SetLocked(id, locked)` | `bool` | Locks or unlocks a stall. `true` when it is now as you asked. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -106,7 +113,7 @@ public static class MarketShops
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Paid` | `MarketPayArgs`: the stall's id, name, the amount charged and the currency. | The player has paid at a till. |
+| `Paid` | `MarketPayArgs`: the stall's id and name, the amount charged and the currency. | The player has paid at a till. |
 
 </div>
 </div>
@@ -131,7 +138,7 @@ public sealed class MarketShopInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The id to pass to `SetLocked`. The number the game saves the stall under, or a path through the scene. |
+| `Id` | `string` | The id to pass to `SetLocked`: the number the game saves the stall under, or a path through the scene. |
 | `Name` | `string` | The name of the stall. |
 | `Locked` | `bool` | `true` when the stall's lock is locked. |
 | `Price` | `int` | The total at the till right now. `0` when nothing is on the conveyor. |
@@ -173,7 +180,7 @@ public sealed class MarketPayArgs
 - `Price` is the total of the goods on the stall's conveyor, in the stall's currency. It is `0` when the conveyor is empty. You can read it, but you can't change it. <span class="tech">(`Price` is `MarketShop.GetCurrentPrice()`. `Currency` is the shop's `currency`, converted by `Cash.FromGame`.)</span>
 - `SetLocked(id, locked)` locks or unlocks the stall's lock, as the game does. A locked stall's till refuses to open. It gives back `true` when the lock is now as you asked. <span class="tech">(It calls the game's `Lock()` or `Unlock()`, which call the lock's `_Lock()` or `_Unlock()`. The save check is `SaveData.Busy`.)</span>
 - `Paid` fires after the player pays at the till and the game has taken the money. `Price` is the amount the game charged. It is rounded, and at least 1, the same as the game's own minimum.
-- `Paid` also fires when a script pays at a stall, not only the player at the till. The framework listens to the game's own pay method, which any script can call. <span class="tech">(The change is a prefix and a postfix on `MarketShop.Pay`, which is public.)</span>
+- `Paid` also fires when a script pays at a stall, not only when the player pays at the till. The framework listens to the game's own pay method, which any script can call. <span class="tech">(The change is a prefix and a postfix on `MarketShop.Pay`, which is public.)</span>
 - `IsAvailable` is `false` when the `Paid` event could not be set up. See [If something fails to set up](#if-something-fails-to-set-up).
 
 ### What you can't do (yet)
@@ -188,12 +195,17 @@ public sealed class MarketPayArgs
 ### Limits
 
 - `SetLocked` returns `false` for an unknown id, for a stall with no lock, and while a save is loading or being written.
-- `Paid` does not fire when the payment is refused, for example when the player has too little money, or when the stall is not waiting for a payment.
-- The price is read just before the game takes the money. The game charges the same value, but if the price changes in between, the framework does not notice.
+- `Paid` does not fire when the payment is refused, for example when the player has too little money. It also does not fire when the stall is not waiting for a payment.
+- The price is read right before the game takes the money. The game charges the same value. If the price changes in between, the framework does not notice.
+
+**Common problems**
+
+- `SetLocked` returns `false`: the id is unknown, the stall has no lock, or a save is loading or being written. Pass an `Id` from `All()`.
+- `Paid` does not fire: the payment was refused, for example because the player has too little money, or the stall was not waiting for a payment. If `IsAvailable` is `false`, the event could not be set up; see If something fails to set up, below.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -204,10 +216,10 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 - Call everything from your mod's normal code, not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). That includes the code that handles `Paid`.
 - It is safe to call at any time. With no save loaded, `All` gives back an empty list. Nothing throws, and a null or empty `id` finds nothing.
-- `Paid` is not held back while a save loads. If your handler should ignore payments while a save loads, check `SaveData.Busy`, which is `true` while a save is loading or being written.
+- `Paid` is not held back while a save loads. If your handler should ignore payments during a load, check `SaveData.Busy`. It is `true` while a save is loading or being written.
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it. It turns the group off and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the payment change cannot be made, the feature group is turned off and `Paid` stops firing. `MarketShops.IsAvailable` becomes `false`. `All` and `SetLocked` keep working. <span class="tech">(The game method involved is `MarketShop.Pay`, patched with a prefix and a postfix.)</span>

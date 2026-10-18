@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short examples for [`NpcControl`](taking-and-releasing-an-npc.md): hold an [NPC](../npcs.md) (a character in the game) for a scene, make it speak, and check or release holds.
+
 Hold an NPC still and stop it from fading out while your mod plays a scene, then hand it back:
 
 ```csharp
@@ -22,7 +24,7 @@ void EndScene(string modId, int npcId)
 }
 ```
 
-Say a line while the NPC is held. `Say` is on the [NPC actions](../npc-actions.md) page. It needs the NPC's body to be switched on, so check the result and try again later if it returned `false`:
+To say a line while the NPC is held, use `Say` from the [NPC actions](../npc-actions.md) page. `Say` needs the NPC's body to be switched on. Check the result, and try again later if it returned `false`:
 
 ```csharp
 void Speak(int npcId)

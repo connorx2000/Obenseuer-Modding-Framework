@@ -7,7 +7,7 @@ nav_order: 6
 
 # Events
 
-The events tell your mod when a train sets off, stops or crashes.
+`Trains` raises an event when a train sets off, stops or crashes. This page lists what each event gives you and the cases where it does not fire.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>train events and status</span></p>
@@ -40,7 +40,7 @@ public static class Trains
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainArgs</code> <span>what Departed and Arrived tell you</span></p>
-`Departed` fires when a train starts moving and `Arrived` when it stops, and both give you this. `Speed` is the train's speed at that moment.
+`Departed` fires when a train starts moving and `Arrived` when it stops. Both give you this. `Speed` is the train's speed at that moment.
 
 <div class="api-pair" markdown="1">
 
@@ -90,9 +90,9 @@ public sealed class TrainCrashArgs
 - Only the driving unit of a joined group of trains reports. The joined wagons get their speed from the driving unit, so they never fire an event of their own. The `Id` you get is that of the driving train. <span class="tech">(Wagon speeds are written by `ApplyValuesOnWagons`, `TrackTrain`, not inside their own update.)</span>
 - `Arrived` does not mean the train reached a station. The game has no station event for track trains, and a stop at the end of the track counts as well.
 - A train that is switched on or loaded without moving fires nothing. <span class="tech">(The game's `TrainActivated` is not used for `Departed`, because the game also calls it at scene start.)</span>
-- A train is not expected to flap between set-off and stop. The game sets a stopping train to exactly `0`, and a reversing train passes through zero without being exactly `0` at the end of an update, so a quick `0`, tiny, `0` is not produced.
-- `Crashed` fires once for each crash. When two trains crash, the game reports the crash for both trains, but the framework drops the second report: within one frame, a train that was already named in a reported crash does not fire again. The report you get is the one for the train that was hit. <span class="tech">(It is raised after `TrackTrain.Crash`, when the speed before was not `0` and the speed after is `0`. The first report is the one the game makes inside the other train's `Crash`, usually the train that was hit. The game ignores a crash during its cooldown, with a train still coupled to the object, with the same object as the last crash, or with a train already at speed `0`. Those calls fire nothing.)</span>
-- `IsAvailable` tells you whether `Departed` and `Arrived` work. It is `false` when the framework could not set them up. The reads keep working. If only the crash event could not be set up, only `Crashed` stops and `IsAvailable` stays `true`.
+- A train is not expected to flap between set-off and stop. The game sets a stopping train to exactly `0`. A reversing train passes through zero without being exactly `0` at the end of an update. So a quick `0`, tiny, `0` is not produced.
+- `Crashed` fires once for each crash. When two trains crash, the game reports the crash for both trains, but the framework drops the second report. Within one frame, a train that was already named in a reported crash does not fire again. The report you get is the one for the train that was hit. <span class="tech">(It is raised after `TrackTrain.Crash`, when the speed before was not `0` and the speed after is `0`. The first report is the one the game makes inside the other train's `Crash`, usually the train that was hit. The game ignores a crash during its cooldown, with a train still coupled to the object, with the same object as the last crash, or with a train already at speed `0`. Those calls fire nothing.)</span>
+- `IsAvailable` tells you whether `Departed` and `Arrived` work. It is `false` when the framework could not set them up. The reads keep working. If only the crash event could not be set up, only `Crashed` stops and `IsAvailable` stays `true`. [Details](details.md) explains what happens when a part fails to set up.
 - The values you read are the values at the moment you asked. The game moves trains while it runs, so two reads in one frame can differ.
 
 ## Limits

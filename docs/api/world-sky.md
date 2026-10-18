@@ -8,14 +8,16 @@ nav_order: 19
 
 # World sky
 
+[`WorldSky`](world-sky/setting-and-clearing.md) lets your mod read and change the fog, light, sun, stars and clouds around the player. Use it to set the mood of an area or a story moment.
+
 ## What it is
 
-The sky and the light around the player: fog, the ambient light, how bright the sky is, the sun, the stars and the clouds. This API lets your mod read how the sky looks right now, and change those looks on top of what the game does. Each mod keeps its own set of values, so two mods do not overwrite each other. It does not change the time of day or the weather: see [World](world.md) for those.
+This API covers the sky and the light around the player: fog, the ambient light (the light that fills shadows), how bright the sky is, the sun, the stars and the clouds. Your mod can read how the sky looks right now, and change those looks on top of what the game does. Each mod keeps its own set of values, so two mods do not overwrite each other. It does not change the time of day or the weather: see [World](world.md) for those.
 
 ## When to use it
 
 - Make a heavy fog when the player enters a special area.
-- Darken or brighten the scene for a story moment.
+- Darken or brighten the [scene](../glossary.md#scene) for a story moment.
 - Turn the stars up, or the clouds down.
 - Read the current fog or sun values, for example to match your own lights to them.
 
@@ -51,4 +53,4 @@ public sealed class FogMod : FrameworkMod
 }
 ```
 
-`SkyOverride` holds the values you want to change, and every one you leave out stays as the game has it. `Mod.Id` is the id you gave in `[ModInfo]`, so the framework knows the values are yours. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+[`SkyOverride`](world-sky/the-values.md) holds the values you want to change. Every value you leave out stays as the game has it. `Mod.Id` is the id you gave in `[ModInfo]`, so the framework knows the values are yours (see [Mod id](../glossary.md#mod-id)). See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

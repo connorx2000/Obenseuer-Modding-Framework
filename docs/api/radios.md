@@ -7,14 +7,20 @@ nav_order: 10
 
 # Radios
 
+`Radios` lists the radios in the [scene](../glossary.md#scene) you are in, reads their power and channel, and switches them on or off. Use it when your mod needs a radio quiet, or needs to know what one is playing.
+
 This page uses `KeyCode`, `Vector3`, `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-The radios in the game's rooms are objects you can switch on, and each can be tuned to a channel. This API lets your mod list the radios in the scene you are in, read whether each one is switched on and which channel it is on, and switch a radio on or off.
+The radios in the game's rooms are objects you can switch on, and each can be tuned to a channel. This API lets your mod:
 
-The game has no single radio that plays everywhere. Each radio is its own object with its own sound, so every call here is about one radio, found by its id. Nothing here can start or stop a station for the whole game. For the game's music and sound, see the [Audio page](audio.md), which says that the game has no music or radio player for a mod to control.
+- list the radios in the scene you are in,
+- read whether each one is switched on and which channel it is on,
+- switch a radio on or off.
+
+The game has no single radio that plays everywhere. Each radio is its own object with its own sound. So every call here is about one radio, found by its id. Nothing here can start or stop a station for the whole game. For the game's music and sound, see the [Audio page](audio.md). It says that the game has no music or radio player for a mod to control.
 
 ## When to use it
 
@@ -63,6 +69,8 @@ See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`.
 
 ## Common tasks
 
+In these snippets, `radioId` is the `Id` of a radio from `Radios.All()`.
+
 List the radios and their channels.
 
 ```csharp
@@ -83,16 +91,14 @@ RadioInfo found = Radios.Get(radioId);
 bool playing = found != null && found.Enabled && found.State > 0;
 ```
 
-In these snippets, `radioId` is the `Id` of a radio from `Radios.All()`.
-
 ## Reference
 
-This is the full list of what the API gives you. `Radios.All()` and `Radios.Get(id)` give you a `RadioInfo`, a snapshot of one radio taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
+This is the full list of what the API gives you. `Radios.All()` and `Radios.Get(id)` give you a `RadioInfo`: a snapshot of one radio, taken when you asked. The snapshot does not update by itself, so ask again for fresh values.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Radios</code> <span>the radios in the scene</span></p>
 
-Use it to list the radios in the scene, read whether each one is switched on, and switch one on or off with `SetEnabled`.
+Lists the radios in the scene, reads whether each one is switched on, and switches one on or off with `SetEnabled`.
 
 <div class="api-pair" markdown="1">
 
@@ -121,7 +127,7 @@ public static class Radios
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RadioInfo</code> <span>a snapshot of one radio</span></p>
 
-`Radios.All()` and `Radios.Get(id)` give you these. `Enabled` says whether the radio is switched on, and `State` gives its channel, where 0 means off.
+`Radios.All()` and `Radios.Get(id)` give you these. `Enabled` says whether the radio is switched on. `State` gives its channel, where 0 means off.
 
 <div class="api-pair" markdown="1">
 
@@ -151,9 +157,9 @@ public sealed class RadioInfo
 
 - `All()` lists every radio in the scene you are in whose object is active. A radio whose object is switched off in the scene (not the radio's power) is left out. <span class="tech">(It lists every active `Radio` in the active scene.)</span>
 - The id is the radio's own save id. A radio without one gets a path through the scene instead. The path is made of the object names from the top of the scene down to the radio, each with its place among its neighbours. It stays the same while the scene keeps its order. <span class="tech">(The id is `Radio.GUID`, or `<scene name>:<root>[i]/.../<radio>[j]` for an empty `GUID`, where each part is a hierarchy node name and its sibling index. The game clears the GUIDs of prefabs spawned through `logic_prefab_spawn`.)</span>
-- `Enabled` is the radio's power, not its channel. A radio that is switched off can still be set to a channel, and keeps that channel until it is switched on again, the way the game does it. <span class="tech">(`Enabled` reads `Radio.RadioEnabled`, and `State` reads `Radio.CurrentState`.)</span>
+- `Enabled` is the radio's power, not its channel. A radio that is switched off can still be set to a channel. It keeps that channel until it is switched on again, the way the game does it. <span class="tech">(`Enabled` reads `Radio.RadioEnabled`, and `State` reads `Radio.CurrentState`.)</span>
 - `Title` is what the game shows when you look at the radio. If the radio has no name of its own, the game calls it "Radio". <span class="tech">(It is `Interactable.title`, which the game sets to "Radio" in `Radio.Start` when it is empty.)</span>
-- `SetEnabled` switches the radio on or off the way the game does, and it keeps the channel. It stops or starts the sound and changes the radio's look. It gives `true` when the radio was found and the switch ran. The game ignores a call that does not change anything, so switching an already-on radio on does nothing and still gives `true`. <span class="tech">(It calls the game's own `Radio.EnableRadio(bool)`, which stops or starts the sound and swaps the mesh material, and leaves `CurrentState` as it is.)</span>
+- `SetEnabled` switches the radio on or off the way the game does, and it keeps the channel. It stops or starts the sound and changes the radio's look. It gives `true` when the radio was found and the switch ran. The game ignores a call that does not change anything. So switching an already-on radio on does nothing and still gives `true`. <span class="tech">(It calls the game's own `Radio.EnableRadio(bool)`, which stops or starts the sound and swaps the mesh material, and leaves `CurrentState` as it is.)</span>
 - Switching a radio on plays the sounds and fires the triggers of its channel. The game sets the channel again, so you hear the channel's sound and the radio's turn-on or turn-off triggers fire. A radio that is on channel 0 plays the turn-off sound and fires its turn-off triggers when you switch it on. <span class="tech">(Enabling a radio calls `SetState(CurrentState)`, which plays the channel or turn-off sound and fires `OnTurnOn` or `OnTurnOff`.)</span>
 
 ### Limits
@@ -165,10 +171,14 @@ public sealed class RadioInfo
 - You can't turn a radio off with the turn-off sound. Only switching it on or off is offered. <span class="tech">(The framework has no call for `Radio.TurnOff`.)</span>
 - You can't control the game's music or soundscape here. See the [Audio page](audio.md).
 
+**Common problems**
+
+- `SetEnabled` returns `false`: the id is `null` or empty, a save is loading or being written, or no radio has the id. Use the `Id` of a radio from `Radios.All()`.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
-Namespace: `ObenseuerCore`. Errors are written to the framework's main log, `BepInEx\logs\ObenseuerCore.log`.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Namespace: `ObenseuerCore`. Errors are written to the framework's main [log](../guides/getting-started/logging.md), `BepInEx\logs\ObenseuerCore.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 

@@ -7,14 +7,14 @@ nav_order: 5
 
 # Skills
 
-Skills are the things the player gets better at, such as Cooking or Lockpicking. Each has a level from 0 up to the maximum.
+Skills are the things the player gets better at, such as Cooking or Lockpicking. Each has a level from 0 up to the maximum. `Skills` reads them, raises them and tells you when one goes up.
 
 
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Skills</code> <span>read, raise and watch skills</span></p>
 
-Use it to read a skill's level, raise a skill with `Add`, and listen to `SkillIncreased`.
+Use it to read a skill's level, raise a skill with `Add`, and listen to the `SkillIncreased` [event](../../guides/getting-started/using-events.md).
 
 <div class="api-pair" markdown="1">
 
@@ -40,8 +40,8 @@ public static class Skills
 |---|---|---|
 | `Get(skill)` | `float` | The skill's value, with its progress as a fraction. |
 | `Level(skill)` | `int` | The skill's whole-number level. |
-| `Add(skill, amount)` | `bool` | Raises a skill. Returns `false` when the game refuses. |
-| `All()` | `List<SkillValue>` | Every skill except `None`. An empty list without a player. |
+| `Add(skill, amount)` | `bool` | Raises a skill. `false` when the game refuses. |
+| `All()` | `List<SkillValue>` | Every skill except `None`. An empty list when there is no player. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -122,7 +122,7 @@ public enum Skill
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>SkillValue</code> <span>one skill and how far along it is</span></p>
 
-`Skills.All()` gives you one of these for each skill. `Value` includes the progress toward the next level, and `Level` is the whole-number part of it.
+`Skills.All()` gives you one of these for each skill. `Value` includes the progress toward the next level. `Level` is the whole-number part of it.
 
 <div class="api-pair" markdown="1">
 
@@ -138,7 +138,7 @@ public sealed class SkillValue
 | Property | Type | What it means |
 |---|---|---|
 | `Skill` | `Skill` | The skill this is about. |
-| `Value` | `float` | The skill from 0 up to `MaxLevel`. The fraction is the progress to the next level. |
+| `Value` | `float` | The skill, from 0 up to `MaxLevel`. The fraction is the progress to the next level. |
 | `Level` | `int` | The whole-number level (`Value` rounded down). |
 
 </div>

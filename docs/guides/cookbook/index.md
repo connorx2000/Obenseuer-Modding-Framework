@@ -6,9 +6,19 @@ nav_order: 4
 
 # Cookbook
 
-Each recipe does one job and fits on a screen. Each recipe is a framework mod, the same form as [Your first mod](../getting-started/first-mod.md). To try one, start from the project you made there and replace the code in `Plugin.cs` with the recipe's code. A recipe that needs an extra reference or file says so on its page.
+Each recipe does one job and fits on a screen. The recipes assume you have done [Your first mod](../getting-started/first-mod.md), so you can already build a mod and find its log file.
 
-Do [Your first mod](../getting-started/first-mod.md) first. The recipes assume you can already build a mod and find its log file.
+## How to use a recipe
+
+Each recipe is a [framework mod](../../api/framework-mods.md), the same form as [Your first mod](../getting-started/first-mod.md). To try one:
+
+1. Open the project you made in Your first mod.
+2. Replace the code in `Plugin.cs` with the recipe's code.
+3. Build the mod and start the game, as the recipe describes. A recipe that needs an extra reference or file says so on its page.
+
+You are set up to try any recipe. Pick one from the list below.
+
+## The recipes
 
 - [Give an item](give-an-item.md): press a key to put an item in the player's inventory.
 - [Pay the player](pay-the-player.md): pay money once per game day, and save that it was paid.

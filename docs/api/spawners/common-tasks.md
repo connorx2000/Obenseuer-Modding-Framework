@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short code for the jobs mods do most often with [`Spawners`](reading-spawners.md): set the respawn chance, spawn right now, and set a custom respawn wait.
+
 Make a spawner respawn with a 50 percent chance.
 
 ```csharp

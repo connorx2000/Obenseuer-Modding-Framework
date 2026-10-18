@@ -7,10 +7,12 @@ nav_order: 3
 
 # Crafting stations
 
+A crafting station is a place that carries out recipes, such as a stove or an oven. `Crafting` lists the stations in the [scene](../../glossary.md#scene) you are in. Its craft events tell you when a station takes ingredients and when it makes the results.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-A crafting station is a place that carries out recipes. `Crafting.All()` lists the stations in the scene you are in, each one as a `CraftingStationInfo`. The craft events tell you when a station takes ingredients and when it makes the results.
+`Crafting.All()` gives you each station as a `CraftingStationInfo`, a snapshot of the station.
 
 
 
@@ -18,7 +20,7 @@ A crafting station is a place that carries out recipes. `Crafting.All()` lists t
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Crafting</code> <span>the station list and craft events</span></p>
 
-Use it to list the crafting stations in the scene, and to hear when a station takes ingredients or makes its results.
+Lists the crafting stations in the scene, and tells you when a station takes ingredients or makes its results.
 
 <div class="api-pair" markdown="1">
 
@@ -42,8 +44,8 @@ public static class Crafting
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `CraftStarted` | `CraftStartArgs` | A station just took the ingredients. |
-| `Crafted` | `CraftedArgs` | A station just made the results. |
+| `CraftStarted` | `CraftStartArgs` | When a station takes the ingredients. |
+| `Crafted` | `CraftedArgs` | When a station makes the results. |
 
 </div>
 </div>
@@ -76,7 +78,7 @@ public sealed class CraftStartArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftedArgs</code> <span>what Crafted gives you</span></p>
 
-`Crafting.Crafted` hands you one of these when a station makes its results. Check `Success` first, because a failed craft gives the failure results in `Results`.
+`Crafting.Crafted` hands you one of these when a station makes its results. Check `Success` first: on a failed craft, `Results` holds the failure results.
 
 <div class="api-pair" markdown="1">
 
@@ -105,7 +107,7 @@ public sealed class CraftedArgs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingStationInfo</code> <span>a snapshot of one crafting station</span></p>
 
-`Crafting.All()` gives you one of these for each station in the scene, and both craft events give you the station too. Read `Busy` to see whether it is working on a craft.
+`Crafting.All()` gives you one of these for each station in the scene, and both craft events give you the station too. `Busy` says whether it is working on a craft.
 
 <div class="api-pair" markdown="1">
 
@@ -130,7 +132,7 @@ public sealed class CraftingStationInfo
 | `Id` | `string` | The id the scene gives it. It can be `null` or empty, and it is for information only. |
 | `Modifiers` | `List<string>` | The conditions the station has now, such as `Clean`, `Makeshift` or `Industrial`. |
 | `RecipeTypes` | `List<string>` | The kinds of recipe the station can make. |
-| `HasNaturalLight` | `bool?` | `true` when sunlight reaches it. It is `null` when that can't be told. |
+| `HasNaturalLight` | `bool?` | `true` when sunlight reaches it. `null` when that can't be told. |
 
 </div>
 </div>
@@ -138,17 +140,22 @@ public sealed class CraftingStationInfo
 ## Things to know
 
 - `CraftStarted` fires once for each craft, when the station takes the ingredients. It does not fire for price or time previews. Growing stations also raise it when a grow starts, because the game uses the same call. <span class="tech">(It fires on `CraftingBase.RemoveItems`. `Growing.StartGrow` uses the same call.)</span>
-- `Crafted` fires when the station creates its results. It covers manufacturing and manufacturing-process stations. Growing stations do not raise it; use `Plants.Harvested` for them. <span class="tech">(It fires on `CraftingBase.CreateItems`.)</span>
+- `Crafted` fires when the station creates its results. It covers manufacturing and manufacturing-process stations. Growing stations do not raise it; use [`Plants.Harvested`](growing-plants.md) for them. <span class="tech">(It fires on `CraftingBase.CreateItems`.)</span>
 - `Results` are the recipe's results times `Multiples`. On a failed craft (`Success` is `false`) they are the failure results instead. They are the amounts the recipe states, not what the game rolled.
 - For a recipe where the game picks one item from a group, `Results` lists the group's entry, not the item the game picked.
 - `Busy` is read at the moment the event fires. For `CraftStarted` that is before the new craft is queued.
 - `Kind` is the game's class name, so it can change in a future game version. Compare it with the names above.
 - `Modifiers` and `RecipeTypes` are copies taken when the info object is built, so they do not follow later changes. Upgrades add to both lists. <span class="tech">(They are copied from `ModifiersWithUpgrades` and `RecipesWithUpgrades` as lists of `RecipeCondition` and `RecipeType` names.)</span>
-- `HasNaturalLight` is worked out when you read it, not when `All()` runs. `All()` itself does no sunlight test, and neither do the craft events until you read the value.
-- `HasNaturalLight` is `null` when the station has no sunlight checker, a save is loading, the game's time is paused, the window light is not ready, or the check fails. The game applies its modifiers one frame later, so `HasNaturalLight` and `Modifiers` can briefly disagree. <span class="tech">(It is `NaturalLightSourceChecker.HasSun()`. It is `null` when there is no checker in the station's children, a save is loading, `TimeOfDayAzure.updateTimeDisabled` is set, or `WindowNaturalLight` is not initialised.)</span>
-- `IsAvailable` tells you whether the craft events work. It is `false` when the framework could not set up the events, or when its feature group was turned off. `All()` and the recipe reads keep working.
+- `HasNaturalLight` is worked out when you read it, not when `All()` runs. `All()` itself does no sunlight test. Neither do the craft events, until you read the value.
+- `HasNaturalLight` is `null` in these cases: the station has no sunlight checker, a save is loading, the game's time is paused, the window light is not ready, or the check fails. The game applies its modifiers one frame later, so `HasNaturalLight` and `Modifiers` can briefly disagree. <span class="tech">(It is `NaturalLightSourceChecker.HasSun()`. It is `null` when there is no checker in the station's children, a save is loading, `TimeOfDayAzure.updateTimeDisabled` is set, or `WindowNaturalLight` is not initialised.)</span>
+- `IsAvailable` tells you whether the craft events work. It is `false` when the framework could not set up the events, or its [feature group](../../glossary.md#feature-group) was turned off. `All()` and the [recipe](recipes.md) reads keep working.
 
 ## Limits
 
-- You can't start a craft from code. The game's only way to craft is driven by the crafting panel on screen, and it reads the panel's choices and updates the panel. A mod can't call it safely without that panel, so there is no `Craft` call. <span class="tech">(The game's only craft entry is `manufacturing.Craft()`.)</span>
+- You can't start a craft from code. The game's only way to craft is driven by the crafting panel on screen. It reads the panel's choices and updates the panel. A mod can't call it safely without that panel, so there is no `Craft` call. <span class="tech">(The game's only craft entry is `manufacturing.Craft()`.)</span>
 - You can't read a station's crafting progress or timer. The game keeps them private, so `All()` gives only `Busy`.
+
+**Common problems**
+
+- `Crafted` does not fire for a growing station: growing stations do not raise it. Use `Plants.Harvested` for them.
+- `CraftStarted` and `Crafted` never fire and `IsAvailable` is `false`: the framework could not set up the events, or the feature group was turned off. The group's log file in `BepInEx\logs` has the error lines (see [Details](details.md#if-something-fails-to-set-up)).

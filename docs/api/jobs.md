@@ -7,9 +7,13 @@ nav_order: 4
 
 # Jobs
 
+`Jobs` covers the paid work places in a scene and the event for a finished shift. Use it when your mod reacts to the player working or needs a job's wage.
+
 ## What it is
 
-A job in the game is a place where the player can wait out a stretch of time and get paid for it. Each job has an hourly wage, may test one of the player's skills, and has a hardness. This API lets your mod list the jobs in the scene you are in, and read their wage, skill and hardness. It tells you each time the player finishes working, with how long they worked and how much money it paid.
+A job in the game is a place where the player can wait out a stretch of time and get paid for it. Each job has an hourly wage and a hardness, and may test one of the player's skills.
+
+This API lists the jobs in the [scene](../glossary.md#scene) you are in, and reads their wage, skill and hardness. It tells you each time the player finishes working, with how long they worked and how much money it paid.
 
 ## When to use it
 
@@ -20,7 +24,7 @@ A job in the game is a place where the player can wait out a stretch of time and
 
 ## Quick example
 
-This mod writes a log line each time the player finishes working, with the hours worked and the pay. When the game is ready, it also logs every job in the scene with its hourly wage.
+This mod writes a [log](../guides/getting-started/logging.md) line each time the player finishes working, with the hours worked and the pay. When the game is ready, it also logs every job in the scene with its hourly wage.
 
 ```csharp
 using ObenseuerCore;
@@ -41,11 +45,11 @@ public sealed class JobWatch : FrameworkMod
 }
 ```
 
-`Worked` is an event: the framework calls your code each time it happens. OC is Open Sewer Coins and RM is Real Money (see the [glossary](../glossary.md#oc)). See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Worked` is an event: the framework calls your code each time it happens. OC is Open Sewer Coins and RM is Real Money (see the [glossary](../glossary.md#oc)). See [Using events](../guides/getting-started/using-events.md) for more on events and [`WhenReady`](core-helpers/events-whenready.md).
 
 ## Common tasks
 
-Look up one job by its id. `Get` returns null when no job has that id.
+Look up one job by its id. `Get` returns `null` when no job has that id.
 
 ```csharp
 JobInfo job = Jobs.Get("some-job-id");
@@ -61,7 +65,7 @@ foreach (JobInfo job in Jobs.All())
 if (best != null) Log.Info("best job: " + best.Id);
 ```
 
-Pay a bonus of 10 OC every time the player finishes work that paid something.
+Pay a bonus of 10 OC every time the player finishes work that paid something. [`Cash.Give`](economy/money-cash.md) adds the money.
 
 ```csharp
 Jobs.Worked += args => { if (args.PayOc > 0f) Cash.Give(MoneyCurrency.OC, 10f); };
@@ -74,7 +78,7 @@ This is the full list of what the API gives you.
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Jobs</code> <span>list jobs and hear when work is finished</span></p>
 
-Call `All()` or `Get(id)` to read the jobs in the scene, and subscribe to `Worked` to hear when the player finishes work.
+Call `All()` or `Get(id)` to read the jobs in the scene. Subscribe to `Worked` to hear when the player finishes work.
 
 <div class="api-pair" markdown="1">
 
@@ -136,7 +140,7 @@ public sealed class JobInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorkedArgs</code> <span>what you get when the player finishes working</span></p>
 
-`Worked` gives you one of these each time the player finishes a stretch of work. `Id` matches it to a `JobInfo`, and `PayOc` and `PayRm` show what the work paid.
+`Worked` gives you one of these each time the player finishes a stretch of work. `Id` matches it to a `JobInfo`. `PayOc` and `PayRm` show what the work paid.
 
 <div class="api-pair" markdown="1">
 
@@ -163,29 +167,35 @@ public sealed class WorkedArgs
 ### Things to know
 
 - A job's `Id` names one job in the scene you are in. If the game gave the job a save id, that is the id. If not, the id is the job's place in the scene, and it changes if someone edits the objects around it. <span class="tech">(The id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`.)</span>
-- `All()` lists the jobs in the scene you are in, and it is slow, so do not call it every frame. `Get` is just as slow, because both search every object in the scene each time. Call them when something happens, or on a timer, and keep the result. <span class="tech">(Both scan `FindObjectsByType<InteractableWaitWork>` on each call. Objects that are switched off are left out.)</span>
-- `Skill` is the player skill the job tests, or `Skill.None` when it tests none. It is the same `Skill` list the framework uses everywhere else for the player's skills. <span class="tech">(It is cast from the game's `PlayerStats.PlayerSkillType`, the same way the skills API does it.)</span>
+- `All()` lists the jobs in the scene you are in. It is slow, so do not call it every frame. `Get` is as slow, because both search every object in the scene each time. Call them when something happens, or on a timer, and keep the result. <span class="tech">(Both scan `FindObjectsByType<InteractableWaitWork>` on each call. Objects that are switched off are left out.)</span>
+- `Skill` is the player skill the job tests, or `Skill.None` when it tests none. It is the same [`Skill`](player/skills.md) list the framework uses everywhere else for the player's skills. <span class="tech">(It is cast from the game's `PlayerStats.PlayerSkillType`, the same way the skills API does it.)</span>
 - `Worked` fires when the player finishes a stretch of work, after the game has already paid the wage. It fires after the game has applied the skill and addiction changes too.
 - `Worked` also fires for a wait that was cut short, with the time actually worked. It does not fire for a wait of zero seconds. <span class="tech">(It fires after the game calls `InteractableWaitWork.WaitDone`, which the game calls from `WaitingController.Wakeup`. `Hours` is the game's `timeWaited` in seconds divided by 3600.)</span>
 - `PayOc` and `PayRm` are how much the player's balance went up during the work, not a recalculated wage. Both are 0 when the job pays nothing.
 - `PayRm` is rounded to 0.1, because that is how finely the game counts RM. If a scene gives the player other money in the same moment, that money is counted too. <span class="tech">(They are the change in the player's OC and RM balance across `WaitDone`. The game code does not show such a scene relay (the `onWaitDone` output), because it is set per scene.)</span>
-- `Worked` does not fire when a save loads. Loading a save does not finish any work. <span class="tech">(Nothing on the load path calls `WaitingController.Wakeup`.)</span>
-- The framework does not hold back `Worked` while a save is loading. If your handler should ignore events raised during a load, check `SaveData.Busy` first. It is `true` while a save is loading or being written.
+- `Worked` does not fire when a save loads, because loading a save does not finish any work. <span class="tech">(Nothing on the load path calls `WaitingController.Wakeup`.)</span>
+- The framework does not hold back `Worked` while a save is loading. If your handler should ignore events raised during a load, check [`SaveData.Busy`](../api-core/savedata.md) first. It is `true` while a save is loading or being written.
 
 ### Limits
 
-- `PayOc` and `PayRm` can include money that did not come from the wage. They are the difference between two balances, not the game's wage formula, so any other money change that happens during the same work is counted too.
+- `PayOc` and `PayRm` can include money that did not come from the wage. They are the difference between two balances, not the game's wage formula. Any other money change that happens during the same work is counted too.
 - A job without a save id gets a new id if its object is renamed or moved. Do not store those ids between sessions.
 - You can't start or stop a job from your mod. The game lets the player start work through its own steps, and it can refuse to let the player wait. A call from a mod would have to repeat those checks, so it is not offered. <span class="tech">(`Interact` and `Wait` are the game's own flow, and the wait can be refused (`CanWait`).)</span>
 
+**Common problems**
+
+- `PayOc` or `PayRm` is more than the wage: they are the change in the player's balance during the work, so other money given in the same moment is counted too.
+- A stored job id no longer finds the job: the job has no save id, and its object was renamed or moved, or the objects around it were edited. Do not store those ids between sessions.
+- `Worked` never fires and `IsAvailable` is `false`: the change behind `Worked` could not be made. Error lines and a warning are in `BepInEx\logs\obenseuer.moddingframework.jobs.log`. `All` and `Get` keep working.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) (the game's mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.jobs.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-The framework changes one of the game's methods when it starts, so it can tell your mod when work is finished. This page's feature group is `obenseuer.moddingframework.jobs`, the name you will see in the log.
+The framework changes one of the game's methods when it starts, so it can tell your mod when work is finished. This page's [feature group](../glossary.md#feature-group) (a named set of the framework's changes) is `obenseuer.moddingframework.jobs`, the name you will see in the log.
 
 ### When you can call it
 
@@ -195,6 +205,6 @@ The framework changes one of the game's methods when it starts, so it can tell y
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the feature group that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- If the change behind `Worked` cannot be made, `Jobs.IsAvailable` becomes `false` and `Worked` never fires. The feature group is turned off and error lines and a warning go to `BepInEx\logs\obenseuer.moddingframework.jobs.log`. `All` and `Get` keep working. <span class="tech">(The change is on `InteractableWaitWork.WaitDone`. `Worked` relies on `WaitDone` being the only way a wait finishes. The game code has one override of it and one call, in `WaitingController.Wakeup`.)</span>
+- If the change behind `Worked` cannot be made, `Jobs.IsAvailable` becomes `false` and `Worked` never fires. The feature group is turned off, and error lines and a warning go to `BepInEx\logs\obenseuer.moddingframework.jobs.log`. `All` and `Get` keep working. <span class="tech">(The change is on `InteractableWaitWork.WaitDone`. `Worked` relies on `WaitDone` being the only way a wait finishes. The game code has one override of it and one call, in `WaitingController.Wakeup`.)</span>

@@ -8,11 +8,18 @@ nav_order: 5
 
 # Medical
 
+[`Medical`](medical/treatments-and-prices.md) lets your mod read the doctor's treatments and prices, buy a treatment for the player, and hear about every purchase. Use it to show prices elsewhere or to react when the player is treated.
+
 Status: experimental.
 
 ## What it is
 
-The doctor in the game sells treatments: painkillers, bandages, medicine for fungal growths, help for addictions, mental health and radiation, and a treatment that heals the player's wounds. This API lets your mod list the treatments the doctor sells with their prices, check whether the player can buy one right now, buy one for the player, and get told when any treatment is bought.
+The doctor in the game sells treatments. They cover painkillers, bandages, medicine for fungal growths, help for addictions, mental health and radiation, and a treatment that heals the player's wounds. This API gives your mod these jobs:
+
+- List the treatments the doctor sells, with their prices.
+- Check whether the player can buy one right now.
+- Buy one for the player.
+- Get told when any treatment is bought.
 
 ## When to use it
 
@@ -22,7 +29,7 @@ The doctor in the game sells treatments: painkillers, bandages, medicine for fun
 
 ## Quick example
 
-This mod writes a log line whenever the player buys a treatment. Once a save is loaded, it also logs every treatment of the doctors in the scene with its price.
+This mod writes a [log](../guides/getting-started/logging.md) line whenever the player buys a treatment. Once a save is loaded, it also logs every treatment of the doctors in the [scene](../glossary.md#scene), with its price.
 
 ```csharp
 using ObenseuerCore;
@@ -43,4 +50,4 @@ public sealed class MedicalWatch : FrameworkMod
 }
 ```
 
-`Treated` is an event: the framework calls your code each time it happens. `Events.WhenReady` runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md). The list is empty when the scene has no doctor.
+`Treated` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded, or at once if one already is. See [Using events](../guides/getting-started/using-events.md). The list is empty when the scene has no doctor.

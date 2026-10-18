@@ -6,9 +6,15 @@ nav_order: 3
 
 # Getting started
 
-This section takes you from nothing to a mod you can share. You do not need to have made a mod before. Each page covers one job.
+This section takes you from nothing to a mod you can share. Each page covers one job. You do not need to have made a mod before.
 
-Install the game's mod tools and the framework first, using the [install page](../install.md). Then start with [Your first mod](getting-started/first-mod.md). It builds a small mod and shows a hint box and a log line in about five minutes. Every later page uses the same project, so keep it. To try a page's code, replace the code in `Plugin.cs` with the code on that page and build again. The build writes over the same DLL, so you do not get duplicate mods.
+## Before you start
+
+Install [BepInEx](../glossary.md#bepinex) (the game's mod loader) and the [framework](../glossary.md#framework) first, using the [install page](../install.md). Then start with [Your first mod](getting-started/first-mod.md). It builds a small mod that shows a hint box and writes a log line, in about five minutes.
+
+Every later page uses the same project, so keep it. To try a page's code, replace the code in `Plugin.cs` with the code on that page and build again. The build writes over the same DLL (the mod file), so you do not get duplicate mods.
+
+## Reading order
 
 Read the pages in this order the first time:
 
@@ -21,4 +27,4 @@ Read the pages in this order the first time:
 7. [Patching](getting-started/patching.md): change a game method, as a last resort.
 8. [Packaging](getting-started/packaging.md): make a zip to share.
 
-After that, the [Cookbook](cookbook/index.md) has short recipes for common jobs, such as giving an item or paying the player. When your mod works, read [Using the framework alongside other mods](multiple-mods.md) before you share it.
+After these eight pages you can make, test and share a mod. The [Cookbook](cookbook/index.md) then has short recipes for common jobs, such as giving an item or paying the player. Before you share your mod, read [Using the framework alongside other mods](multiple-mods.md).

@@ -7,15 +7,15 @@ nav_order: 6
 
 # Looking
 
+How to turn an NPC's head and eyes toward the player or an object, and how to let it look around by itself again. Use it to make an NPC pay attention to something during a scripted moment.
+
 This page uses `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-These calls turn an NPC's head and eyes toward the player or an object, or back to looking around by itself.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>looking at the player or an object</span></p>
 
-Call `LookAtPlayer` or `LookAt` to make the NPC look, and `StopLooking` to let it look around by itself.
+`LookAtPlayer` and `LookAt` make the NPC look. `StopLooking` lets it look around by itself.
 
 <div class="api-pair" markdown="1">
 
@@ -34,14 +34,14 @@ public static class NpcActions
 | `LookAtPlayer(npcId)` | `bool` | Makes the NPC look at the player. |
 | `LookAtPlayer(npcId, seconds)` | `bool` | Makes the NPC look at the player for a number of seconds. |
 | `LookAt(npcId, target)` | `bool` | Makes the NPC look at an object. |
-| `StopLooking(npcId)` | `bool` | Makes the NPC go back to looking around by itself. |
+| `StopLooking(npcId)` | `bool` | Lets the NPC go back to looking around by itself. |
 
 </div>
 </div>
 
 ## Things to know
 
-- These give `true` whenever the NPC has a head. An NPC without eyes shows nothing, and the game's own behaviour can change where the NPC looks at any time, for example when the player walks out of its range, when it sleeps, or when it dies. <span class="tech">(All four need a `CharacterHeadController`. The game makes the calls do nothing when the NPC has no eyes. A sleeping NPC has its head look turned off, so a look on a sleeping NPC may not show.)</span>
+- These calls give `true` whenever the NPC has a head. An NPC without eyes shows nothing. The game's own behaviour can change where the NPC looks at any time. For example, that happens when the player walks out of its range, or when the NPC sleeps or dies. <span class="tech">(All four need a `CharacterHeadController`. The game makes the calls do nothing when the NPC has no eyes. A sleeping NPC has its head look turned off, so a look on a sleeping NPC may not show.)</span>
 - `LookAtPlayer(npcId)` makes the NPC look at the player until something else changes it. It gives `false` when the game has no player camera yet. <span class="tech">(It calls `CharacterHeadController.LookAtPlayerDialogue` and needs `ThirdPersonCameraCollision.instance`.)</span>
 - `LookAtPlayer(npcId, seconds)` does the same for about that many seconds. `seconds` must be above 0, the NPC's head must be switched on, and the player camera must exist.
 - `LookAt(npcId, target)` makes the NPC look at an object and stop looking at the player. It stays that way until you call `StopLooking`. A `target` that is `null` or already destroyed gives `false`. <span class="tech">(It calls `LookAtNPCTarget` and turns off the head controller's look-at-player flag.)</span>

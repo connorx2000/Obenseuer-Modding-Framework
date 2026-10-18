@@ -7,7 +7,9 @@ nav_order: 9
 
 # Worked example: Spicy Sewer Jerky
 
-This is the quick example again, with the numbers worked out. The mod id is `example.spicy-jerky`. The item is a copy of Salted Pork (item 19990, categories `Food` and `Meat`). The recipe is a copy of Fried rat (recipe 10064, station `Stove`, 60 seconds). `IdFor` gives item `569330863` and recipe `879933748`.
+This is the [quick example](../registry.md#quick-example) again, with the numbers worked out: the template values, the ids, and what to check in the game.
+
+The [mod id](../../glossary.md#mod-id) (the id for your config, log, save data and keybinds) is `example.spicy-jerky`. The item copies Salted Pork, its [template](../../glossary.md#template) (the existing item it copies): item 19990, categories `Food` and `Meat`. The recipe copies Fried rat: recipe 10064, station `Stove`, 60 seconds. `IdFor` gives item `569330863` and recipe `879933748`.
 
 ```csharp
 string mod = "example.spicy-jerky";
@@ -32,4 +34,11 @@ RecipeRegistry.Define(mod, "spicy-sewer-jerky-recipe", new RecipeDefinition
 });
 ```
 
-The inputs are Rat Meat (26030), Bell Pepper (12820) and Tablesalt (14780), one each. Call this from the plugin's `Awake`, before the item and recipe lists load. A return value of -1 means the call was refused. You should see the item with Salted Pork's icon and model, the recipe at a Stove, and crafting it should use the three inputs and make one jerky.
+The inputs are Rat Meat (26030), Bell Pepper (12820) and Tablesalt (14780), one each.
+
+1. Call this from the plugin's `Awake`, before the item and recipe lists load. A return value of -1 means the call was refused.
+2. Find the item in the game. It has Salted Pork's icon and model.
+3. Find the recipe at a Stove.
+4. Craft it. It should use the three inputs and make one jerky.
+
+The jerky now exists as an item and a recipe. To give it its own icon, see [Common tasks](common-tasks.md).

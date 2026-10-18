@@ -7,19 +7,21 @@ nav_order: 5
 
 # Details
 
+This page lists the game build and source file behind `BaseShops`, when it is safe to call, and what comes back when something goes wrong. You need it when you call the API from event handlers or during a save.
+
 Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. File: `src/Api/BaseShops.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-The framework changes no game method for this API, so it has no `IsAvailable` and no feature group. The name `obenseuer.moddingframework.baseshops` is the one you will see in the log.
+The framework changes no game method for this API. So it has no `IsAvailable` and no [feature group](../../glossary.md#feature-group) (the named set of changes for one feature). The name `obenseuer.moddingframework.baseshops` is the one you will see in the [log](../../guides/getting-started/logging.md).
 
 ## When you can call it
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
 - It is safe to call any of it at any time. With no save loaded, `All` gives an empty list, `SetMoney` and `Restock` give `false`, and `Buy` and `Sell` give `Busy` or `Unavailable`.
 - Your `Bought` and `Sold` handlers run one at a time. If one throws an error, the framework logs it and still runs the others.
-- The framework does not hold back `Bought` and `Sold` while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`, which is `true` during a load or a save.
+- The framework does not hold back `Bought` and `Sold` while a save is loading or being written. A handler that should ignore those moments can check [`SaveData.Busy`](../../api-core/savedata.md#savedatabusy), which is `true` during a load or a save.
 
 ## What to check for and what comes back
 

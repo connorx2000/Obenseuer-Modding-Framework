@@ -7,12 +7,28 @@ nav_order: 7
 
 # Hazards
 
+`Hazards` lets your mod find the dangerous zones in the [scene](../glossary.md#scene), switch them on or off, and react when the player walks into one. Use it for rewards, warnings or maps that involve radiation or damage zones.
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-Hazards are the dangerous places in the game world: zones that give the player a radiation dose, zones that hurt the player, glowing radiation sources, and the detectors that measure that radiation. This API lets your mod list them, see whether each one is switched on, switch one on or off, and get told when the player walks into one. It covers the zones. The radiation dose the player has collected is on the [World](world/worldradiation.md#worldradiation) page.
+Hazards are the dangerous places in the game world:
+
+- zones that give the player a radiation dose;
+- zones that hurt the player;
+- glowing radiation sources;
+- the detectors that measure that radiation.
+
+This API gives your mod these jobs:
+
+- List the hazards.
+- See whether each one is switched on.
+- Switch one on or off.
+- Get told when the player walks into one.
+
+It covers the zones. The radiation dose the player has collected is on the [World](world/worldradiation.md#worldradiation) page.
 
 ## When to use it
 
@@ -22,7 +38,7 @@ Hazards are the dangerous places in the game world: zones that give the player a
 
 ## Quick example
 
-This mod writes a log line each time the player walks into a hazard zone. Once a save is loaded, it also logs how many hazards are switched on in the scene.
+This mod writes a [log](../guides/getting-started/logging.md) line each time the player walks into a hazard zone. Once a save is loaded, it also logs how many hazards are switched on in the scene.
 
 ```csharp
 using ObenseuerCore;
@@ -45,11 +61,11 @@ public sealed class HazardWatch : FrameworkMod
 }
 ```
 
-`Entered` is an event: the framework calls your code each time it happens. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
+`Entered` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
-List the radiation zones in the scene and say where each one is and whether it is on.
+List the radiation zones in the scene, with where each one is and whether it is on.
 
 ```csharp
 foreach (HazardInfo hazard in Hazards.All())
@@ -79,12 +95,12 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 
 ### Hazards
 
-Each hazard is a `HazardInfo`, a snapshot of its state when you asked. The `Kind` says what sort of hazard it is.
+Each hazard is a `HazardInfo`: a snapshot of its state when you asked. Its `Kind` says what sort of hazard it is.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Hazards</code> <span>lists hazards and switches them</span></p>
 
-This is the class you start from. `All()` lists the hazards, `SetEnabled` switches one on or off, and `Entered` tells you when the player walks into a radiation or hurt zone.
+This is the class you start from. `All()` lists the hazards, and `SetEnabled` switches one on or off. `Entered` tells you when the player walks into a radiation or hurt zone.
 
 <div class="api-pair" markdown="1">
 
@@ -100,7 +116,7 @@ public static class Hazards
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<HazardInfo>` | Every hazard in the scene you are in, switched on or off. Hazards on objects that are switched off in the scene are not listed. |
+| `All()` | `List<HazardInfo>` | Every hazard in the scene you are in, switched on or off. Hazards on switched-off objects are not listed. |
 | `SetEnabled(id, enabled)` | `bool` | Switches a hazard on (`true`) or off (`false`). Returns `true` when the hazard is now in that state. |
 
 | Property | Type | What it means |
@@ -162,7 +178,7 @@ public enum HazardKind
 |---|---|
 | `Radiation` | An area that adds to the player's radiation dose while the player stands in it. |
 | `Hurt` | An area that damages the player while the player stands in it. |
-| `PointRadiation` | A glowing source that gives off radiation that gets weaker with distance. |
+| `PointRadiation` | A glowing source whose radiation gets weaker with distance. |
 | `Detector` | A scene radiation detector that fires a signal when the radiation passes a limit. |
 
 </div>
@@ -195,28 +211,32 @@ public sealed class HazardEnteredArgs
 
 - `All()` lists the hazards in the scene you are in, switched on or off. It is slow, so do not call it every frame. Call it when something happens, or on a timer, and keep the result. <span class="tech">(it searches the whole scene for the four kinds each time, using `FindObjectsByType` for `TriggerRadiation`, `TriggerHurt`, `point_radiation` and `point_radiation_detector`, active objects only; each entry's `Kind` says which game component it is)</span>
 - `Enabled` is the hazard's own on or off setting at the moment you asked. <span class="tech">(it is `TriggerRadiation.Enabled`, `TriggerHurt.Enabled`, `point_radiation.active` or `point_radiation_detector.on`)</span>
-- The `Id` is the object's id, then a slash, then the kind, so a damaging zone and a radiation zone on one object get different ids. <span class="tech">(the first part is the object's save GUID (see the [glossary](../glossary.md#guid)), or its scene path when it has none; the scene path changes if the scene's hierarchy is edited, so do not store an id that came from a scene path)</span>
-- `Detector` is a detector placed in the level, not the player's hand-held dosimeter. It measures the radiation where it stands and fires the level's signals when the reading goes above or below a limit. <span class="tech">(it is the game's `point_radiation_detector`, which fires its `OnAboveThreshold` and `OnBelowThreshold` outputs)</span>
+- The `Id` is the object's id, then a slash, then the kind. So a damaging zone and a radiation zone on one object get different ids. <span class="tech">(the first part is the object's save GUID (see the [glossary](../glossary.md#guid)), or its scene path when it has none; the scene path changes if the scene's hierarchy is edited, so do not store an id that came from a scene path)</span>
+- `Detector` is a detector placed in the level, not the player's hand-held dosimeter. It measures the radiation where it stands. It fires the level's signals when the reading goes above or below a limit. <span class="tech">(it is the game's `point_radiation_detector`, which fires its `OnAboveThreshold` and `OnBelowThreshold` outputs)</span>
 - `SetEnabled` returns `true` when the hazard is now in the state you asked for. It returns `false` for an unknown or empty id, for a detector, and while a save is loading or saving.
 - Switching off a damaging zone that gives radiation also switches off its radiation. The game puts a radiation zone on the same object, and `SetEnabled` switches both together, so the dose stops with the hurt zone. That radiation zone is also listed in `All()` as its own `Radiation` entry. <span class="tech">(for a `TriggerHurt` with `DamageType` radiation, the game adds a `TriggerRadiation` component in `Start`; `SetEnabled` also calls `Enable` on every `TriggerRadiation` on that object)</span>
-- `Entered` fires once when the player walks into a zone that is switched on. It does not fire again for a second part of the player touching the same zone, and switching the zone off first means no event. A damaging zone that gives radiation raises one `Hurt` event, not a second `Radiation` event as well. <span class="tech">(it is raised from the game's `OnTriggerEnter`, and only when the game itself counts the player as inside: the zone's `playerIn` flag for a radiation zone, and the player's `Stats` added to the zone for a hurt zone; it does not fire while a save is loading)</span>
+- `Entered` fires once when the player walks into a zone that is switched on. It does not fire again for a second part of the player touching the same zone. If the zone was switched off first, there is no event. A damaging zone that gives radiation raises one `Hurt` event, not a second `Radiation` event as well. <span class="tech">(it is raised from the game's `OnTriggerEnter`, and only when the game itself counts the player as inside: the zone's `playerIn` flag for a radiation zone, and the player's `Stats` added to the zone for a hurt zone; it does not fire while a save is loading)</span>
 - `Entered` does not fire for glowing sources or detectors. They are not areas the player walks into, so they have no entry.
 
 ### Limits
 
 - `SetEnabled` can switch radiation zones, hurt zones and glowing sources, but not detectors. For a detector id it returns `false`, because the game gives mods no safe way to switch one. You can still read its `Enabled` value in `All()`. <span class="tech">(`point_radiation_detector` has no public method, only the public field `on`, and no game code writes it)</span>
-- Switching off a zone while the player is inside it does not stop the dose right away. The zone keeps adding radiation until the player leaves, and switching it off only stops new entries. A glowing source is different: switching it off stops its radiation at once. <span class="tech">(`TriggerRadiation.DeltaSeconds` tests `playerIn && enabled`, so the dose runs until the player leaves; `point_radiation.CalculateRadiation` returns 0 while `active` is false)</span>
+- Switching off a zone while the player is inside it does not stop the dose right away. The zone keeps adding radiation until the player leaves. Switching it off only stops new entries. A glowing source is different: switching it off stops its radiation at once. <span class="tech">(`TriggerRadiation.DeltaSeconds` tests `playerIn && enabled`, so the dose runs until the player leaves; `point_radiation.CalculateRadiation` returns 0 while `active` is false)</span>
 - `IsAvailable` is `false` when an entry event could not be set up. Then `Entered` stops for the kind that is missing, and the other kind keeps firing. `All()` and `SetEnabled` keep working. See "If something fails to set up" below.
+
+**Common problems**
+
+- `SetEnabled` returns `false`: the id is unknown or empty, or it belongs to a detector. It also returns `false` while a save is loading or saving, on the main menu, and with no save loaded. Take the id from `Hazards.All()`. Detectors can't be switched.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) (the game's mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.hazards.log`. Source files: `src/Api/Hazards.cs` and `src/Api/HazardsPatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-- The framework changes some of the game's methods when it starts, so it can tell your mod when the player enters a zone. If a game update breaks one of them, only that part turns off, and the framework writes error lines and a warning to the log. The rest of the framework keeps working.
-- This page has two feature groups, one for each kind of zone.
+- The framework changes some of the game's methods when it starts, so it can tell your mod when the player enters a zone. If a game update breaks one of them, only that part turns off. The framework writes error lines and a warning to the log. The rest of the framework keeps working.
+- This page has two [feature groups](../glossary.md#feature-group) (named sets of the framework's changes), one for each kind of zone.
 
 ### When you can call it
 

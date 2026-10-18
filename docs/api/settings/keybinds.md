@@ -7,10 +7,10 @@ nav_order: 3
 
 # Keybinds
 
+`Keybinds` reads the keys the player bound to the game's actions, and registers keys for your mod. A key you register is saved in a config file and can be changed in the [Mods menu](../framework-mods/mods-menu.md). The [Keybinds guide](../../guides/getting-started/keybinds.md) walks through registering and checking a key in a first mod.
+
 This page uses `KeyCode` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-`Keybinds` reads the keys the player bound to the game's actions, and registers keys for your mod. A key you register is saved in a config file and can be changed in the Mods menu.
 
 Game actions use the game's own names, written exactly as the game spells them:
 
@@ -19,7 +19,7 @@ Game actions use the game's own names, written exactly as the game spells them:
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Keybinds</code> <span>reads and registers keys</span></p>
 
-This is the class to start from. `Key`, `Button`, `Label`, `Down` and `Held` read the keys the player bound to a game action, and `Register` adds a key for your mod.
+This is the class to start from. `Key`, `Button`, `Label`, `Down` and `Held` read the keys the player bound to a game action. `Register` adds a key for your mod.
 
 <div class="api-pair" markdown="1">
 
@@ -50,7 +50,7 @@ public static class Keybinds
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModKeybind</code> <span>a key your mod registered</span></p>
 
-`Keybinds.Register` gives you one of these. Use its `Down`, `Up` and `Held` methods to check your key, and read `Key` for the main key it is bound to.
+`Keybinds.Register` gives you one of these. Use its `Down`, `Up` and `Held` methods to check your key. Read `Key` for the main key it is bound to.
 
 <div class="api-pair" markdown="1">
 
@@ -79,14 +79,14 @@ public sealed class ModKeybind
 
 ## Things to know
 
-- `Key(action)` gives the keyboard key the player has bound, including any change the player made. It gives `KeyCode.None` when the action has no key or the name is not known.
+- `Key(action)` gives the keyboard key the player has bound, including any change the player made. It gives [`KeyCode.None`](../../glossary.md#keycode) (no key) when the action has no key or the name is not known.
 - `Button(action)` gives the controller button for the action. The game does not let the player rebind controller buttons, so this is the fixed default.
 - `Label(action)` gives the text the game shows for the device in use. A keyboard player gets `E`, and a controller player gets `A`. Use it for prompts like `"Press [" + Keybinds.Label("Interact") + "]"`. It gives `""` when the action has no key.
 - `Down(action)` and `Held(action)` are `true` when the player presses or holds the bound key or button. They follow the player's rebinds.
-- They do not check whether a menu or a conversation is open, so check that yourself before you act on them (for example with `UiState`).
-- Reading a key or button can switch the game's input device indicator. A read of a key or button that is held can make the game think the player moved to the keyboard or to the controller, as the game's own reads do. <span class="tech">(it can change `InputManager.inputType`)</span>
-- `Register` adds a key for your mod, and gives back the same key if you register it again. It takes your mod id, a short id for the key, the name shown in the Mods menu, and the key it starts on.
-- The player can change it in the Mods menu, on the page **Mod Keybinds**. The framework adds that page the first time any mod registers a key. <span class="tech">(the key is saved in `config\ObenseuerCore.ModKeybinds.cfg`, in the section `modId` under the key `id`; calling `Register` again with the same `modId` and `id` returns the same handle)</span>
+- They do not check whether a menu or a conversation is open. Check that yourself before you act on them, for example with [`UiState`](../ui-state.md).
+- Reading a key or button can switch the game's input device indicator. A read of a key or button that is held can make the game think the player moved to the keyboard or to the controller. The game's own reads do the same. <span class="tech">(it can change `InputManager.inputType`)</span>
+- `Register` adds a key for your mod, and gives back the same key if you register it again. It takes your [mod id](../../glossary.md#mod-id), a short id for the key, the name shown in the Mods menu, and the key it starts on.
+- The player can change the key in the [Mods menu](../framework-mods/mods-menu.md), on the page **Mod Keybinds**. The framework adds that page the first time any mod registers a key. <span class="tech">(the key is saved in `config\ObenseuerCore.ModKeybinds.cfg`, in the section `modId` under the key `id`; calling `Register` again with the same `modId` and `id` returns the same handle)</span>
 - `ModKeybind.Key` is the main key only. It does not give the modifier keys. A modifier key is one like Shift or Ctrl that must be held with the main key.
 - `Down()`, `Up()` and `Held()` check the main key, and every modifier that is bound must be held. Other keys held at the same time, such as the movement keys, do not stop them from working. <span class="tech">(the main key is read with `Input.GetKeyDown`, `Input.GetKeyUp` or `Input.GetKey`)</span>
 - Mod keys are shown in the Mods menu, and not on the game's Key Bindings screen.
@@ -95,6 +95,13 @@ public sealed class ModKeybind
 ## Limits
 
 - `Register` gives `null` if the key could not be created, for example when the config file cannot be opened. The error is logged. Check for `null`.
-- If two mods use the same key, `Register` writes one warning to the log, and both keys still work. The warning names both mods, their ids and their keys.
-- The check runs only when `Register` runs. A change the player makes later in the Mods menu is not checked, and a clash with a game action is not found. The player fixes a clash by changing a key in the Mods menu. <span class="tech">(two keys clash when the main key is the same and one set of modifier keys contains the other, so that one press fires both)</span>
-- A key value that someone typed into the config file by hand and that cannot be read leaves the key unbound until the player picks a new one. `ModKeybind.Key` is `KeyCode.None` then.
+- If two mods use the same key, `Register` writes one warning to the [log](../../guides/getting-started/logging.md), and both keys still work. The warning names both mods, their ids and their keys.
+- The check runs only when `Register` runs. A change the player makes later in the [Mods menu](../framework-mods/mods-menu.md) is not checked, and a clash with a game action is not found. The player fixes a clash by changing a key in the Mods menu. <span class="tech">(two keys clash when the main key is the same and one set of modifier keys contains the other, so that one press fires both)</span>
+- Someone may type a key value into the config file by hand. If it cannot be read, the key stays unbound until the player picks a new one. `ModKeybind.Key` is `KeyCode.None` then.
+
+**Common problems**
+
+- `Register` returns `null`: the key could not be created, for example because the config file cannot be opened. The error is in the log. Check for `null` before you use the key.
+- `Down(action)` or `Held(action)` is `true` while a menu or a conversation is open: they do not check for that. Check it yourself first, for example with `UiState`.
+- One press fires keys from two mods: both mods use the same key, and both keys still work. If the clash existed when `Register` ran, the log has one warning that names both mods. A change the player makes later in the Mods menu is not checked, and a clash with a game action is not found. The player fixes the clash by changing a key in the Mods menu.
+- `ModKeybind.Key` is `KeyCode.None`: a key value typed into the config file by hand could not be read. The key stays unbound until the player picks a new one.

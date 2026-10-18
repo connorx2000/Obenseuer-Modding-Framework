@@ -8,11 +8,23 @@ nav_order: 5
 
 # Furniture
 
+[`FurnitureRegistry`](furniture/defining-furniture.md) lets your mod add new pieces of furniture, sell them in shops and hand them to the player. Use it when your mod brings a new piece the player can place in their home.
+
 Status: experimental.
 
 ## What it is
 
-Furniture is what the player builds and places in their home: tables, chairs, shelves and the like. This API lets your mod add new furniture to the game. A new piece starts as a copy of a piece the game already has (the template) and gets its own name, description, price, icon and shop listing. You can also give it your own 3D model, say where it may be placed (floor, wall or ceiling), and change its collision boxes. A blueprint teaches the player how to craft your furniture, and a flatpack is the packed box form of it that can be found in the world, mailed or handed out. The pieces you add also show up in the developer console's `add_furniture`, `add_furniture_all` and `find_furniture` commands.
+Furniture is what the player builds and places in their home: tables, chairs, shelves and the like. This API adds new furniture to the game.
+
+A new piece starts as a copy of a piece the game already has, its [template](../glossary.md#template) (the game piece it is copied from). The copy gets its own name, description, price, icon and shop listing. You can also:
+
+- give it your own 3D model;
+- say where it may be placed: floor, wall or ceiling;
+- change its collision boxes.
+
+A [blueprint](../glossary.md#blueprint) (a crafting plan for mod furniture) teaches the player how to craft your furniture. A [flatpack](../glossary.md#flatpack) is the packed box form of it. A flatpack can be found in the world, mailed or handed out.
+
+The pieces you add also show up in the developer console's `add_furniture`, `add_furniture_all` and `find_furniture` commands.
 
 ## When to use it
 
@@ -50,4 +62,6 @@ public sealed class OakTableMod : FrameworkMod
 }
 ```
 
-`Define` gives you back the id of your furniture, or `null` when the framework refused it. `Loaded` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events. Furniture is defined when your mod loads, before the game builds any piece, and `Define` is refused after that. See "Defining furniture".
+`Define` gives you back the id of your furniture, or `null` when the framework refused it. `Loaded` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events.
+
+Furniture is defined when your mod loads, before the game builds any piece. After that, `Define` is refused. The rules are on [Defining furniture](furniture/defining-furniture.md).

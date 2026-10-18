@@ -7,4 +7,4 @@ nav_order: 8
 
 # Places and travel
 
-The world, scenes and their logic, levels, doors, trains, housing, hotels, the sky and the clock.
+This group covers the world, [scenes](../../glossary.md#scene) and their logic, levels and doors. It also covers trains, housing, hotels, the sky and the clock.

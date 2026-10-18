@@ -8,6 +8,8 @@ nav_order: 4
 
 # Mod NPCs
 
+[`ModNpcs`](modnpcs/types-and-members.md) adds new people to the game, called [mod NPCs](../glossary.md#mod-npc), and simple background figures for a crowd. Use it when your mod needs a person that the game's own cast does not have.
+
 This page uses `Vector3` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,13 @@ Status: experimental. Every member on this page is experimental and may change.
 
 ## What it is
 
-A mod NPC is a new person your mod adds to the game. The game has no way to add a person from nothing, so the framework builds a copy of one that already exists. You pick a person from the game to copy (the source), pick which 3D body to use (the body), and give the copy a new name and a place to stand. This page covers adding and removing those people, keeping them across a save and load, changing how they look, and adding extras, which are simple background figures for a crowd. Making a mod NPC walk, wander or follow a timetable is on the [mod NPC routines](modnpc-routines.md) page.
+A [mod NPC](../glossary.md#mod-npc) is a new person your mod adds to the game. The game has no way to add a person from nothing, so the framework builds a copy of one that already exists. You choose:
+
+- the source: the person from the game to copy
+- the body: the 3D body the copy uses
+- a new name and a place to stand
+
+These pages cover adding and removing those people, keeping them across a save and load, and changing how they look. They also cover [extras](modnpcs/extras.md): simple background figures for a crowd. Making a mod NPC walk, wander or follow a timetable is on the [mod NPC routines](modnpc-routines.md) page.
 
 ## When to use it
 
@@ -25,7 +33,7 @@ A mod NPC is a new person your mod adds to the game. The game has no way to add 
 
 ## Quick example
 
-This mod waits until a save is loaded. It then adds a person named Gus Greeter three metres in front of the player, built from the first person in the game's character list who is not the player. It writes the new person's number to the log.
+This mod waits until a save is loaded. Then it adds a person named Gus Greeter three metres in front of the player. The copy is built from the first person in [`Characters.All()`](characters.md) who is not the player. The mod writes the new person's number to the [log](../guides/getting-started/logging.md).
 
 ```csharp
 using ObenseuerCore;
@@ -52,4 +60,4 @@ public sealed class Greeter : FrameworkMod
 }
 ```
 
-`WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it. This person is only there until the scene changes. See "Keeping a mod NPC after a load" below to make one that stays.
+[`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on it. This person is only there until the [scene](../glossary.md#scene) changes. To add a person who stays after a load, use [`SpawnSaved`](modnpcs/spawnsaved.md).

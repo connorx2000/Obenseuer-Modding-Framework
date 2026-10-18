@@ -7,4 +7,4 @@ nav_order: 13
 
 # Online play
 
-Steam, networking, lobbies, presence and blobs for multiplayer.
+This group covers multiplayer: Steam, networking, [lobbies](../../glossary.md#lobby), presence and blobs.

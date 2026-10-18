@@ -7,12 +7,18 @@ nav_order: 16
 
 # Train tickets
 
+`TrainTickets` lists the train ticket machines and tells your mod when a ticket is bought or taken. Use it to react to ticket sales or to show what each machine charges.
+
 This page uses `GameObject` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-A ticket machine is the machine where the player buys a train ticket. The player pays, the machine prints the ticket, and the player takes it. This API lets your mod list the ticket machines in the scene you are in, read the price each one charges, and get told when a ticket is bought and when it is taken.
+A ticket machine is the machine where the player buys a train ticket. The player pays, the machine prints the ticket, and the player takes it. This API lets your mod:
+
+- List the ticket machines in the [scene](../glossary.md#scene) you are in.
+- Read the price each one charges.
+- Get told when a ticket is bought and when it is taken.
 
 It covers ticket machines only. The shop that sells whole trains is a different thing and is not part of this API.
 
@@ -24,7 +30,7 @@ It covers ticket machines only. The shop that sells whole trains is a different 
 
 ## Quick example
 
-This mod writes a log line when a ticket is bought and when it is taken. When the game is ready, it also logs every ticket machine in the scene with its price.
+This mod writes a [log](../guides/getting-started/logging.md) line when a ticket is bought and when it is taken. When the game is ready, it also logs every ticket machine in the scene with its price.
 
 ```csharp
 using ObenseuerCore;
@@ -46,7 +52,7 @@ public sealed class TicketWatch : FrameworkMod
 }
 ```
 
-`Bought` and `Taken` are events: the framework calls your code each time they happen. The currency is OC (Open Sewer Coins) or RM (Real Money), see the [glossary](../glossary.md#oc). See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Bought` and `Taken` are events: the framework calls your code each time they happen. The currency is OC (Open Sewer Coins) or [RM](../glossary.md#rm) (Real Money), see the [glossary](../glossary.md#oc). See [Using events](../guides/getting-started/using-events.md) for more on events and [`WhenReady`](core-helpers/events-whenready.md).
 
 ## Common tasks
 
@@ -66,7 +72,7 @@ int bought = 0;
 TrainTickets.Bought += args => { bought++; Log.Info("tickets bought so far: " + bought); };
 ```
 
-Watch the money side of a ticket purchase too.
+Watch the money side of a ticket purchase too, with [`Cash.MoneyChanged`](economy/money-cash.md).
 
 ```csharp
 Cash.MoneyChanged += args => Log.Info(args.Currency + " went from " + args.Before + " to " + args.After);
@@ -74,7 +80,7 @@ Cash.MoneyChanged += args => Log.Info(args.Currency + " went from " + args.Befor
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Machines
 
@@ -82,7 +88,7 @@ Each ticket machine is a `TicketMachineInfo`, a snapshot of it at the moment you
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TrainTickets</code> <span>lists ticket machines and reports sales</span></p>
-Use `All()` to list the ticket machines, and the `Bought` and `Taken` events to hear when a ticket is bought or taken.
+`All()` lists the ticket machines. The `Bought` and `Taken` events tell you when a ticket is bought or taken.
 
 <div class="api-pair" markdown="1">
 
@@ -102,7 +108,7 @@ public static class TrainTickets
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `false` when the Bought and Taken events could not be set up. |
+| `IsAvailable` | `bool` | `false` when the `Bought` and `Taken` events could not be set up. |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -129,9 +135,9 @@ public sealed class TicketMachineInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Names this machine. The first note below says where the name comes from. |
+| `Id` | `string` | Names this machine. The first note under Things to know says where the name comes from. |
 | `Price` | `int` | The price of one ticket. |
-| `Currency` | `MoneyCurrency` | The money the machine charges in: OC or RM. |
+| `Currency` | `MoneyCurrency` | The money the machine charges in: [OC](../glossary.md#oc) or [RM](../glossary.md#rm). |
 
 </div>
 </div>
@@ -186,26 +192,26 @@ public sealed class TicketTakenArgs
 
 ### Things to know
 
-- A machine's `Id` names one ticket machine in the scene you are in. If the game gave the machine a save id, that is the id. If not, the id is the machine's place in the scene, and it changes if someone edits the objects around it. <span class="tech">(the id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`)</span>
+- A machine's `Id` names one ticket machine in the scene you are in. If the game gave the machine a save id, that is the id. If not, the id is the machine's place in the scene, and it changes if someone edits the objects around it. See [object id](../glossary.md#object-id) in the glossary. <span class="tech">(the id is the object's GUID when it has one, otherwise a scene path such as `Scene:Root[0]/Child[2]`)</span>
 - `All()` lists the ticket machines in the scene you are in. A machine that is switched off is not listed. <span class="tech">(it uses `FindObjectsByType`, which skips inactive objects by default)</span>
 - `Price` and `Currency` are what the machine really charges. The machine's own buying code uses the same values. <span class="tech">(they are read from the private `InteractableTicketMachine.ticketPrice` and `currency` fields)</span>
 - `Bought` fires when the machine takes the money and starts printing the ticket. If the player can't afford the ticket, nothing fires. <span class="tech">(it is raised after the game's `BuyTicket` when the machine's `hasTicket` flag changed from false to true)</span>
-- `Bought` is the ticket half of a purchase, and the money half is `Cash.MoneyChanged`. See the [economy page](economy/money-cash.md#money-cash).
+- `Bought` is the ticket half of a purchase. The money half is `Cash.MoneyChanged`. See the [economy page](economy/money-cash.md#money-cash).
 - `Taken` fires when a ticket is added to the player's inventory. It fires every time `TakeTicket` runs, whether or not the game's own check allowed the button press. <span class="tech">(`TakeTicket` itself does not check `hasTicket`, only the game's `Interact` does; a mod that calls `TakeTicket` directly gets an event for the ticket the game gives)</span>
 
 ### Limits
 
-- You can't change a ticket price. The game sets the price when the map is built and has no way to change it while the game runs, so no price setter is offered. <span class="tech">(the price is a private field with no game write path except its serialized default)</span>
+- You can't change a ticket price. The game sets the price when the map is built and has no way to change it while the game runs. So no price setter is offered. <span class="tech">(the price is a private field with no game write path except its serialized default)</span>
 - `Bought` only works when the machine's ticket flag changes during the buy call. If the machine's object is switched off when the player buys, the game's buying code stops with an error and nothing fires. <span class="tech">(`hasTicket` is set at the start of `BuyTicketDelay`, before its first `yield`, and Unity runs a coroutine synchronously up to its first `yield`; if the machine's GameObject is inactive, `StartCoroutine` throws)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.traintickets.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when a ticket is bought or taken. These changes are grouped as a feature group. This page's feature group is `obenseuer.moddingframework.traintickets`, the name you will see in the log.
+The framework changes some of the game's methods when it starts, so it can tell your mod when a ticket is bought or taken. These changes are grouped as a [feature group](../glossary.md#feature-group) (a named set of framework changes). This page's feature group is `obenseuer.moddingframework.traintickets`, the name you will see in the log.
 
 ### When you can call it
 
@@ -215,10 +221,10 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework acts on the feature group that depends on it. It removes all the changes of that group and turns the group off. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- Both changes behind `Bought` and `Taken` are needed. If either one cannot be made, the whole feature group turns off, `TrainTickets.IsAvailable` becomes `false`, and the framework writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.traintickets.log`. `All` keeps working. Only `Bought` and `Taken` stop. <span class="tech">(the changes are on `InteractableTicketMachine.BuyTicket` and `TakeTicket`; you can also check `CorePatcher.IsDisabled("obenseuer.moddingframework.traintickets")`)</span>
+- Both changes behind `Bought` and `Taken` are needed. If either one cannot be made, the whole feature group turns off and `TrainTickets.IsAvailable` becomes `false`. The framework writes error lines and a warning to `BepInEx\logs\obenseuer.moddingframework.traintickets.log`. `All` keeps working. Only `Bought` and `Taken` stop. <span class="tech">(the changes are on `InteractableTicketMachine.BuyTicket` and `TakeTicket`; you can also check `CorePatcher.IsDisabled("obenseuer.moddingframework.traintickets")`)</span>
 
 ### While a save is loading
 
-The framework does not hold back `Bought` or `Taken` while a save is loading. If your handler should ignore events raised during a load, check `SaveData.Busy` first. It is `true` while a save is loading or being written.
+The framework does not hold back `Bought` or `Taken` while a save is loading. If your handler should ignore events raised during a load, check [`SaveData.Busy`](../api-core/savedata.md) first. It is `true` while a save is loading or being written.

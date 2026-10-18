@@ -7,6 +7,8 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the usual jobs with [`AnimalActions`](orders.md): make an animal sit, keep one asleep, send one after a target, and make one wild. Each snippet finds its animal with [`Animals.All()`](../animals.md).
+
 This page uses `GameObject`, `Transform` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -25,7 +27,7 @@ if (pig != null) AnimalActions.SleepPermanently(Mod.Id, pig.Id);
 AnimalActions.Clear(Mod.Id);
 ```
 
-Send a cat after a target. The target must be an object with health, such as a rat. Here the target is found by the rat's name in the scene.
+Send a cat after a target. The target must be an object with health, such as a rat. Here the rat is found by its name in the [scene](../../glossary.md#scene).
 
 ```csharp
 AnimalInfo cat = Animals.All().Find(a => a.Kind == AnimalKind.Cat);

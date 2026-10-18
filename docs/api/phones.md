@@ -7,6 +7,8 @@ nav_order: 9
 
 # Phones
 
+You need `Phones` to get a number for [`PhoneLines.Ring` or `PhoneLines.StartCall`](phone-lines/phones-and-calls.md). It also tells you which networks a number is on and how likely it is to be answered.
+
 ## What it is
 
 This API reads the phone book, the numbers the player can dial. Calls are on [Phone lines](phone-lines.md).
@@ -16,7 +18,7 @@ This API reads the phone book, the numbers the player can dial. Calls are on [Ph
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Phones</code> <span>the phone book</span></p>
 
-Call `All()` to list the numbers the player can dial. Pass one of those numbers to `PhoneLines.Ring` or `PhoneLines.StartCall`.
+Call `All()` to list the numbers the player can dial. Pass one of those numbers to [`PhoneLines.Ring` or `PhoneLines.StartCall`](phone-lines/phones-and-calls.md).
 
 <div class="api-pair" markdown="1">
 
@@ -37,7 +39,7 @@ public static class Phones
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PhoneContact</code> <span>one phone entry</span></p>
 
-`Phones.All()` gives you one of these for each number. `Number` is the number to pass to `PhoneLines.Ring` or `PhoneLines.StartCall`, and `Network` says which networks it is on. <span class="tech">(It is built from the game's `PhoneNumber` phone book entries.)</span>
+`Phones.All()` gives you one of these for each number. `Number` is the number to pass to `PhoneLines.Ring` or `PhoneLines.StartCall`. `Network` says which networks it is on. <span class="tech">(It is built from the game's `PhoneNumber` phone book entries.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -55,7 +57,7 @@ public sealed class PhoneContact
 |---|---|---|
 | `Id` | `string` | The entry's internal name. |
 | `Number` | `string` | The digits to dial, where `*` is 10 and `#` is 11. |
-| `Network` | `PhoneNetwork` | Which network the number is on. A number can be on more than one. |
+| `Network` | `PhoneNetwork` | The networks the number is on. A number can be on more than one. |
 | `AnswerChance` | `float` | The chance someone picks up, from 0 (never) to 1 (always). |
 
 </div>
@@ -91,7 +93,7 @@ public enum PhoneNetwork
 
 ### Putting it together
 
-Logs Obenseuer numbers with their answer chance.
+This mod [logs](../guides/getting-started/logging.md) every Obenseuer number with its answer chance, once a save is loaded.
 
 <div class="api-example" markdown="1">
 
@@ -131,11 +133,11 @@ public sealed class PhoneBook : FrameworkMod
 
 ### Limits
 
-- The framework has no call to add a number. The game's phone book is a static list (`PhoneNumberDatabase.database`) that it fills once at start and never saves, so a number a mod adds itself lasts until the game closes and must be added again at each launch.
+- The framework has no call to add a number. The game's phone book is a static list (`PhoneNumberDatabase.database`) that it fills once at start and never saves. A number a mod adds itself lasts until the game closes, and must be added again at each launch.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later). Logs go to `BepInEx\logs\obenseuer.moddingframework.npcs.log`.
 
 ### When you can call it
 

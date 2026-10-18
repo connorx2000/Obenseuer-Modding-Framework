@@ -7,11 +7,21 @@ nav_order: 2
 
 # Pursuit
 
+`Pursuit` covers police chases of the player: whether one is going on, which officers are out, and events for its start and end. Use it when your mod reacts to a chase, starts one or stops one.
+
 Status: experimental.
 
 ## What it is
 
-When the player commits a crime in front of the police, officers can chase them. This API lets your mod check whether the police are chasing the player right now, list the police officers who are out on the map, call the police on the player, stop every chase, and get told when a chase starts and when it ends. Fines and arrests are not here: they are in the Law part of the [story API](../api-story.md).
+When the player commits a crime in front of the police, officers can chase them. This API lets your mod:
+
+- check whether the police are chasing the player right now,
+- list the police officers who are out on the map,
+- call the police on the player,
+- stop every chase,
+- get told when a chase starts and when it ends.
+
+Fines and arrests are not here. They are in the Law part of the [story API](../api-story.md).
 
 ## When to use it
 
@@ -22,7 +32,7 @@ When the player commits a crime in front of the police, officers can chase them.
 
 ## Quick example
 
-This mod writes a log line when a police chase starts and when it ends. When the game is ready, it also logs whether the player is being chased right now.
+This mod writes a [log](../guides/getting-started/logging.md) line when a police chase starts and when it ends. When the game is ready, it also logs whether the player is being chased right now.
 
 ```csharp
 using ObenseuerCore;
@@ -40,7 +50,7 @@ public sealed class ChaseWatch : FrameworkMod
 }
 ```
 
-`Started` and `Ended` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Started` and `Ended` are events: the framework calls your code each time they happen. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
 
 ## Common tasks
 
@@ -50,13 +60,13 @@ Find out how many police officers are out on the map.
 Log.Info(Pursuit.ActivePolice().Count + " police officers are out");
 ```
 
-Call the police on the player so that every officer on the map starts a chase. `CallPolice` returns true when at least one officer reacted.
+Call the police on the player, so that every officer on the map starts a chase. `CallPolice` returns true when at least one officer reacted.
 
 ```csharp
 if (Pursuit.CallPolice(true, true)) Log.Info("the police are coming");
 ```
 
-Ask nearby officers to question the player, which is not a chase.
+Ask nearby officers to question the player. Questioning is not a chase.
 
 ```csharp
 Pursuit.CallPolice(false, false);
@@ -70,7 +80,7 @@ if (Pursuit.StopAll()) Log.Info("all chases stopped");
 
 ## Reference
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### Reads
 
@@ -79,7 +89,7 @@ This is the full list of what the API gives you, one section for each part. Text
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Pursuit</code> <span>what the police are doing</span></p>
 
-Use `IsPursued` to check for a chase now, and `ActivePolice()` to list the officers who are out on the map.
+`IsPursued` checks for a chase now. `ActivePolice()` lists the officers who are out on the map.
 
 <div class="api-pair" markdown="1">
 
@@ -112,7 +122,7 @@ public static class Pursuit
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Pursuit</code> <span>calls the police and stops chases</span></p>
 
-`CallPolice` makes the police react to the player, and `StopAll` ends every chase and every questioning.
+`CallPolice` makes the police react to the player. `StopAll` ends every chase and every questioning.
 
 <div class="api-pair" markdown="1">
 
@@ -132,11 +142,31 @@ public static class Pursuit
 </div>
 </div>
 
-- `CallPolice(severe, anyDistance)` makes the police on the map react to the player, the same way the game does when a crime is reported. With `severe` set to `true`, officers start a chase. With `severe` set to `false`, they only start questioning the player, which is not a chase, so `IsPursued` stays `false`. With `anyDistance` set to `false`, only officers within 15 metres of the player react. With `anyDistance` set to `true`, every officer on the map reacts. A chase that it starts raises `Started` like any other. <span class="tech">(It calls `Act_Police.StartChase` (severe) or `Act_Police.StartChaseQuestion`. It works on a copy of the police list, so an officer removed during the call is skipped, and an officer that throws is logged once while the others still react.)</span>
-- `CallPolice` returns `true` when at least one officer reacted, and `false` when nobody was alerted. It alerts nobody while a save is loading or being written, while an arrest is happening, while the game is changing level or showing the loading screen, while the player is in prison, when the game's crime system is not ready, or when no officer is in range. <span class="tech">(The checks are `SaveData.Busy`, no `Crime.instance`, `Crime.ArrestInProgress`, `Changelevel.ChangeLevelActive`, the loading screen not done or fading, `Law.InPrison()`, and no officer within range.)</span>
+- `CallPolice(severe, anyDistance)` makes the police on the map react to the player, the same way the game does when a crime is reported. A chase that it starts raises `Started` like any other.
+  - `severe` set to `true`: officers start a chase.
+  - `severe` set to `false`: officers only start questioning the player. That is not a chase, so `IsPursued` stays `false`.
+  - `anyDistance` set to `false`: only officers within 15 metres of the player react.
+  - `anyDistance` set to `true`: every officer on the map reacts.
+
+  <span class="tech">(It calls `Act_Police.StartChase` (severe) or `Act_Police.StartChaseQuestion`. It works on a copy of the police list, so an officer removed during the call is skipped, and an officer that throws is logged once while the others still react.)</span>
+- `CallPolice` returns `true` when at least one officer reacted, and `false` when nobody was alerted. It alerts nobody in these cases:
+  - a [save](../guides/getting-started/save-data.md) is loading or being written,
+  - an arrest is happening,
+  - the game is changing level or showing the loading screen,
+  - the player is in prison,
+  - the game's crime system is not ready,
+  - no officer is in range.
+
+  <span class="tech">(The checks are `SaveData.Busy`, no `Crime.instance`, `Crime.ArrestInProgress`, `Changelevel.ChangeLevelActive`, the loading screen not done or fading, `Law.InPrison()`, and no officer within range.)</span>
 - Do not use `CallPolice` in multiplayer unless you are the host. The call is not shared with other players, so use it on the host or in single player only.
-- `StopAll()` ends every chase and every questioning, for every police officer. It does the same thing the game does when the player is arrested or sent to prison. It does not change crime records, fines or the arrest state. It returns `true` when the call ran, even if no one was chasing, and `false` when the game's crime or NPC data is not ready yet, or while a save is loading or being written. <span class="tech">(It calls the game's own `Crime.StopPolicePursuits`, which covers every police officer in the NPC database.)</span>
-- After `StopAll()`, the police ignore the player's existing crime record until it grows. The game marks each officer as having already arrested the player, so they only react again when a new crime adds more than 100 to the record, or when a chase is started.
+- `StopAll()` ends every chase and every questioning, for every police officer. It does the same thing the game does when the player is arrested or sent to prison. It does not change crime records, fines or the arrest state. <span class="tech">(It calls the game's own `Crime.StopPolicePursuits`, which covers every police officer in the NPC database.)</span>
+- `StopAll()` returns `true` when the call ran, even if no one was chasing. It returns `false` when the game's crime or NPC data is not ready yet, or while a save is loading or being written.
+- After `StopAll()`, the police ignore the player's existing crime record until it grows. The game marks each officer as having already arrested the player. They only react again when a new crime adds more than 100 to the record, or when a chase is started.
+
+**Common problems**
+
+- `CallPolice` returns `false`: nobody was alerted. One of the cases in the `CallPolice` bullet above applies.
+- `IsPursued` stays `false` after `CallPolice`: with `severe` set to `false`, officers only question the player. Pass `true` for `severe` to start a chase. If `CallPolice` returned `false`, nobody was alerted (see the bullet above).
 
 ### Events
 
@@ -170,10 +200,15 @@ public static class Pursuit
 </div>
 </div>
 
-- `Started` fires once when the first officer starts a chase. It does not fire again for each extra officer who joins. It fires when `IsPursued` changes from `false` to `true`.
+- `Started` fires once, when the first officer starts a chase. It does not fire again for each extra officer who joins. It fires when `IsPursued` changes from `false` to `true`.
 - `Ended` fires when the last chase stops. It fires when `IsPursued` changes from `true` to `false`.
-- The framework only checks for a change at certain moments, and only while someone is listening. It checks when a police officer changes state, when an officer arrests the player or stops, and after a save finishes loading. If you add your handler while a chase is already going on, you do not get a `Started` for that chase. Nothing is checked while no handler is subscribed.
+- The framework only checks for a change at certain moments, and only while someone is listening. It checks when a police officer changes state, when an officer arrests the player or stops, and after a save finishes loading. Nothing is checked while no handler is subscribed.
+- If you add your handler while a chase is already going on, you do not get a `Started` for that chase.
 - Loading a save ends every chase first. A player who was being chased gets `Ended` when the load begins. If the save you load is in the middle of a chase, `Started` follows. <span class="tech">(The game stops every officer when a load begins.)</span>
+
+**Common problems**
+
+- No `Started` for a chase: you added your handler while that chase was already going on. Or `IsAvailable` is `false`, and `Started` and `Ended` never fire (see If something fails to set up, under Details below).
 
 ### What you can't do (yet)
 
@@ -182,7 +217,7 @@ public static class Pursuit
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.pursuit.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -196,6 +231,6 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework does three things. It removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, and turns the group off. It also writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- All the changes behind `Started` and `Ended` are needed. If any one of them cannot be made, the whole feature group turns off, `Pursuit.IsAvailable` becomes `false`, error lines and a warning go to the log, and `Started` and `Ended` never fire. `IsPursued`, `ActivePolice`, `CallPolice` and `StopAll` keep working. <span class="tech">(The changes are on `Act_Police.StartState`, `OnPlayerArrested` and `StopActivity`. They also need the private `Crime.activePolices` field and the private `Crime.StopPolicePursuits` method to be found.)</span>
+- All the changes behind `Started` and `Ended` are needed. If any one of them cannot be made, the whole feature group turns off. Then `Pursuit.IsAvailable` becomes `false`, error lines and a warning go to the log, and `Started` and `Ended` never fire. `IsPursued`, `ActivePolice`, `CallPolice` and `StopAll` keep working. <span class="tech">(The changes are on `Act_Police.StartState`, `OnPlayerArrested` and `StopActivity`. They also need the private `Crime.activePolices` field and the private `Crime.StopPolicePursuits` method to be found.)</span>

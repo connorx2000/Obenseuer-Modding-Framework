@@ -7,9 +7,11 @@ nav_order: 3
 
 # Crafting upgrades
 
+`CraftingUpgrades` lists the crafting upgrades in the [scene](../glossary.md#scene) you are in and switches one on or off. Use it when a reward, penalty or story event should change what a crafting station can do.
+
 ## What it is
 
-A crafting upgrade is an add-on part. It attaches to one or more crafting stations (workbenches and the like) and improves them, for example by unlocking extra recipes or raising the quality of what they make. An upgrade can be switched on or off. This API lists the upgrades in the scene you are in, shows which stations each one is attached to, and lets your mod switch one on or off.
+A crafting upgrade is an add-on part. It attaches to one or more [crafting stations](recipes.md) (workbenches and the like) and improves them. For example, it can unlock extra recipes or raise the quality of what they make. An upgrade can be switched on or off. This API lists the upgrades in the current scene and shows which stations each one is attached to. It also lets your mod switch one on or off.
 
 ## When to use it
 
@@ -19,7 +21,7 @@ A crafting upgrade is an add-on part. It attaches to one or more crafting statio
 
 ## Quick example
 
-This mod logs every crafting upgrade in the scene once a save is loaded, with its state and how many stations it is attached to.
+Once a save is loaded, this mod writes a [log](../guides/getting-started/logging.md) line for every crafting upgrade in the scene. The line shows its state and how many stations it is attached to.
 
 ```csharp
 using ObenseuerCore;
@@ -39,7 +41,7 @@ public sealed class UpgradeWatch : FrameworkMod
 }
 ```
 
-`WhenReady` runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on it.
+[`WhenReady`](core-helpers/events-whenready.md) runs your code once the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on it.
 
 ## Common tasks
 
@@ -77,7 +79,7 @@ This is the full list of what the API gives you.
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>CraftingUpgrades</code> <span>list and switch crafting upgrades</span></p>
 
-Call `All()` to find the upgrades in the scene, then `SetOn` with an upgrade's `Id` to switch it on or off.
+Call `All()` to find the upgrades in the [scene](../glossary.md#scene), then `SetOn` with an upgrade's `Id` to switch it on or off.
 
 <div class="api-pair" markdown="1">
 
@@ -128,7 +130,7 @@ public sealed class CraftingUpgradeInfo
 
 #### Things to know
 
-- `All()` lists the upgrades in the scene you are in, and it is slow, so do not call it every frame. It searches the scene each time. Call it when something happens, or on a timer, and keep the result. An upgrade whose whole object is switched off in the scene is not listed. <span class="tech">(It finds every active `CraftingUpgrade` in the active scene with `FindObjectsByType`.)</span>
+- `All()` lists the upgrades in the scene you are in. It is slow, because it searches the scene each time, so do not call it every frame. Call it when something happens, or on a timer, and keep the result. An upgrade whose whole object is switched off in the scene is not listed. <span class="tech">(It finds every active `CraftingUpgrade` in the active scene with `FindObjectsByType`.)</span>
 - `Id` is a saved name when the upgrade has one, and a place in the scene when it does not. The saved name stays the same between sessions. The place in the scene looks like `SceneName:Root[0]/Child[2]` and changes if objects in the scene are reordered. <span class="tech">(It is the object's `GUID` when it has one, otherwise the scene path. The station ids in `Connected` follow the same rule as the station ids on the [Recipes, crafting and growing](recipes.md) page.)</span>
 - `Connected` lists the stations the upgrade is attached to, in the game's order. An upgrade that is not attached to anything has an empty list. <span class="tech">(It is `CraftingUpgrade.Connected` with the null entries left out.)</span>
 - `SetOn(id, on)` switches the upgrade and tells you whether it worked. If the upgrade is already in the state you asked for, nothing changes and you get `true`. Otherwise the game updates the stations the upgrade is attached to and runs the upgrade's on or off actions. <span class="tech">(It calls the game's public `CraftingUpgrade.Toggle(bool)`, which refreshes the connections and runs the `OnTurnON` or `OnTurnOFF` relay. The result is `Active == on` after the call.)</span>
@@ -137,7 +139,7 @@ public sealed class CraftingUpgradeInfo
 
 #### Limits
 
-- `SetOn` returns `false` and does nothing in a few cases. That is when the id is empty or no upgrade has it, while a save is loading or being written, and while a crafting station's screen is open. The game does not pass the change on to the stations while a station screen is open, so the switch would have no effect on them. <span class="tech">(The game's `AddUpgrade` and `RemoveUpgrade` do nothing while `CraftingBase.currentCraftingBase` is set.)</span>
+- `SetOn` returns `false` and does nothing in a few cases. That is when the id is empty or no upgrade has it, and while a save is loading or being written. It is also the case while a crafting station's screen is open. The game does not pass the change on to the stations then, so the switch would have no effect on them. <span class="tech">(The game's `AddUpgrade` and `RemoveUpgrade` do nothing while `CraftingBase.currentCraftingBase` is set.)</span>
 - A station that is busy with a recipe may lose the upgrade's bonus while the recipe runs.
 - You can't call the game's own `Toggle` method. The framework only gives you `SetOn`.
 
@@ -150,9 +152,14 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the [main thread](../glossary.md#main-thread).
 - It is safe to call any of it at any time, even on the main menu or while a save is loading. If there is no scene to look in, `All()` gives an empty list, `Get` gives `null`, and `SetOn` gives `false`. Nothing is thrown to you. <span class="tech">(If the game itself fails, the first failure of each member goes to the log and you get the same plain default.)</span>
 
 ### If something fails to set up
 
-- There is nothing to set up here. The framework does not change any game method for crafting upgrades, so there is no feature group for this page and nothing that turns off by itself.
+- There is nothing to set up here. The framework does not change any game method for crafting upgrades. So there is no [feature group](../glossary.md#feature-group) for this page, and nothing turns off by itself.
+
+**Common problems**
+
+- `SetOn` returns `false` and the upgrade does not change: the id is empty or unknown, or there is no scene to look in. It also fails while a save is loading or being written, or a crafting station's screen is open. A game failure also gives `false` and writes its first occurrence to the log. Call it again with an id from `All()`, once the station screen is closed.
+- `All()` is empty or `Get` returns `null`: there is no scene to look in, the upgrade's object is switched off in the scene, or the game failed during the search. For `Get`, no upgrade may have that id. Run your code from `Events.WhenReady`.

@@ -8,11 +8,21 @@ nav_order: 6
 
 # Invoices
 
+[`Invoices`](invoices/listing-and-sending-bills.md) lets your mod read, send and cancel the bills the player has to pay, and react when a bill changes. Use it when your mod charges the player or tracks what they owe.
+
 Status: experimental.
 
 ## What it is
 
-An invoice is a bill the player has to pay. It arrives in the player's mail as an item, with a name on it, an amount in OC or RM, and a due day. The player pays it by putting the invoice item into a payment machine. If the player lets it run out, the game can count it as a crime. This API lets a mod list the open invoices, and check whether the player can pay one. It can send a new invoice, cancel one, and set off an invoice sender that is placed in the level. It tells you when an invoice is issued, paid or cancelled.
+An invoice is a bill the player has to pay. It arrives in the player's mail as an item. It carries a name, an amount in [OC](../glossary.md#oc) or [RM](../glossary.md#rm), and a due day. The player pays it by putting the invoice item into a payment machine. If the player lets it run out, the game can count it as a crime.
+
+This API gives your mod these jobs:
+
+- List the open invoices.
+- Check whether the player can pay one.
+- Send a new invoice, or cancel one.
+- Set off an invoice sender that is placed in the level.
+- Get told when an invoice is issued, paid or cancelled.
 
 ## When to use it
 
@@ -23,7 +33,7 @@ An invoice is a bill the player has to pay. It arrives in the player's mail as a
 
 ## Quick example
 
-This mod logs a line each time an invoice is issued, paid or cancelled. Once a save is loaded, it logs every open invoice with the days left on it.
+This mod [logs](../guides/getting-started/logging.md) a line each time an invoice is issued, paid or cancelled. Once a save is loaded, it logs every open invoice with the days left on it.
 
 ```csharp
 using ObenseuerCore;
@@ -46,4 +56,4 @@ public sealed class InvoiceWatch : FrameworkMod
 }
 ```
 
-`Issued`, `Paid` and `Cancelled` are events: the framework calls your code each time they happen. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), see the [glossary](../glossary.md#oc).
+`Issued`, `Paid` and `Cancelled` are events: the framework calls your code each time they happen. [`WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). `Currency` is `OC` (Open Sewer Coins) or `RM` (Real Money), see the [glossary](../glossary.md#oc).

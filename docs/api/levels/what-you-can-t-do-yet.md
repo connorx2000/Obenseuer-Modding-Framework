@@ -7,11 +7,11 @@ nav_order: 3
 
 # What you can't do (yet)
 
-These are the level-change actions the API does not offer.
+The level-change actions that [`Levels`](level-changers.md) does not offer, and where to look instead when another API covers them.
 
 ## Limits
 
-- You can't pick locks, use keys or use keypads here. Those are on the [Interaction and locks](../interaction.md) page (`Locks`).
-- You can't make a door relock itself after use. The game does that inside its own level change. <span class="tech">(This is `LockAfterUse`.)</span>
-- You can't control the door's animation or sound timing.
-- You can't find out when a level has finished loading with this API. Use `Events.SceneLoaded` for that.
+- No lock picking, keys or keypads here. Those are on the [Interaction and locks](../interaction.md) page (`Locks`).
+- No way to make a door relock itself after use. The game does that inside its own level change. <span class="tech">(This is `LockAfterUse`.)</span>
+- No control over the door's animation or sound timing.
+- No way to find out when a level has finished loading. Use [`Events.SceneLoaded`](../../api-core/events.md) for that.

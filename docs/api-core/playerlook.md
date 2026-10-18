@@ -7,7 +7,9 @@ nav_order: 16
 
 # PlayerLook
 
-`PlayerLook` reads and changes how the player looks: the body shape, the face and the clothes. A look is plain data (a `Look` object), so you can store it, change it and apply it again. The game rebuilds the body and clothes itself.
+`PlayerLook` reads and changes how the player looks: the body shape, the face and the clothes. Use it when your mod needs to store, change or randomise the player's look.
+
+A look is plain data (a `Look` object), so you can store it, change it and apply it again. The game rebuilds the body and clothes itself.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook</code> <span>read, change and randomise the look</span></p>
@@ -63,7 +65,7 @@ public static class PlayerLook
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook.Look</code> <span>one complete look: flags and height, public fields</span></p>
 
-`Capture`, `Vanilla` and `Randomise` return a `Look`, and `Apply` and `Live` take one. This part holds the flags and the height, and the dials and clothes are in the two blocks below.
+`Capture`, `Vanilla` and `Randomise` return a `Look`, and `Apply` and `Live` take one. This part holds the flags and the height. The dials and the clothes are in the two blocks below.
 
 <div class="api-pair" markdown="1">
 
@@ -155,7 +157,7 @@ public sealed class Look
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerLook.Look</code> <span>clothes, each a wearable name</span></p>
 
-These are the clothes names of a `Look`. `Options` lists the names a slot accepts, and an empty string means nothing is worn there.
+These are the clothes names of a `Look`. `Options` lists the names a slot accepts. An empty string means nothing is worn there.
 
 <div class="api-pair" markdown="1">
 
@@ -196,7 +198,7 @@ public sealed class Look
 
 ### Putting it together
 
-Logs every look change, then takes the player's hat off.
+This [plugin](../glossary.md#plugin) logs every look change, then takes the player's hat off.
 
 <div class="api-example" markdown="1">
 
@@ -236,26 +238,33 @@ public class LookTweak : BaseUnityPlugin
 - `Capture()` returns the player's look, or `null` when `IsAvailable` is `false`. A look from `Capture` has `set` true. `Capture(appearance)` reads any `Appearance`.
 - `Apply(look)` changes the player to the look you give. Each dial is kept inside its range: height 0 to 1, shape -1 to 1, and every other dial 0 to 1. The game then rebuilds the body and clothes, and `Changed` fires. <span class="tech">(A new costume is built at runtime, so the game's shared Random NPC asset is never written. The rebuild is the game's `LoadCharacter`.)</span>
 - `Live(look)` changes only the dials, not the clothes. It sets the body and face dial values on the player and calls `UpdateShapes`. The same limits apply, and `Changed` fires.
-- The `Appearance` versions of `Live`, `Randomise` and `Options` work on any `Appearance`, and they do not fire `Changed`. `Live` returns `false` and `Randomise` returns `null` when the `Appearance` is not ready, and `Options` returns an empty list then.
-- `Randomise()` rolls a new random look. It captures the current look, rolls every dial except height, rolls each piece of clothing, applies the result, fires `Changed`, and returns the new look. It keeps the captured `male` and `advanced`. Leggings and a female beard always take the first entry, as the game's Random NPC rule does.
-- `Vanilla()` gives you a random look made with the game's own random-character rules, and does not apply it. The body is male or female and basic or advanced by a coin toss, breast size is 0 to 0.3 for male and 0.3 to 1 for female, gender is rounded to 0 or 1, and height is included. Only `Vanilla` uses the game's gender ranges. <span class="tech">(It uses `Appearance.LoadCharacterValues`.)</span>
+- The `Appearance` versions of `Live`, `Randomise` and `Options` work on any `Appearance`, and they do not fire `Changed`. When the `Appearance` is not ready, `Live` returns `false`, `Randomise` returns `null` and `Options` returns an empty list.
+- `Randomise()` rolls a new random look. It captures the current look, rolls every dial except height, and rolls each piece of clothing. Then it applies the result, fires `Changed`, and returns the new look. It keeps the captured `male` and `advanced`. Leggings and a female beard always take the first entry, as the game's Random NPC rule does.
+- `Vanilla()` gives you a random look made with the game's own random-character rules, and does not apply it. The body is male or female and basic or advanced by a coin toss. Breast size is 0 to 0.3 for male and 0.3 to 1 for female. Gender is rounded to 0 or 1, and height is included. Only `Vanilla` uses the game's gender ranges. <span class="tech">(It uses `Appearance.LoadCharacterValues`.)</span>
 
 ### Clothes and options
 
 - `Options(slot, male)` lists the names you can use for a slot, in the game's order. The slots are `Head`, `Hat`, `Hair`, `Glasses`, `Beard`, `Jacket`, `Shirt`, `Pants`, `Leggings`, `Socks` and `Shoes`. An unknown slot throws `ArgumentException`. When not available, it returns an empty list. A female beard gives the same full list as a male one, because the game's editor offers every beard to either gender.
 - Clothes are matched by name within the list for the look's gender. A name that is not found clears the slot, except `head`, which falls back to the first head of that gender. Leggings are matched by name too.
-- The head list follows `male`. A female beard is not forced to one entry in `Options` or `Apply`, and only `Randomise` and `Vanilla` roll it as its first entry. Breast size is not limited by gender in `Apply`, `Live` or `Randomise`: `Randomise` rolls it over 0 to 1 for either gender.
+- The head list follows `male`. A female beard is not forced to one entry in `Options` or `Apply`. Only `Randomise` and `Vanilla` roll it as its first entry. Breast size is not limited by gender in `Apply`, `Live` or `Randomise`: `Randomise` rolls it over 0 to 1 for either gender.
 
 ### Events and saving
 
 - A handler that throws is logged, and the other handlers still run. The `Appearance` versions do not fire `Changed`.
-- Nothing is saved. Store a `Look` with `SaveData.Register` if you need it.
+- Nothing is saved. Store a `Look` with [`SaveData.Register`](savedata.md) if you need it.
 
 ### Errors and checks
 
 - A null `look` or `appearance` throws `ArgumentNullException`. The exception is `Options`, which returns an empty list for a null `appearance`.
-- A game error is logged and the call returns `false` or `null`. The log is `BepInEx\logs\obenseuer.moddingframework.playerlook.log`.
-- The debug check is `[Debug] PlayerLookSelfCheck = false` in `BepInEx\config\obenseuer.moddingframework.cfg`. When it is true, the framework runs a check when it starts and logs `playerlook self-check ok`, or `playerlook self-check failed: <check>`, to `BepInEx\logs\ObenseuerCore.log`. The check covers the dial limits and the clothes rules, on temporary `Wearable` assets. It does not touch an `Appearance`.
+- A game error is logged and the call returns `false` or `null`. The [log](../guides/getting-started/logging.md) is `BepInEx\logs\obenseuer.moddingframework.playerlook.log`.
+- The debug check is `[Debug] PlayerLookSelfCheck = false` in `BepInEx\config\obenseuer.moddingframework.cfg`. When it is true, the framework runs a check when it starts. It logs `playerlook self-check ok`, or `playerlook self-check failed: <check>`, to `BepInEx\logs\ObenseuerCore.log`. The check covers the dial limits and the clothes rules, on temporary `Wearable` assets. It does not touch an `Appearance`.
+
+**Common problems**
+
+- `Capture()` returns `null`: `IsAvailable` is `false`, or the game threw. A game error is logged to `BepInEx\logs\obenseuer.moddingframework.playerlook.log`. Check `IsAvailable` first.
+- `Apply` returns `false`: `IsAvailable` is `false`, the game threw, or (for `Apply(look, appearance)`) the `Appearance` is not ready. A game error is in the same log.
+- `Live` returns `false`: the game threw, or (for `Live(look, appearance)`) the `Appearance` is not ready. A game error is in the same log.
+- `Options` throws `ArgumentException`: the slot name is unknown. Use one of the slot names listed under Clothes and options, above.
 
 ### Still to be checked in the game
 

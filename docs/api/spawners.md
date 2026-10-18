@@ -8,11 +8,20 @@ nav_order: 16
 
 # Spawners
 
+[`Spawners`](spawners/reading-spawners.md) lets your mod read and change the spawners in the [scene](../glossary.md#scene) you are in, and tells you when one spawns something. Use it to change how things respawn or to react to a spawn.
+
 ## What it is
 
-A spawner is a script in a scene that places things in the world and puts them back after a while: items you can pick up, furniture, blueprints, animals or characters. This API lets your mod list the spawners in the scene you are in, read and change how they respawn, make one spawn right now, and get told each time one spawns something. The spawning itself is still done by the game.
+A spawner is a script in a scene that places things in the world and puts them back after a while. It can place items you can pick up, furniture, blueprints, animals or characters. This API gives your mod these jobs:
 
-Spawner is a family of scripts. The base one is `Spawner`, and `All()` also lists the others in the family: `CollectibleItemSpawner`, `AnimalSpawner`, `PrefabSpawner`, `FurnitureBlueprintSpawner` and `CharacterSpawner`. Each spawner's kind is in its `TypeName`.
+- List the spawners in the scene you are in.
+- Read and change how they respawn.
+- Make one spawn right now.
+- Get told each time one spawns something.
+
+The spawning itself is still done by the game.
+
+Spawner is a family of scripts. The base one is `Spawner`. `All()` also lists the others in the family: `CollectibleItemSpawner`, `AnimalSpawner`, `PrefabSpawner`, `FurnitureBlueprintSpawner` and `CharacterSpawner`. Each spawner's kind is in its `TypeName`.
 
 ## When to use it
 
@@ -23,7 +32,7 @@ Spawner is a family of scripts. The base one is `Spawner`, and `All()` also list
 
 ## Quick example
 
-This mod writes a log line each time a spawner spawns something. When the game is ready, it also logs every spawner in the scene with its kind and how many things it has spawned.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a spawner spawns something. When the game is ready, it also logs every spawner in the scene with its kind and how many things it has spawned.
 
 ```csharp
 using ObenseuerCore;
@@ -44,4 +53,4 @@ public sealed class SpawnWatch : FrameworkMod
 }
 ```
 
-`Spawned` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Spawned` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code when the game is ready. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

@@ -7,6 +7,8 @@ nav_order: 2
 
 # Lookup
 
+This page lists the `Items` calls that find items in the catalogue, and the `ItemQuality` tiers. Use it when you need the exact return value or rule of a lookup call.
+
 This page uses `Sprite` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -68,7 +70,7 @@ public enum ItemQuality
 
 | Value | Meaning |
 |---|---|
-| `Normal` | The tier `QualityOf` gives for a number that is not a real number. |
+| `Normal` | The tier `QualityOf` gives for a value that is not a real number. |
 | `Crap` | Quality below 0.25. |
 | `Poor` | Quality from 0.25 to below 0.5. |
 | `Bad` | Quality from 0.5 to below 0.75. |
@@ -88,4 +90,9 @@ public enum ItemQuality
 
 ## Limits
 
-- Pass real text to `Find`, `Search` and `InCategory`. A `null` name, text or category throws an `ArgumentException`. Every other problem gives the plain default (an empty list, `null`, or `ItemQuality.Normal`).
+- Pass real text to `Find`, `Search` and `InCategory`. A `null` name, text or category throws an `ArgumentException`.
+- Every other problem gives the plain default: an empty list, `null`, or `ItemQuality.Normal`.
+
+**Common problems**
+
+- `Find`, `Search` or `InCategory` throws an `ArgumentException`: the name, text or category is `null`. Pass real text.

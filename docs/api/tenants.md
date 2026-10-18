@@ -7,11 +7,19 @@ nav_order: 14
 
 # Tenants
 
+`Tenants` lets your mod work with the tenement the player rents out: move NPCs in, set off tenant events and read the rent and the building's levels. Use it for quests or stories built around the tenement.
+
 Status: experimental.
 
 ## What it is
 
-In the game, the player can own a tenement (an apartment block) and rent its flats out to NPCs. A tenant pays rent, can cause trouble, and the building can be upgraded. This API lets a mod move an NPC into a flat, set off a tenant event (such as a noisy night), open the game's rent screen for an NPC, read the rent the tenement earns, and read the upgrade and clean levels of the building.
+In the game, the player can own a tenement (an apartment block) and rent its flats out to [NPCs](npcs.md). A tenant pays rent and can cause trouble, and the building can be upgraded. This API gives your mod these jobs:
+
+- Move an NPC into a flat.
+- Set off a tenant event, such as a noisy night.
+- Open the game's rent screen for an NPC.
+- Read the rent the tenement earns.
+- Read the upgrade and clean levels of the building.
 
 Evicting a tenant and the reports about tenant events are on the [Housing](housing.md) page.
 
@@ -24,7 +32,7 @@ Evicting a tenant and the reports about tenant events are on the [Housing](housi
 
 ## Quick example
 
-This mod, once a save is loaded, logs the tenement's rent income and how many NPCs could be rented a flat right now. Nothing is changed.
+Once a save is loaded, this mod [logs](../guides/getting-started/logging.md) the tenement's rent income and how many NPCs could be rented a flat right now. Nothing is changed.
 
 ```csharp
 using ObenseuerCore;
@@ -48,7 +56,7 @@ public sealed class TenantWatch : FrameworkMod
 }
 ```
 
-`TotalIncome` gives `null` when the tenement is not loaded. The income has two amounts, `Oc` (Open Sewer Coins) and `Rm` (Real Money), see [OC](../glossary.md#oc) and [RM](../glossary.md#rm). `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)).
+`TotalIncome` gives `null` when the tenement is not loaded. The income has two amounts, `Oc` (Open Sewer Coins) and `Rm` (Real Money); see [OC](../glossary.md#oc) and [RM](../glossary.md#rm). [`WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)).
 
 ## Common tasks
 
@@ -72,7 +80,7 @@ Open the game's rent screen for an NPC, so the player picks the flat.
 bool opened = Tenants.OpenRentScreen(Mod.Id, npcId);
 ```
 
-Read how clean and how upgraded a flat is. Flat numbers are the same as on the Housing page.
+Read how clean and how upgraded a flat is. Flat numbers are the same as on the [Housing](housing.md) page.
 
 ```csharp
 int clear = Tenants.FurnitureClearPercent(3);
@@ -82,7 +90,7 @@ int roof = Tenants.GeneralUpgrade(TenementController.GeneralUpgradeCategory.Roof
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 The calls that change the game take your mod's id as `modId` (see [Mod id](../glossary.md#mod-id)). The other calls only read.
 
@@ -136,14 +144,39 @@ public static class Tenants
   - the tenement is not loaded, or its rent screen is open;
   - the flat does not meet what the NPC needs, such as size, electricity, water and heating. <span class="tech">(It calls `TenementController.RentApartment`. The requirements check is `TenementResident.CheckRequirements`.)</span>
 - `moveInHours` is how many hours pass before the tenant moves in, from 0 to 8760 (a year). A value outside that range makes `Rent` return `false` and writes a line to the log once.
-- `silent` decides whether the game takes a deposit and shows the move. With `silent` set to `true`, the game takes no deposit and pays none, shows no notification, and does not fade the screen. The NPC that is already in the scene stays visible. With `silent` set to `false`, the game takes the deposit and plays its normal fade. The framework never charges or pays anything itself. <span class="tech">(With `silent` false, the deposit goes through `Money.AddMoney` and the fade is `RentFade`. A rented resident is only hidden by the fade path, so a silent rent leaves the NPC visible, the same as the game's own silent rent.)</span>
-- `TriggerEvent` makes the first matching tenant event happen, and the game's random roll is skipped. It picks the first event of that kind on the tenant's record that the game says can happen now. The event sends its mail, sets its dialogue values and runs the scene reaction for that tenant (a relay or a spawner), if that scene is loaded. `Housing.TenementEventStarted` fires for it just like for a random event. <span class="tech">(It calls `TenementEvent.OnTrigger` for the first event of that type whose `CanTrigger()` holds.)</span>
-- `TriggerEvent` returns `false` when no event ran. That happens when the NPC is not a tenant, the tenant has not moved in yet, the flat has furniture only, the tenant has no event of that kind, or the game's tenement event controller is not loaded. An event kind that is not in `TenementEventKind` also gives `false`.
+- `silent` decides whether the game takes a deposit and shows the move.
+  - With `silent` set to `true`, the game takes no deposit and pays none, shows no notification, and does not fade the screen. The NPC that is already in the scene stays visible.
+  - With `silent` set to `false`, the game takes the deposit and plays its normal fade.
+
+  The framework never charges or pays anything itself. <span class="tech">(With `silent` false, the deposit goes through `Money.AddMoney` and the fade is `RentFade`. A rented resident is only hidden by the fade path, so a silent rent leaves the NPC visible, the same as the game's own silent rent.)</span>
+- `TriggerEvent` makes the first matching tenant event happen, and the game's random roll is skipped. It picks the first event of that kind on the tenant's record that the game says can happen now. The event sends its mail and sets its dialogue values. It also runs the scene reaction for that tenant (a [relay](../glossary.md#relay) or a spawner), if that scene is loaded. `Housing.TenementEventStarted` fires for it, the same as for a random event. <span class="tech">(It calls `TenementEvent.OnTrigger` for the first event of that type whose `CanTrigger()` holds.)</span>
+- `TriggerEvent` returns `false` when no event ran. That happens when:
+  - the NPC is not a tenant;
+  - the tenant has not moved in yet;
+  - the flat has furniture only;
+  - the tenant has no event of that kind;
+  - the game's tenement event controller is not loaded.
+
+  An event kind that is not in [`TenementEventKind`](housing/apartments-and-tenants.md) also gives `false`.
 - `OpenRentScreen` opens the game's rent screen for the NPC, and the player picks the flat. The framework does not rent anything itself. <span class="tech">(It calls `TenementResident.StartRent`, which marks the NPC as the open resident and opens the game menu on the tenement page.)</span>
-- `OpenRentScreen` returns `false` when the screen can't be opened right now. That happens when the NPC is already a tenant or a relative of one, the tenement is not loaded, a rent or contractor screen is already open, a menu is open or the game is paused, input is blocked, the inventory is turned off (the game needs its keys to open the tenement page), the game has switched its menu off (while lockpicking, for example), the player is not holding the task item the game requires for renting, building mode is open, or a dialogue is on.
+- `OpenRentScreen` returns `false` when the screen can't be opened right now. That happens when:
+  - the NPC is already a tenant or a relative of one;
+  - the tenement is not loaded;
+  - a rent or contractor screen is already open;
+  - a menu is open or the game is paused;
+  - input is blocked;
+  - the inventory is turned off (the game needs its keys to open the tenement page);
+  - the game has switched its menu off (while lockpicking, for example);
+  - the player is not holding the task item the game requires for renting;
+  - building mode is open;
+  - a dialogue is on.
 - `TotalIncome()` and `RawIncome()` give the rent the tenement earns. `RawIncome` is the full amount before the game divides it into payments. Both give `null` when the tenement is not loaded.
 - `GeneralUpgrade`, `ApartmentUpgrade` and `FurnitureClearPercent` give `-1` when the tenement or the flat is not loaded. `ApartmentUpgrade` and `FurnitureClearPercent` take the flat number, as `Housing.Get` does.
 - The calls that change the game return `false` while a save is loading or being written. These are `Rent`, `TriggerEvent` and `OpenRentScreen`.
+
+**Common problems**
+
+- `Rent`, `TriggerEvent` or `OpenRentScreen` returns `false` and writes a line to the log: the `modId` is not valid, or (for `Rent`) `moveInHours` is outside 0 to 8760. Pass a `modId` of 1 to 64 letters, digits, `.`, `_` or `-`, and a `moveInHours` from 0 to 8760.
 
 ### What you can't do (yet)
 
@@ -151,7 +184,7 @@ public static class Tenants
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.tenants.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -163,9 +196,9 @@ Everything not listed in this reference is internal and may change without notic
 
 ### What to check for and what comes back
 
-- Nothing here throws. A `modId` that is not valid (it must be 1 to 64 letters, digits, `.`, `_` or `-`) makes a change call return `false`, and one line goes to the log.
+- Nothing here throws. A `modId` must be 1 to 64 letters, digits, `.`, `_` or `-`. One that is not valid makes a change call return `false`, and one line goes to the log.
 - If the game itself fails while the framework works, you get that plain default instead of an error. The first failure of each member is written to the log as an error.
 
 ### If something fails to set up
 
-This API does not change any of the game's methods, so there is no feature group to turn off. It has nothing to fail at start.
+This API does not change any of the game's methods, so there is no [feature group](../glossary.md#feature-group) to turn off. It has nothing to fail at start.

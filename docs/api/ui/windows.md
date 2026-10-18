@@ -7,14 +7,14 @@ nav_order: 3
 
 # Windows
 
+A window is a screen the player sees over the game, with its own areas to fill. Open one with `ModWindow.Open` and give it your code to fill it. The controls can also be built in other places, not only in a window (see the next section, [Controls](controls.md)).
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-A window is a screen the player sees over the game, with its own areas to fill. You open one with `ModWindow.Open` and give it your code to fill it. The controls can also be built in other places, not only in a window (see the next section).
-
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModWindow</code> <span>a screen over the game</span></p>
-Use `Open` to show a window, `Find` to get one back by its mod id and title, and `Close` to close it.
+Use `Open` to show a window and `Close` to close it. `Find` gets an open window back by its [mod id](../../glossary.md#mod-id) (the id your mod uses for its files) and title.
 
 <div class="api-pair" markdown="1">
 
@@ -120,13 +120,18 @@ public enum WindowCloseReason
 
 ## Things to know
 
-- `Open` gives back the new window, or `null` when it could not open one. It gives `null` when a window with the same mod id and title is already open (that window is brought to the front instead), or when its set-up fails (the window is removed and the error is logged).
-- An open window turns off the game's controls and shows the mouse cursor, and gives them back when it closes. If giving the controls back fails, the window releases the keys and the cursor itself, but only when nothing else is holding them off. <span class="tech">(It calls `GameController.ControlsDisabled(gameObject, ShowCursor: true)` and releases through `CoreInput.EnableControls`. It also hides the game menu if it is showing.)</span>
+- `Open` gives back the new window, or `null` when it could not open one. It gives `null` when a window with the same mod id and title is already open: that window is brought to the front instead. It also gives `null` when its set-up fails: the window is removed and the error is [logged](../../guides/getting-started/logging.md).
+- An open window turns off the game's controls and shows the mouse cursor. It gives them back when it closes. If giving the controls back fails, the window releases the keys and the cursor itself, but only when nothing else is holding them off. <span class="tech">(It calls `GameController.ControlsDisabled(gameObject, ShowCursor: true)` and releases through `CoreInput.EnableControls`. It also hides the game menu if it is showing.)</span>
 - Your build code runs once, inside `Run`. If it throws an error, the window closes with the reason `Fault`, `Faulted` becomes `true`, and the error is logged once.
-- `Closed` fires before the window's model previews are cleaned up. Your mod can save its own work there.
+- `Closed` fires before the window's [model previews](the-model-preview.md) are cleaned up. Your mod can save its own work there.
 - Escape closes only the top window, and not while a text field in it has focus.
-- `Find` lets you close a window from a hotkey.
-- A window closes with `SceneUnload` only when the scene it was opened in is unloaded. Other scenes that are unloaded at the same time do not close it. <span class="tech">(Unloads of other additive scenes are ignored.)</span>
+- `Find` lets you close a window from a hotkey. The Quick example on the [UI](../ui.md) page does this.
+- A window closes with `SceneUnload` only when the [scene](../../glossary.md#scene) it was opened in is unloaded. Other scenes that are unloaded at the same time do not close it. <span class="tech">(Unloads of other additive scenes are ignored.)</span>
 - The window sizes are fixed. `Left` and `Right` are 440 pixels wide with 24 pixels of space around them, and `Right` starts 110 pixels from the top. `Center` is 640 pixels wide.
 - These three panels block clicks across their whole area. `Full` covers the whole screen with a nearly solid dark backdrop that hides the game and blocks its clicks. <span class="tech">(The backdrop has an alpha of 0.97.)</span>
 - `Full` also has a 440 pixel column on the left, `Side`, and `Body` to its right. The `Footer` is a 56 pixel bar along the bottom.
+
+**Common problems**
+
+- `Open` returns `null`: a window with the same mod id and title is already open, or its set-up failed and the error was logged. `Find` gives you the open window, so a hotkey can close it.
+- The window closes with the reason `Fault` and `Faulted` is `true`: your build code threw an error, or the code of a [control](controls.md) in the window threw one. A second model preview added while one is open also faults the window. A control's error is in the log of the mod that owns it, as `ui callback failed: ...`.

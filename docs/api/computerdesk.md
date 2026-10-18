@@ -7,6 +7,8 @@ nav_order: 2
 
 # Computer desk
 
+`ComputerDesk` changes the wallpaper of one computer in the [scene](../glossary.md#scene) you are in. Use it to give a computer its own look, or to change it at a story moment.
+
 This page uses `Texture2D`, `Sprite` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -14,7 +16,7 @@ Status: experimental.
 
 ## What it is
 
-The computers in the game show a desktop with a picture behind the icons, the wallpaper. This API lets your mod change that picture on one computer. Reading a computer's files and emails is on the [Computer files](computerfiles.md) page, and adding apps to the desktop is a separate API, `ComputerApps`.
+The computers in the game show a desktop with a picture behind the icons, the wallpaper. This API lets your mod change that picture on one computer. Reading a computer's files and emails is on the [Computer files](computerfiles.md) page. Adding apps to the desktop is a separate API, [`ComputerApps`](../api-core/computerapps.md).
 
 ## When to use it
 
@@ -53,11 +55,11 @@ public sealed class BlueDesktop : FrameworkMod
 }
 ```
 
-`SceneLoaded` is an event: the framework calls your code each time the game loads a scene. `WhenReady` runs your code once a save is loaded. See [Using events](../guides/getting-started/using-events.md) for more on both.
+[`SceneLoaded`](../api-core/events.md) is an event: the framework calls your code each time the game loads a [scene](../glossary.md#scene). [`WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded. See [Using events](../guides/getting-started/using-events.md) for more on both. `Mod.Id` is your [mod id](../glossary.md#mod-id).
 
 ## Common tasks
 
-Change the wallpaper of one computer you already have, for example the one the player is using. `IdOf` gives you the computer's id from its game object, or null when the object is not a computer.
+Change the wallpaper of one computer you already have, for example the one the player is using. [`IdOf`](computerfiles.md) gives you the computer's id from its game object, or null when the object is not a computer.
 
 ```csharp
 string id = ComputerContents.IdOf(computerObject);
@@ -71,7 +73,7 @@ This is the full list of what the API gives you. Text in brackets at the end of 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ComputerDesk</code> <span>changes a computer's wallpaper</span></p>
 
-Call `SetWallpaper` with your mod id, a computer id from `ComputerContents.All()` or `ComputerContents.IdOf`, and the picture. It returns `false` when the change did not happen.
+Call `SetWallpaper` with your [mod id](../glossary.md#mod-id), a computer id from [`ComputerContents.All()`](computerfiles.md) or `ComputerContents.IdOf`, and the picture. It returns `false` when the change did not happen.
 
 <div class="api-pair" markdown="1">
 
@@ -84,7 +86,7 @@ public static class ComputerDesk
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetWallpaper(modId, computerId, wallpaper)` | `bool` | Changes the wallpaper of one computer right away. `modId` is your mod's id. `computerId` comes from `ComputerContents.All()` or `ComputerContents.IdOf`. Returns `true` when the wallpaper was changed, `false` when it was not. |
+| `SetWallpaper(modId, computerId, wallpaper)` | `bool` | <details>{::nomarkdown}<summary>{:/nomarkdown}Changes the wallpaper of one computer right away.{::nomarkdown}</summary>{:/nomarkdown}`modId` is your mod's id. `computerId` comes from `ComputerContents.All()` or `ComputerContents.IdOf`. Returns `true` when the wallpaper was changed, `false` when it was not.</details> |
 
 </div>
 </div>
@@ -96,10 +98,10 @@ public static class ComputerDesk
 
 ### Limits
 
-- An id that is empty, longer than 64 characters, or has characters other than letters, digits, `.`, `_` and `-` makes `SetWallpaper` return `false` and writes one line to the log.
-- `SetWallpaper` returns `false` when it cannot do the change. That happens for an empty computer id, a `null` picture, a computer that is not in the scene you are in, or a bad mod id. It does not throw for any of these. <span class="tech">(the computer is found among the active `InteractableComputer` objects in the active scene, so a computer on a switched-off object or in another scene is not found)</span>
+- An id that is empty, longer than 64 characters, or has characters other than letters, digits, `.`, `_` and `-` makes `SetWallpaper` return `false`. One line goes to the [log](../guides/getting-started/logging.md).
+- `SetWallpaper` returns `false` when it cannot do the change. That happens for an empty computer id, a `null` picture, or a bad mod id. It also happens for a computer that is not in the scene you are in. It does not throw for any of these. <span class="tech">(the computer is found among the active `InteractableComputer` objects in the active scene, so a computer on a switched-off object or in another scene is not found)</span>
 - You can't add files or emails to a computer. The game sets up a computer's files and emails once, when the computer starts. Doing it again would show every old entry twice, so the framework does not offer it. <span class="tech">(`ComputerScreen.AddEmails` and `ComputerScreen.AddRecycleBinFiles` assign the list and build a row for every entry, so a second call duplicates the rows; they are not wrapped)</span>
-- You can't open a file on a computer from your mod. Opening a file shows a game panel that needs one of the game's own note assets, and the framework has no way to look one up by name. <span class="tech">(`ComputerScreen.OpenTextFile` takes a `NoteInfo` asset)</span>
+- You can't open a file on a computer from your mod. Opening a file shows a game panel that needs one of the game's own note assets. The framework has no way to look one up by name. <span class="tech">(`ComputerScreen.OpenTextFile` takes a `NoteInfo` asset)</span>
 
 ## Details
 
@@ -110,11 +112,16 @@ Everything not listed in this reference is internal and may change without notic
 
 ### When you can call it
 
-- Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the main thread (see the [glossary](../glossary.md#main-thread)).
+- Call `SetWallpaper` from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game only runs safely on the [main thread](../glossary.md#main-thread).
 - It only does something once a computer exists in the scene. On the main menu it returns `false`.
 
 ### If something fails to set up
 
-- This API does not change any game method, so there is no feature group to turn off.
+- This API does not change any game method, so there is no [feature group](../glossary.md#feature-group) to turn off.
 - If the game's private computer screen field is missing in a future game version, `SetWallpaper` returns `false`.
 - If the game raises an error while the wallpaper is set, the framework writes one error line to the log, then returns `false`.
+
+**Common problems**
+
+- The wallpaper goes back to the game's own picture after a load: the change is not saved. Call `SetWallpaper` again from `Events.WhenReady` after each `SceneLoaded`, as the Quick example does.
+- `SetWallpaper` returns `false`: the mod id is bad, the computer id is empty, or the picture is `null`. It also fails for a computer outside the scene you are in or on a switched-off object, and on the main menu. A missing computer screen field after a game update, or a game error during the change, gives `false` too. A bad mod id or a game error writes one line to the log.

@@ -7,22 +7,31 @@ nav_order: 13
 
 # Tarp doors
 
+`TarpDoors` lets your mod find the tarp doors in the [scene](../glossary.md#scene), open or close them, and react when one opens or closes. Use it for quest steps, rewards or checks that involve a tarp door.
+
 This page uses `Mesh` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-A tarp door is a sheet of plastic that the game uses as a door: it rolls open and shut. This API lets your mod list the tarp doors in the scene, check whether one is open, open or close one, and get told when one changes. It covers only tarp doors. The ordinary doors are on the [Doors](doors.md) page.
+A tarp door is a sheet of plastic that the game uses as a door: it rolls open and shut. This API gives your mod these jobs:
+
+- List the tarp doors in the scene.
+- Check whether one is open.
+- Open or close one.
+- Get told when one changes.
+
+It covers only tarp doors. The ordinary doors are on the [Doors](doors.md) page.
 
 ## When to use it
 
 - Open a tarp door as a reward or as part of a quest step.
-- Log or react when the player or an NPC opens or closes a tarp door.
+- Log or react when the player or an [NPC](npcs.md) opens or closes a tarp door.
 - Check whether a tarp door is open before you do something in the room behind it.
 
 ## Quick example
 
-This mod writes a log line each time a tarp door opens or closes. Once a save is loaded, it also logs how many tarp doors are in the scene.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a tarp door opens or closes. Once a save is loaded, it also logs how many tarp doors are in the scene.
 
 ```csharp
 using ObenseuerCore;
@@ -42,7 +51,7 @@ public sealed class TarpWatch : FrameworkMod
 }
 ```
 
-`Changed` is an event: the framework calls your code each time it happens. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
+`Changed` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
 
 ## Common tasks
 
@@ -83,12 +92,12 @@ if (!TarpDoors.IsAvailable) Log.Warn("Tarp door events are off.");
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TarpDoors</code> <span>list, read, open and close tarp doors</span></p>
 
-This is the class to start from. `All()`, `Get(id)` and `IsOpen(id)` read tarp doors, and `SetOpen(id, open)` opens or closes one.
+This is the class to start from. `All()`, `Get(id)` and `IsOpen(id)` read tarp doors. `SetOpen(id, open)` opens or closes one.
 
 <div class="api-pair" markdown="1">
 
@@ -148,7 +157,7 @@ public sealed class TarpDoorInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>TarpDoorChangedArgs</code> <span>what the Changed event tells you</span></p>
 
-The `Changed` event gives you one of these. `IsOpen` is the new state, and the event fires when the tarp starts moving, not when it stops.
+The `Changed` event gives you one of these. `IsOpen` is the new state. The event fires when the tarp starts moving, not when it stops.
 
 <div class="api-pair" markdown="1">
 
@@ -172,15 +181,15 @@ public sealed class TarpDoorChangedArgs
 
 - `All()` lists the tarp doors that are switched on in the scene you are in. A tarp door that is switched off in the scene does not appear. `Get(id)` gives one entry, or `null` when no tarp door has that id. <span class="tech">(`All` and `Get` look at active `TarpDoor` objects only. The id is the object's save GUID (see the [glossary](../glossary.md#guid)), or the scene path when it has no GUID.)</span>
 - `IsOpen` is `true` from the moment the tarp starts to open, not when it has finished moving. It is the open or closed state the game saves. <span class="tech">(It reads the `TarpDoor.opened` field, not the state of the ordinary `Door` component next to it. The tarp does not drive the `Door` state (`doorIsOpen`), so reading it would give the wrong answer.)</span>
-- `SetOpen(id, open)` opens or closes the tarp the way the game does, with its animation. It returns `true` when the tarp door exists and is now in the state you asked for. If the tarp is already in that state, the game plays the animation again and it ends in the same state, so you still get `true`. <span class="tech">(It calls the game's `TarpDoor.Toggle(bool)`, which starts the animation and sets the saved state.)</span>
-- `Changed` fires when a tarp door's state flips, no matter who caused it. That includes your own `SetOpen`, the player, and other mods. It fires when the game sets the state, which is when the tarp starts moving, not when it stops. <span class="tech">(It is raised after `TarpDoor.Toggle(bool)` or `Toggle()` ran and `opened` differs from its value before. Both end up in `Toggle(bool)`.)</span>
+- `SetOpen(id, open)` opens or closes the tarp the way the game does, with its animation. It returns `true` when the tarp door exists and is now in the state you asked for. If the tarp is already in that state, the game plays the animation again and it ends in the same state. You still get `true`. <span class="tech">(It calls the game's `TarpDoor.Toggle(bool)`, which starts the animation and sets the saved state.)</span>
+- `Changed` fires when a tarp door's state flips, no matter who caused it: your own `SetOpen`, the player, or other mods. It fires when the game sets the state, which is when the tarp starts moving, not when it stops. <span class="tech">(It is raised after `TarpDoor.Toggle(bool)` or `Toggle()` ran and `opened` differs from its value before. Both end up in `Toggle(bool)`.)</span>
 
 ### Limits
 
 - `SetOpen` does nothing while a save is loading or saving. It returns `false`, and so does an empty or unknown id.
-- A tarp door that is switched off in the scene can't be animated. The game needs the object to be switched on to play the animation, and those doors do not appear in `All()` either. <span class="tech">(The game starts a coroutine for the animation, and a coroutine needs an active object.)</span>
-- `Changed` does not fire when a save loads. A load puts each tarp door back in its saved state without opening or closing it. If your handler should ignore changes made while a save loads, check `SaveData.Busy` (true while a save is loading or being written). <span class="tech">(A load restores the saved state without calling `Toggle`.)</span>
-- `IsAvailable` is `false` when the change event could not be set up. Then `Changed` never fires. The reads and `SetOpen` still work, with one exception: if the game's `opened` field could not be found, `IsOpen` always gives `false` and `SetOpen(id, true)` gives `false`. <span class="tech">(It is also `false` when the feature group was turned off. See "If something fails to set up" below.)</span>
+- A tarp door that is switched off in the scene can't be animated. The game needs the object to be switched on to play the animation. Those doors do not appear in `All()` either. <span class="tech">(The game starts a coroutine for the animation, and a coroutine needs an active object.)</span>
+- `Changed` does not fire when a save loads. A load puts each tarp door back in its saved state without opening or closing it. If your handler should ignore changes made while a save loads, check [`SaveData.Busy`](../api-core/savedata.md#savedatabusy) (true while a save is loading or being written). <span class="tech">(A load restores the saved state without calling `Toggle`.)</span>
+- `IsAvailable` is `false` when the change event could not be set up. Then `Changed` never fires. The reads and `SetOpen` still work, with one exception. If the game's `opened` field could not be found, `IsOpen` always gives `false` and `SetOpen(id, true)` gives `false`. <span class="tech">(It is also `false` when the feature group was turned off. See "If something fails to set up" below.)</span>
 
 ### What you can't do (yet)
 
@@ -189,18 +198,23 @@ public sealed class TarpDoorChangedArgs
 
 ## Details
 
-- Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+- Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 - Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.tarpdoors.log`. Source files: `src/Api/TarpDoors.cs` and `src/Api/TarpDoorsPatches.cs`.
 - Everything not listed in this reference is internal and may change without notice.
 
 ### When you can call it
 
 - Call everything from your mod's normal code, not from a background thread you started. The game only works safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)). This goes for the code that handles `Changed` too.
-- It is safe to call any of it at any time, even on the main menu or with no save loaded. Reads give an empty list, `null` or `false`, and `SetOpen` gives `false`. Nothing throws. A `null` or empty id simply finds nothing.
+- It is safe to call any of it at any time, even on the main menu or with no save loaded. Reads give an empty list, `null` or `false`, and `SetOpen` gives `false`. Nothing throws. A `null` or empty id finds nothing.
 - Your `Changed` handler runs inside the game's own call, right after the state flips. If your handler throws an error, the framework logs it and still runs the other handlers.
 
 ### If something fails to set up
 
-The framework changes one game method when it starts, so it can tell your mod when a tarp door opens or closes. If a game update breaks it, only this feature turns off, and the framework writes error lines and a warning to the log. The rest of the framework keeps working. The name you will see in the log is the feature group `obenseuer.moddingframework.tarpdoors`.
+The framework changes one game method when it starts, so it can tell your mod when a tarp door opens or closes. If a game update breaks it, only this feature turns off. The framework then writes error lines and a warning to the log. The rest of the framework keeps working. The name you will see in the log is the [feature group](../glossary.md#feature-group) `obenseuer.moddingframework.tarpdoors`.
 
 - If the change cannot be set up, `Changed` stops and `IsAvailable` is `false`. The reads and `SetOpen` keep working. <span class="tech">(The framework first looks up the private `opened` field, then patches `TarpDoor.Toggle(bool)`. If either step fails, the feature group is turned off. With the `opened` field missing, `IsOpen` reads `false` and `SetOpen(id, true)` returns `false`.)</span>
+
+**Common problems**
+
+- `SetOpen` returns `false`: a save is loading or saving, no save is loaded, or the id is empty or unknown. `SetOpen(id, true)` also gives `false` when the game's `opened` field could not be found. Pass an `Id` that `All()` or `Get` gave you.
+- `Changed` never fires and `IsAvailable` is `false`: the change event could not be set up, or the feature group was turned off. Look for the error lines and the warning in the log under `obenseuer.moddingframework.tarpdoors`. The reads and `SetOpen` still work, except in the `opened` field case above.

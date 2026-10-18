@@ -7,11 +7,20 @@ nav_order: 1
 
 # Law actions
 
+`LawActions` lets your mod pay the player's fine, try a bribe, or take the player's things when the law catches up with them. Use it to build your own police encounters.
+
 Status: experimental.
 
 ## What it is
 
-When the player commits crimes in the game, the game keeps a criminal record. When the law catches up with them, the player can pay a fine, try to bribe their way out, or be arrested and have their things taken. This API lets your mod do those things for the player. It can check whether a fine can be paid or a bribe tried, pay the fine, try the bribe, and move everything the player carries into a container. Reading the record and sending the player to prison are on the [Story API](../api-story/law-experimental-for-arrest.md#law-experimental-for-arrest) page, in the `Law` part.
+When the player commits crimes in the game, the game keeps a criminal record. When the law catches up with them, the player can pay a fine or try to bribe their way out. The player can also be arrested and have their things taken. This API does those things for the player:
+
+- Check whether a fine can be paid or a bribe tried.
+- Pay the fine.
+- Try the bribe.
+- Move everything the player carries into a container.
+
+Reading the record and sending the player to prison are on the [Story API](../api-story/law-experimental-for-arrest.md#law-experimental-for-arrest) page, in the `Law` part.
 
 ## When to use it
 
@@ -21,7 +30,7 @@ When the player commits crimes in the game, the game keeps a criminal record. Wh
 
 ## Quick example
 
-This mod waits for the law to spot the player. It then writes a log line that says whether the player could pay the fine and whether a bribe is still possible.
+This mod waits for the law to spot the player. It then writes a [log](../guides/getting-started/logging.md) line that says whether the player could pay the fine, and whether a bribe is still possible.
 
 ```csharp
 using ObenseuerCore;
@@ -62,12 +71,12 @@ if (LawActions.ConfiscateInventory(Mod.Id, containerGuid, false))
 
 ## Reference
 
-Money here uses the game's two currencies: OC is Open Sewer Coins and RM is Real Money (see the [glossary](../glossary.md#oc)).
+Money on this page uses the game's two currencies: [OC](../glossary.md#oc) is Open Sewer Coins and [RM](../glossary.md#rm) is Real Money.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LawActions</code> <span>the player's criminal record</span></p>
 
-Check `CanPayFine()` or `CanBribe()` first, then call `PayFine`, `TryBribe` or `ConfiscateInventory` with your mod's id.
+Check `CanPayFine()` or `CanBribe()` first. Then call `PayFine`, `TryBribe` or `ConfiscateInventory` with your mod's id.
 
 <div class="api-pair" markdown="1">
 
@@ -95,25 +104,33 @@ public static class LawActions
 
 ### Things to know
 
-- Every call returns `false` unless the player has a criminal record to deal with. That means the law system must be working, the record must have at least one crime, and the game must not be loading or saving, changing level, or in the middle of an arrest. Stolen goods count as crimes here, as they do in the bribe price. <span class="tech">(The checks are `Law.IsAvailable`, `Crime.CountCrimes() > 0`, no `SaveGate.Busy`, no level change and no `Crime.ArrestInProgress`.)</span>
-- `CanPayFine` is `true` when the fine is above 0 and the player has that much Real Money. The fine is the player's crimes, without stolen goods, times the fine multiplier, rounded to a whole number. A fine that rounds to 0 can't be paid, and stolen goods alone give no fine. Read the amount with `Law.FineRM`. <span class="tech">(It is the game's `Crime.CanPayFine()`, which checks the money as Real Money.)</span>
+- Every call returns `false` unless the player has a criminal record to deal with. The law system must be working, and the record must have at least one crime. The game must not be loading or saving, changing level, or in the middle of an arrest. Stolen goods count as crimes here, as they do in the bribe price. <span class="tech">(The checks are `Law.IsAvailable`, `Crime.CountCrimes() > 0`, no `SaveGate.Busy`, no level change and no `Crime.ArrestInProgress`.)</span>
+- `CanPayFine` is `true` when the fine is above 0 and the player has that much Real Money. The fine is the player's crimes, without stolen goods, times the fine multiplier, rounded to a whole number. A fine that rounds to 0 can't be paid, and stolen goods alone give no fine. Read the amount with [`Law.FineRM`](../api-story/law-experimental-for-arrest.md). <span class="tech">(It is the game's `Crime.CanPayFine()`, which checks the money as Real Money.)</span>
 - `CanBribe` is `true` until a bribe has been tried for this record. A try that failed counts as a try. <span class="tech">(It is `!Crime.triedBribe`.)</span>
-- `PayFine` pays the fine with the player's Real Money and clears the record. A payment from your mod fires `Law.Fined` like any other payment. <span class="tech">(The framework already watches the game's `Crime.PayFine`, so `Law.Fined` fires.)</span>
-- `TryBribe` works out the price, checks the player can pay it, and only then makes the attempt. The price is in Open Sewer Coins. The game lets the player try only once for each record, and the attempt uses that one try. So when the player has too little money, `TryBribe` returns `false` and the one try is still there. A failed skill roll does use up the try, as in the game. A successful bribe clears the record and returns `true`. It returns `false` when `CanBribe` is `false`. <span class="tech">(The framework runs `Crime.CalculateBribe()`, then checks the money against the price before it calls `Crime.TryToBribe()`, which sets the once-per-record flag (`triedBribe`).)</span>
+- `PayFine` pays the fine with the player's Real Money and clears the record. A payment from your mod fires `Law.Fined`, like any other payment. <span class="tech">(The framework already watches the game's `Crime.PayFine`, so `Law.Fined` fires.)</span>
+- `TryBribe` works out the price and checks that the player can pay it. Only then does it make the attempt. The price is in Open Sewer Coins. The game lets the player try only once for each record, and the attempt uses that one try.
+- When the player has too little money, `TryBribe` returns `false` and the one try is still there. A failed skill roll does use up the try, as in the game. A successful bribe clears the record and returns `true`. `TryBribe` returns `false` when `CanBribe` is `false`. <span class="tech">(The framework runs `Crime.CalculateBribe()`, then checks the money against the price before it calls `Crime.TryToBribe()`, which sets the once-per-record flag (`triedBribe`).)</span>
 - A bribe can cost nothing. The game works the price out as the player's crime total times 5, divided by their Bribery skill, rounded. A small crime total rounds to 0. Then `TryBribe` clears the record with no payment and returns `true`. <span class="tech">(The price is `round(crime total * 5 / Bribery skill quality)` with the skill quality at least 0.25. With a skill quality of 1, a total under about 0.1 gives 0.)</span>
 - `ConfiscateInventory` moves the player's things into the container with the given `GUID`. Things the player carries that belong to someone else are removed instead of moved. The backpack spot is not used. It returns `false` for an empty or unknown container. Find the `GUID` on the [container list](inventory/containers.md#containers). <span class="tech">(It calls `Crime.ConfiscateItems(storage, clearContainer, null)`. An item with an owner id above 0 is removed with `RemoveStack`.)</span>
-- For the fine amount, use `Law.FineRM`. To send the player to prison, use `Law.Arrest`, which already sends the player to prison.
+- For the fine amount, use `Law.FineRM`. To send the player to prison, use `Law.Arrest`, which already does that.
 
 ### Limits
 
-- `PayFine` returns `false` unless `CanPayFine` is `true`. The check matters because the game takes the player's stolen goods away before it looks at the money, so paying without enough money would still lose the stolen goods. The framework checks first so that cannot happen.
-- A write call needs your mod's id. `PayFine`, `TryBribe` and `ConfiscateInventory` throw `ArgumentException` for an empty or invalid mod id. Pass your mod's id, such as `Mod.Id`. Apart from that, nothing throws. A bad argument or a failure in the game gives `false`, and the first failure of each call goes to the log as an error. <span class="tech">(A mod id must be 1 to 64 characters of letters, digits, `.`, `_` or `-`.)</span>
-- `ConfiscateInventory` can't be undone, so use it with care. With `clearContainer` set to `true`, every slot of the container is emptied and no copy is kept. Each item the player carries is then moved in, and an item that does not fit is deleted, not left behind. Use it only for a seizure where the player should lose the items. <span class="tech">(The game moves each stack with `deleteFailed` set.)</span>
+- `PayFine` returns `false` unless `CanPayFine` is `true`. The check matters because the game takes the player's stolen goods away before it looks at the money. Paying without enough money would still lose the stolen goods. The framework checks first so that cannot happen.
+- A write call needs your [mod id](../glossary.md#mod-id). `PayFine`, `TryBribe` and `ConfiscateInventory` throw `ArgumentException` for an empty or invalid mod id. Pass your mod's id, such as `Mod.Id`. <span class="tech">(A mod id must be 1 to 64 characters of letters, digits, `.`, `_` or `-`.)</span>
+- Apart from that, nothing throws. A bad argument or a failure in the game gives `false`. The first failure of each call goes to the log as an error.
+- `ConfiscateInventory` can't be undone, so use it with care. With `clearContainer` set to `true`, every slot of the container is emptied and no copy is kept. Each item the player carries is then moved in. An item that does not fit is deleted, not left behind. Use it only for a seizure where the player should lose the items. <span class="tech">(The game moves each stack with `deleteFailed` set.)</span>
 - You can't read the bribe price from here. Working out the price fixes it for the record, so reading it would change the game's state. Read the price from the game's dialogue instead. This is not offered.
+
+**Common problems**
+
+- `PayFine`, `TryBribe` or `ConfiscateInventory` throws `ArgumentException`: the mod id is empty or invalid. Pass your mod's id, such as `Mod.Id`.
+- Every call returns `false`: the law system is not working, or the record has no crime. Every call also returns `false` while the game is loading or saving, changing level, or in the middle of an arrest.
+- `TryBribe` returns `false`: `CanBribe` is `false`, the player cannot afford the price, or the skill roll failed. Check `CanBribe()` first.
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) (the game's mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.lawactions.log`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
@@ -125,4 +142,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-- This API does not change any game method, so there is no feature group to turn off, and nothing for the framework to set up. It depends on `Law.IsAvailable`. When that is `false`, every call here returns `false`.
+- This API does not change any game method. So there is no [feature group](../glossary.md#feature-group) (a named set of the framework's changes) to turn off, and nothing for the framework to set up. It depends on `Law.IsAvailable`. When that is `false`, every call here returns `false`.

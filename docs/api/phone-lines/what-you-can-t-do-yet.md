@@ -7,6 +7,8 @@ nav_order: 5
 
 # What you can't do (yet)
 
+Two things the [Phone lines](../phone-lines.md) API does not offer yet.
+
 ## Limits
 
 - You can't use the on-screen dial pad.

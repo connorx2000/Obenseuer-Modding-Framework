@@ -7,14 +7,14 @@ nav_order: 2
 
 # Money (Cash)
 
-This is the full list of what the API gives you, one section for each part of the economy. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+`Cash` is the player's wallet. It reads the balance, checks whether the player can afford something, gives and spends money, and tells you when either balance changes. The two balances are [OC](../../glossary.md#oc) (Open Sewer Coins, the everyday coins) and [RM](../../glossary.md#rm) (Real Money).
 
-`Cash` is the player's wallet. You can read the balance, check whether the player can afford something, give money, spend money, and get told when either balance changes.
+This is the full list of what the API gives you, one section for each part of the economy. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Cash</code> <span>the wallet</span></p>
 
-Call `Balance(currency)` to read a balance, `Has` to check the player can afford something, and `Give` or `TrySpend` to change it.
+Call `Balance(currency)` to read a balance and `Has` to check the player can afford something. Call `Give` or `TrySpend` to change it.
 
 <div class="api-pair" markdown="1">
 
@@ -38,7 +38,7 @@ public static class Cash
 | `Has(currency, amount)` | `bool` | `true` when the wallet holds at least that much. |
 | `Give(currency, amount)` | `bool` | Adds money to the wallet. `true` when it was added. |
 | `TrySpend(currency, amount)` | `bool` | Takes money only if the wallet covers it. `true` when it was taken. |
-| `RmToOc(rm)` | `int` | Converts an RM amount to OC at the game's rate, dropping any fraction. |
+| `RmToOc(rm)` | `int` | Converts an RM amount to OC at the game's rate and drops any fraction. |
 | `OcToRm(oc)` | `float` | Converts an OC amount to RM at the game's rate, rounded to 0.1. |
 
 | Property | Type | What it means |
@@ -55,7 +55,7 @@ public static class Cash
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>MoneyChangedArgs</code> <span>what you get when a balance changes</span></p>
 
-`Cash.MoneyChanged` passes you one of these each time a balance changes. `Before` and `After` are the balance either side of the change.
+`Cash.MoneyChanged` passes you one of these each time a balance changes. `Before` and `After` are the balance on either side of the change.
 
 <div class="api-pair" markdown="1">
 
@@ -103,17 +103,22 @@ public enum MoneyCurrency
 ## Things to know
 
 - `MoneyChanged` fires once for each currency whose balance changed, whatever caused the change. That covers shops, banking, money in the mail, dialogue, and your own `Give` and `TrySpend`. It does not fire when a save loads, because loading sets the balance directly. <span class="tech">(it is raised for every change made through the game's `Money.AddMoney(float, Currency)` or `Money.RemoveMoney(float, Currency)`.)</span>
-- `MoneyChanged` handlers run right away, except during a trade with a trader. In a trader trade, the event is held until the trade is finished, and a trade that is cancelled raises none. See [Traders](../traders.md). <span class="tech">(the handlers run synchronously inside `Money.AddMoney` or `RemoveMoney`.)</span>
-- `Give` and `TrySpend` round the amount the way the game does. OC amounts lose any fraction, and RM amounts are rounded to 0.1, because the game counts RM in tenths.
+- `MoneyChanged` handlers run right away, except during a trade with a trader. In a trader trade, the event is held until the trade is finished. A trade that is cancelled raises none. See [Traders](../traders.md). <span class="tech">(the handlers run synchronously inside `Money.AddMoney` or `RemoveMoney`.)</span>
+- `Give` and `TrySpend` round the amount the way the game does. OC amounts lose any fraction. RM amounts are rounded to 0.1, because the game counts RM in tenths.
 - `Give` makes money out of nothing, so use it for rewards. It is not a transfer from anywhere.
 - `Has` is `true` when the wallet holds at least `amount`. It is `false` for an amount of 0 or less, or above 16,000,000.
 - `RmToOc` and `OcToRm` convert one currency into the other at the game's own rate. They give 0 while the game's money is not loaded. <span class="tech">(they call `Money.RmToOcConvert` (which cuts off the fraction) and `Money.OcToRmConvert` (which rounds to 0.1).)</span>
-- `Cash` replaces the older `Wallet` and covers both currencies. It uses the same 16,000,000 limit for one call as `Wallet`, and is a little stricter. `Wallet` stays for code that only needs OC. <span class="tech">(`Wallet` accepts `Has(0)` and negative amounts in `Has`; `Cash.Has` refuses them.)</span>
+- `Cash` replaces the older [`Wallet`](../../api-core/wallet.md) and covers both currencies. It uses the same 16,000,000 limit for one call as `Wallet`, and is a little stricter. `Wallet` stays for code that only needs OC. <span class="tech">(`Wallet` accepts `Has(0)` and negative amounts in `Has`; `Cash.Has` refuses them.)</span>
 
 ## Limits
 
-- `MoneyChanged` handlers that call `Give` or `TrySpend` raise `MoneyChanged` again, and the framework stops it after 8 levels (see [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework)).
+- `MoneyChanged` handlers that call `Give` or `TrySpend` raise `MoneyChanged` again. The framework stops this after 8 levels (see [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework)).
 - An amount that rounds to 0 is refused. A single call can move at most 16,000,000.
 - `Give` refuses an amount that would push the balance past what the game can store. That is about 2.1 billion OC or about 214 million RM. Past that, the game's number would wrap around and turn negative. <span class="tech">(the limits are `int.MaxValue` for OC and 214748364 for RM.)</span>
-- `Give` and `TrySpend` return `false` while a save is loading or being written, and when the game is not ready to move money. The main menu is one such time. <span class="tech">("not ready" means there is no `Money`, `InteractObjects` or `Notifications` instance.)</span>
+- `Give` and `TrySpend` return `false` while a save is loading or being written. They also return `false` when the game is not ready to move money, for example on the main menu. <span class="tech">("not ready" means there is no `Money`, `InteractObjects` or `Notifications` instance.)</span>
 - `Balance` for OC is a decimal number, and is only exact up to 16,777,216. For big OC balances, use `Cash.Oc` instead (see [Cash.Oc and Cash.Rm](cash-oc-and-cash-rm.md)).
+
+**Common problems**
+
+- `Give` or `TrySpend` returns `false`: a save is loading or being written, or the game is not ready to move money (for example on the main menu). The amount may also round to 0 or be above 16,000,000. `Give` also refuses an amount that would push the balance past what the game can store. `TrySpend` takes money only if the wallet covers it. Inside a `MoneyChanged` handler, the call is refused past 8 levels.
+- A big OC balance read with `Balance` is not exact: read `Cash.Oc` instead.

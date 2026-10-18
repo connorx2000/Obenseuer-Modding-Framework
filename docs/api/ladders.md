@@ -7,9 +7,18 @@ nav_order: 6
 
 # Ladders
 
+`Ladders` reads and blocks the ladders in the scene you are in. Use it when your mod needs to keep the player off a ladder or know whether the player is climbing.
+
 ## What it is
 
-A ladder is a part of the world the player can climb. This API lets your mod list the ladders in the scene you are in, see whether a ladder is blocked, see whether the player is on one, and block or unblock a ladder. A blocked ladder shows "Blocked" on its use prompt and the game refuses the climb. It does not start or stop a climb.
+A ladder is a part of the world the player can climb. This API gives your mod these jobs:
+
+- List the ladders in the [scene](../glossary.md#scene) you are in.
+- See whether a ladder is blocked.
+- See whether the player is on one.
+- Block or unblock a ladder.
+
+A blocked ladder shows "Blocked" on its use prompt, and the game refuses the climb. The API does not start or stop a climb.
 
 ## When to use it
 
@@ -41,7 +50,7 @@ public sealed class LadderWatch : FrameworkMod
 }
 ```
 
-`SetBlocked` returns `false` when it could not change the ladder, for example when the player is on it. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+`SetBlocked` returns `false` when it could not change the ladder, for example when the player is on it. See [Using events](../guides/getting-started/using-events.md) for more on [`WhenReady`](core-helpers/events-whenready.md).
 
 ## Common tasks
 
@@ -99,7 +108,7 @@ public static class Ladders
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LadderInfo</code> <span>a snapshot of one ladder</span></p>
 
-`All()` and `Get(id)` give you one of these for each ladder. `Blocked` and `PlayerOn` are as they were when you asked, so ask again for fresh values. <span class="tech">(It is built from the game's `InteractableLadder` component.)</span>
+`All()` and `Get(id)` give you one of these for each ladder. `Blocked` and `PlayerOn` are as they were when you asked. <span class="tech">(It is built from the game's `InteractableLadder` component.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -125,7 +134,7 @@ public sealed class LadderInfo
 
 - `All()` lists every ladder that is switched on in the scene you are in. `Get` gives `null` for an unknown or empty id. <span class="tech">(It lists the active `InteractableLadder` components in the active scene.)</span>
 - `IsPlayerClimbing` is `true` while the player is on any ladder, not only one you looked up. <span class="tech">(It reads the static `InteractableLadder.playerClimbingGlobal`.)</span>
-- `SetBlocked` returns `true` when the ladder now has the value you asked for. If the ladder already has the value you asked for, and none of the cases in the limits below apply, it returns `true` and changes nothing. <span class="tech">(It writes the game's public `blocked` field, which the game's `ClimbToggle` reads, so nothing else needs to change.)</span>
+- `SetBlocked` returns `true` when the ladder now has the value you asked for. If the ladder already has that value, and none of the cases under Limits below apply, it returns `true` and changes nothing. <span class="tech">(It writes the game's public `blocked` field, which the game's `ClimbToggle` reads, so nothing else needs to change.)</span>
 - A blocked ladder stays blocked after the player saves and loads, if the ladder has a save id. The game saves the blocked value with the ladder.
 
 #### Limits
@@ -133,13 +142,18 @@ public sealed class LadderInfo
 - `SetBlocked` returns `false` when no ladder has that id, while a save is loading or being written, and while the player is on that ladder. The player can still get off the ladder, and you can try again after that. <span class="tech">(The check for the player on the ladder reads the ladder's own `playerClimbing` flag, and `SetBlocked` also returns `false` when that flag cannot be read. The save check is `SaveData.Busy`.)</span>
 - A ladder with no save id is not saved. Its id is its place in the scene, and the change lasts only until the scene reloads. This may not hold for every ladder. <span class="tech">(The game's save code skips objects with an empty `GUID`.)</span>
 
+**Common problems**
+
+- `SetBlocked` returns `false`: no ladder has that id, a save is loading or being written, or the player is on that ladder. It also returns `false` with no scene loaded or on the main menu, and when the ladder's `playerClimbing` flag cannot be read. If the player is on the ladder, try again after they get off.
+- A blocked ladder is unblocked again after the scene reloads: the ladder has no save id, so its change is not saved.
+
 ### What you can't do (yet)
 
 - You can't make the player climb or get off a ladder, and there is no event for ladders. This API only reads and blocks. <span class="tech">(`Climb` and `StopClimb` are not covered.)</span>
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) (the game's mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Source: `src/Api/Ladders.cs`. Its log name is `obenseuer.moddingframework.ladders`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -151,4 +165,4 @@ Everything not listed in this reference is internal and may change without notic
 
 ### If something fails to set up
 
-- This part of the framework does not change any game methods, so there is no feature group that can turn off. It needs no set-up at all.
+- This part of the framework does not change any game methods. So there is no [feature group](../glossary.md#feature-group) (a named set of the framework's changes) that can turn off. It needs no set-up at all.

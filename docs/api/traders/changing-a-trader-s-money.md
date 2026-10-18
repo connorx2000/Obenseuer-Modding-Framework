@@ -7,11 +7,11 @@ nav_order: 3
 
 # Changing a trader's money
 
-`SetMoney` and `Restock` change how much money a trader has.
+`SetMoney` and `Restock` change how much money a trader has. Use them when a trader needs more money to pay the player, or a refill.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Traders</code> <span>changes a trader's money</span></p>
-Use `SetMoney` to set a trader's cash to an amount you give, and `Restock` to give the trader a new random amount from the game's difficulty settings.
+`SetMoney` sets a trader's cash to an amount you give. `Restock` gives the trader a new random amount from the game's difficulty settings.
 
 <div class="api-pair" markdown="1">
 
@@ -25,8 +25,8 @@ public static class Traders
 
 | Method | Returns | What it does |
 |---|---|---|
-| `SetMoney(modId, shopId, amount)` | `bool` | Sets how much money the trader has. Returns `true` when it was set. |
-| `Restock(modId, shopId)` | `bool` | Refills the trader's money the way the game does. Returns `true` when it was done. |
+| `SetMoney(modId, shopId, amount)` | `bool` | Sets how much money the trader has. `true` when it was set. |
+| `Restock(modId, shopId)` | `bool` | Refills the trader's money the way the game does. `true` when it was done. |
 
 </div>
 </div>
@@ -34,9 +34,15 @@ public static class Traders
 ## Things to know
 
 - `SetMoney` sets how much money the trader has, in the trader's own currency. The trader keeps the money in the save, so it is still there after a save and a load. If two mods set it, the last one wins. <span class="tech">(the money is saved with the trader)</span>
-- `Restock` refills the trader's money the way the game does. It picks a random amount between the trader's minimum and maximum, and applies the difficulty setting. It does not reset the trader's own restock timer, so the game still restocks when its timer runs out. <span class="tech">(the amount follows `DifficultyInfo.GetTraderWealth`, as the game does)</span>
+- `Restock` refills the trader's money the way the game does. It picks a random amount between the trader's minimum and maximum, and applies the difficulty setting. <span class="tech">(the amount follows `DifficultyInfo.GetTraderWealth`, as the game does)</span>
+- `Restock` does not reset the trader's own restock timer. The game still restocks when its timer runs out.
 
 ## Limits
 
-- Both refuse while a trade is running, during a save or load, for an unknown shop id, for a mod id that is not valid, and when `IsAvailable` is `false`. A refusal returns `false` and changes nothing.
+- Both refuse, return `false` and change nothing in these cases:
+  - while a trade is running;
+  - during a save or load;
+  - for an unknown shop id;
+  - for a [mod id](../../glossary.md#mod-id) that is not valid;
+  - when [`IsAvailable`](reading-a-trader.md) is `false`.
 - `SetMoney` also refuses an `amount` that is below 0, above the largest amount of money the framework allows, or not a real number.

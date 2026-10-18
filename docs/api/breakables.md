@@ -8,9 +8,15 @@ nav_order: 2
 
 # Breakables
 
+[`Breakables`](breakables/listing-and-breaking-objects.md) lists the objects in the [scene](../glossary.md#scene) that can break, and lets your mod break or repair them. It also breaks locks and tells you when something breaks or is smashed. Use it to react to damage in the game world, or to script it.
+
 ## What it is
 
-Some objects in the game have a strength and break when it runs out. Locks can be broken the same way. Other objects spawn an item when a hit destroys them, which this page calls smashing. This API lets your mod list these objects, break or repair them, and hear when one breaks, is repaired or is smashed.
+Some objects in the game have a strength and break when it runs out. [Locks](breakables/locks.md) can be broken the same way. Other objects spawn an item when a hit destroys them. This page calls that [smashing](breakables/smashed.md). This API gives your mod these jobs:
+
+- List these objects.
+- Break or repair them.
+- Hear when one breaks, is repaired or is smashed.
 
 ## When to use it
 
@@ -22,7 +28,7 @@ Some objects in the game have a strength and break when it runs out. Locks can b
 
 ## Quick example
 
-This mod writes a log line each time a breakable breaks, is repaired, has its lock broken, or is smashed.
+This mod writes a [log](../guides/getting-started/logging.md) line each time a breakable breaks, is repaired, has its lock broken, or is smashed.
 
 ```csharp
 using ObenseuerCore;
@@ -41,4 +47,4 @@ public sealed class BreakWatch : FrameworkMod
 }
 ```
 
-Each of these is an event: the framework calls your code every time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events.
+Each of these is an event: the framework calls your code every time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events. The sub-pages hold the rest: [Common tasks](breakables/common-tasks.md), [Listing and breaking objects](breakables/listing-and-breaking-objects.md), [Locks](breakables/locks.md), [Smashed](breakables/smashed.md) and [Details](breakables/details.md).

@@ -7,20 +7,27 @@ nav_order: 11
 
 # Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+This page lists the game build behind the registry, when you may call it, and what comes back when something fails. You need it when `Define` is refused or a registry part does not set up.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../../glossary.md#bepinex) (the mod loader) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 
 Namespace: `ObenseuerCore`. Files: `src/Api/RegistryIds.cs`, `src/Api/RegistryItems.cs`, `src/Api/RegistryRecipes.cs`, `src/Api/RegistryPatches.cs`, `src/Api/RegistryManifest.cs`, `src/Api/RegistryPlaceholders.cs`, `src/Api/RegistryMissing.cs`, `src/Api/RegistrySelfTest.cs`, and for models and icons `src/Api/ModelRegistry.cs`, `src/Api/ModelBuild.cs`, `src/Api/ModelPatches.cs`, `src/Api/ModelObj.cs`, `src/Api/ModelMtl.cs`, `src/Api/ModelIcons.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-The framework changes some of the game's methods when it starts, so it can add your items and recipes. The changes belong to four feature groups, and these are the names you will see in the log: `obenseuer.moddingframework.registry` (items and recipes), `obenseuer.moddingframework.registry.placeholders` (the placeholder for missing items), `obenseuer.moddingframework.models` (3D models) and `obenseuer.moddingframework.icons` (icons).
+The framework changes some of the game's methods when it starts, so it can add your items and recipes. The changes belong to four [feature groups](../../glossary.md#feature-group) (named sets of the framework's changes). These are the names you will see in the [log](../../guides/getting-started/logging.md):
+
+- `obenseuer.moddingframework.registry`: items and recipes.
+- `obenseuer.moddingframework.registry.placeholders`: the placeholder for missing items.
+- `obenseuer.moddingframework.models`: 3D models.
+- `obenseuer.moddingframework.icons`: icons.
 
 ## When you can call it
 
 - Call everything from your mod's normal code (`Awake`, `OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only run safely on the main thread (see the [glossary](../../glossary.md#main-thread)).
-- Call `Define` before the game loads its item list and its recipe list. The usual place is your plugin's `Awake`. The item list first loads in `ItemDatabase.Awake`, and the recipe list in `RecipeDatabase.Awake` (or `OnEnable`, if the list is empty).
+- Call `Define` before the game loads its item list and its recipe list. The usual place is your [plugin](../../glossary.md#plugin)'s `Awake`. The item list first loads in `ItemDatabase.Awake`. The recipe list first loads in `RecipeDatabase.Awake` (or `OnEnable`, if the list is empty).
 - After the first load, `Define` writes an error to the log and returns -1. It is -1 and not 0 because 0 is a real item (the coin). A caller that passed a refused number on as an output would otherwise get a coin, while -1 is rejected as an invalid item number.
-- Defining the same mod id and key again before the load gives you the same number and keeps the first definition.
+- Defining the same [mod id](../../glossary.md#mod-id) and key again before the load gives you the same number. The first definition is kept.
 - Each time the game assigns an item list, every item you defined is added again. The game assigns a list in `Awake`, `OnEnable` and `Reload`. `ItemRegistry.Loaded` fires once for each list.
 
 ## What to check for and what comes back
@@ -31,9 +38,9 @@ The framework changes some of the game's methods when it starts, so it can add y
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
-- If the item and recipe changes can't be set up, `Define` returns -1 from then on. If any of the five game methods the framework changes can't be changed, it turns off the feature group `obenseuer.moddingframework.registry` and writes error lines and a warning to the log. <span class="tech">(The five methods are `ItemDatabase.DeSerialize`, `ItemDatabase.Awake`, `OnEnable` and `Reload`, and `RecipeDatabase.LoadDatabase`.)</span>
-- If the player has turned on the framework's setting that refuses all changes on a game version other than 0.5.08, nothing is changed on such a version and `Define` also returns -1. <span class="tech">(The setting is `RefuseUnknownBuild` in the `Safety` section of the framework's config, and it is off by default.)</span>
+- If the item and recipe changes can't be set up, `Define` returns -1 from then on. If any of the five game methods the framework changes can't be changed, it turns off the feature group `obenseuer.moddingframework.registry`. It also writes error lines and a warning to the log. <span class="tech">(The five methods are `ItemDatabase.DeSerialize`, `ItemDatabase.Awake`, `OnEnable` and `Reload`, and `RecipeDatabase.LoadDatabase`.)</span>
+- The player can turn on the framework's setting that refuses all changes on a game version other than 0.5.08. Then nothing is changed on such a version, and `Define` also returns -1. <span class="tech">(The setting is `RefuseUnknownBuild` in the `Safety` section of the framework's config, and it is off by default.)</span>
 - The placeholders for missing items have their own feature group, so a failure there does not stop `Define`. If they can't be set up, an unknown item number shows as a coin again, as in the game without the framework.
 - `ItemRegistry.IsAvailable` and `RecipeRegistry.IsAvailable` are `true` when the changes are set up and their feature group is not turned off. `ItemIcons.IsAvailable` and `ModelRegistry.IsAvailable` tell you the same for icons and models.

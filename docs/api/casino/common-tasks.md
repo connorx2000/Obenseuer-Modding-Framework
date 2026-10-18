@@ -7,14 +7,16 @@ nav_order: 1
 
 # Common tasks
 
-List the machines in the scene and the stake each one is set to.
+Short snippets for the usual jobs with [`Casino`](events.md): list the machines, set and clear payout factors, react to a double or a scratchcard, and read the last win.
+
+List the machines in the [scene](../../glossary.md#scene) and the stake each one is set to. Each machine is a [`CasinoMachineInfo`](the-machines.md).
 
 ```csharp
 foreach (CasinoMachineInfo machine in Casino.Machines())
     Log.Info(machine.Kind + " " + machine.Id + ", stake " + machine.Stake);
 ```
 
-Make every slot machine pay double. Payout factors are forgotten when a scene loads, so set it again each time a scene loads.
+Make every slot machine pay double. `Info.Id` is your [mod id](../../glossary.md#mod-id). [Payout factors](payout-factors.md) are forgotten when a scene loads, so set it again each time a scene loads, from [`Events.SceneLoaded`](../../api-core/events.md).
 
 ```csharp
 Events.SceneLoaded += scene => Casino.SetPayoutFactor(Info.Id, CasinoMachineKind.Slot, 2f);
@@ -41,7 +43,7 @@ Casino.Scratched += args =>
 };
 ```
 
-Read the last win, and check whether the events and payout factors work.
+Read the last win, and check whether the events and payout factors work. If one is `false`, see [Details](details.md#if-something-fails-to-set-up).
 
 ```csharp
 Log.Info("The last win was " + Casino.LastPayout + " OC.");

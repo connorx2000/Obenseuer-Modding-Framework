@@ -7,12 +7,12 @@ nav_order: 9
 
 # Legal services
 
-Legal services are the game's menu of paid services that a player can queue: clearing a crime, or unfreezing a bank account. `LegalServices` lists them with their price, lets your mod queue one, and tells you when one is queued or done.
+Legal services are the game's menu of paid services that a player can queue: clearing a crime, or unfreezing a [bank account](banking.md). `LegalServices` lists them with their price, lets your mod queue one, and tells you when one is queued or done.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LegalServices</code> <span>the menu, the debts and the queue</span></p>
 
-Call `Actions()` to list the services and their prices, and `Queue(name)` with a service's `Name` to queue one.
+Call `Actions()` to list the services and their prices. Call `Queue(name)` with a service's `Name` to queue one.
 
 <div class="api-pair" markdown="1">
 
@@ -51,7 +51,7 @@ public static class LegalServices
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LegalActionInfo</code> <span>one legal service</span></p>
 
-`LegalServices.Actions()` gives you one of these for each service. `CanTrigger` says whether it can be queued now, and `Queued` says whether it already is.
+`LegalServices.Actions()` gives you one of these for each service. `CanTrigger` says whether it can be queued now. `Queued` says whether it already is.
 
 <div class="api-pair" markdown="1">
 
@@ -74,11 +74,11 @@ public sealed class LegalActionInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Name` | `string` | The service's name, which `Queue` takes. |
-| `InvoiceName` | `string` | The name of the invoice the service creates. |
+| `InvoiceName` | `string` | The name of the [invoice](../invoices.md) the service creates. |
 | `Kind` | `LegalActionKind` | What the service does. |
-| `Target` | `string` | The NPC id or bank name it is for. `""` when there is none. |
-| `PriceOC` | `int` | The price in OC right now. `0` for a free service. |
-| `PriceRM` | `float` | The price in RM. |
+| `Target` | `string` | The [NPC](../npcs.md) id or bank name it is for. `""` when there is none. |
+| `PriceOC` | `int` | The price in [OC](../../glossary.md#oc) (the everyday coins) right now. `0` for a free service. |
+| `PriceRM` | `float` | The price in [RM](../../glossary.md#rm) (Real Money). |
 | `PaymentDays` | `int` | How many days the player has to pay. |
 | `CanTrigger` | `bool` | `true` when the service can be queued right now. |
 | `Queued` | `bool` | `true` when it is already queued. |
@@ -139,18 +139,23 @@ public enum LegalActionKind
 
 ## Things to know
 
-- `Actions` lists the game's fixed menu of services. Each entry has its price right now, whether it can be queued now, and its queue state. An entry the game can't work out yet is left out, and the rest are still listed. It gives an empty list when the game's legal services are not there. <span class="tech">(an entry is left out when its crime or money singleton is missing.)</span>
+- `Actions` lists the game's fixed menu of services. Each entry has its current price, whether it can be queued now, and its queue state. An entry the game can't work out yet is left out, and the rest are still listed. It gives an empty list when the game's legal services are not there. <span class="tech">(an entry is left out when its crime or money singleton is missing.)</span>
 - `Queue` queues one service by its name, the way the game's own queue does. It returns `true` when the service is now in the game's queue. <span class="tech">(the things it needs are the singletons `TimeOfDayAzure`, `Achievements`, `InvoiceController` and `MailController`.)</span>
-- The price is fixed when the service is queued. The game works it out then and makes the invoice from that value. A free service is queued with no invoice, as the game does.
-- `Queued` fires when the game adds a service to its queue, whether `Queue` or the game's own script added it. `Completed` fires when a queued service runs, which means the game clears the crime or unfreezes the account.
-- `Completed` is raised on the next frame, not inside the game's timer, so a handler can call `Queue` without touching the loop that runs the service.
+- The price is fixed when the service is queued. The game works it out then and makes the [invoice](../invoices.md) from that value. A free service is queued with no invoice, as the game does.
+- `Queued` fires when the game adds a service to its queue, whether `Queue` or the game's own script added it. `Completed` fires when a queued service runs: the game clears the crime or unfreezes the account.
+- `Completed` is raised on the next frame, not inside the game's timer. A handler can therefore call `Queue` without touching the loop that runs the service.
 - `HasDebt` and `GetDebt` read the debt the game records when a legal fee invoice expires unpaid. The debt is looked up by the invoice's name (`InvoiceName`).
 - The game's own resend of the debt invoice, which doubles it, is not available to mods.
 
 ## Limits
 
-- `Queue` returns `false` and changes nothing when a save is loading or being written, the name is empty or unknown, the service is already queued, the game says it can't be queued now, or something the game needs is missing.
-- For a paid service, `Queue` also returns `false` when the game's invoice item is missing, because the game would then make no invoice and leave the service free.
+- `Queue` returns `false` and changes nothing in these cases:
+  - A save is loading or being written.
+  - The name is empty or unknown.
+  - The service is already queued.
+  - The game says it can't be queued now.
+  - Something the game needs is missing.
+- For a paid service, `Queue` also returns `false` when the game's invoice item is missing. The game would then make no invoice and leave the service free.
 - `Queue` only changes the game on this computer. It does not sync to other players.
-- If the events can't be set up, `Queued` and `Completed` stop firing, but the rest keeps working. The feature group is turned off. `Actions`, `HasDebt`, `GetDebt` and `Queue` still work.
+- If the events can't be set up, `Queued` and `Completed` stop firing, and the [feature group](../../glossary.md#feature-group) is turned off. `Actions`, `HasDebt`, `GetDebt` and `Queue` still work.
 - `Completed` does not fire while a save is loading. A service queued in the old session that finishes during a load is dropped on purpose, not raised after it.

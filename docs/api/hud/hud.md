@@ -7,14 +7,16 @@ nav_order: 2
 
 # Hud
 
-This is the full list of what the API gives you. `Hud` shows things on screen and hides parts of the game's own screen, and every call gives back `true` when it worked and `false` when it did not.
+`Hud` shows things on screen and hides parts of the game's own screen. This page is the full list of its calls, with the rules behind each one.
 
-An `owner` is your mod's id. It is how the framework keeps your hides and bars apart from other mods' (see [Owner](../../glossary.md#owner) in the glossary). A call that cannot do its job, for example because the part of the game it needs is not loaded yet, gives back `false`. See [When you can call it](details.md#when-you-can-call-it) for the full rules.
+Every call gives back `true` when it worked and `false` when it did not. A call that cannot do its job gives back `false`, for example when the part of the game it needs is not loaded yet. [When you can call it](details.md#when-you-can-call-it) has the full rules.
+
+An `owner` is your [mod id](../../glossary.md#mod-id) (see [Owner](../../glossary.md#owner) in the glossary). The framework uses it to keep your hides and bars apart from other mods'.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Hud</code> <span>what you can show and hide on screen</span></p>
 
-This is the class you start from. It shows notifications, subtitles, hints, notes, the tooltip and a bar, and it hides the crosshair or the game's HUD for your owner.
+This is the class you start from. It shows notifications, subtitles, hints, notes, the tooltip and a [bar](bars.md). It also hides the crosshair or the game's HUD for your owner.
 
 <div class="api-pair" markdown="1">
 
@@ -45,7 +47,7 @@ public static class Hud
 |---|---|---|
 | `Notify(text)` | `bool` | Shows your text in the game's notification box, under the heading `Notice`. |
 | `Notify(title, body)` | `bool` | Shows your title and body in the same box. |
-| `ShowSubtitle(text, fadeSeconds)` | `bool` | Types a line at the bottom of the screen, then fades it. |
+| `ShowSubtitle(text, fadeSeconds)` | `bool` | Types a line at the bottom of the screen, then fades it out. |
 | `ShowHint(modId, title, lines)` | `bool` | Puts a hint in the card game's hint box. |
 | `HideHint(modId)` | `bool` | Removes your mod's hint. |
 | `ShowNote(noteId)` | `bool` | Opens the Notes page at a note the player already has. |
@@ -58,7 +60,7 @@ public static class Hud
 | `HideGameUi(owner)` | `bool` | Hides the whole HUD for this owner. |
 | `ShowGameUi(owner)` | `bool` | Takes back this owner's hide. |
 | `Bar(owner, title, fill)` | `bool` | Shows or updates this owner's bar. |
-| `Bar(owner, title, fill, color)` | `bool` | Shows or updates this owner's bar, in your own colour. |
+| `Bar(owner, title, fill, color)` | `bool` | Shows or updates this owner's bar, in a [colour](../../glossary.md#color) you pick. |
 | `ClearBar(owner)` | `bool` | Removes this owner's bar. |
 
 </div>
@@ -69,30 +71,37 @@ public static class Hud
 - `Notify(title, body)` uses your own heading, so say where the message comes from. Both `title` and `body` must be text, not empty. `Notify` plays the game's notification sound.
 - The notification box has no icon, so `Notify` has no icon option. <span class="tech">(The game's box has no icon slot, and neither overload has an icon parameter.)</span>
 - `ShowSubtitle` types your text at 20 characters a second, then fades it out over `fadeSeconds`. The total time on screen is the typing time plus `fadeSeconds`. Several subtitles stack on screen, oldest at the top. <span class="tech">(Before showing, the framework strips the Pixel Crushers Dialogue System RPG Maker codes with the game's own `UITools.StripRPGMakerCodes`. That removes `\,` (quarter pause), `\.` (full pause), `\^` (skip to end), `\>` (instant open) and `\<` (instant close). Other backslashes stay. The stack is sorted by start time.)</span>
-- `ShowHint` puts your lines in the card game's hint box. The player can hide that box with the Hints key, which is K by default and can be changed in the game's Controls settings. <span class="tech">(The box is the game's `HintOverlay`, the rules box of the card game. The game's `Tutorial` class, the pop-up key-binding prompts, is a different system that mods cannot show yet.)</span>
-- Each mod has one hint, and showing a new one replaces the old one. Each line is a plain paragraph, not a bullet. Write `{key:Action Name}` in a line to show the key the player has set for that action, as the game does.
+- `ShowHint` puts your lines in the card game's hint box. The player can hide that box with the Hints key. It is K by default and can be changed in the game's Controls settings. <span class="tech">(The box is the game's `HintOverlay`, the rules box of the card game. The game's `Tutorial` class, the pop-up key-binding prompts, is a different system that mods cannot show yet.)</span>
+- Each mod has one hint. Showing a new one replaces the old one. Each line is a plain paragraph, not a bullet. Write `{key:Action Name}` in a line to show the key the player has set for that action, as the game does.
 - Only one hint shows at a time. The box shows the most important hint, and the newest when two are equal. All mod hints are equally important, so the newest mod hint wins. A game hint, such as the card game rules, takes over the same way when it is shown later. <span class="tech">(The overlay shows the hint with the highest priority, and among equals the newest. Mod hints all use priority 0.)</span>
-- A hint stays until you hide it or the player loads a new scene. Loading a new scene hides every mod hint, so show it again from your `Events.SceneLoaded` handler if you still need it. `HideHint` gives back `false` if your mod never showed a hint. <span class="tech">(A Single scene load hides every mod hint.)</span>
+- A hint stays until you hide it or the player loads a new [scene](../../glossary.md#scene). Loading a new scene hides every mod hint. Show it again from your [`Events.SceneLoaded`](../../api-core/events.md) handler if you still need it. `HideHint` gives back `false` if your mod never showed a hint. <span class="tech">(A Single scene load hides every mod hint.)</span>
 - `ShowNote` opens the Notes page at a note the player already has. `noteId` must match exactly one note or book page the player has collected. If it matches none, or more than one, you get `false`. <span class="tech">(It matches `NoteInfo.Id`, which is the note's `id`, else its addressable path, else its title.)</span>
 - `ShowCrosshair()` and `HideCrosshair()` switch the crosshair on and off, with no owner. The game itself never calls these two methods. <span class="tech">(`HideCrosshair()` holds one shared entry, and `ShowCrosshair()` releases it and shows the crosshair only when no owner hides it. A Single scene load drops every hide and shows the crosshair.)</span>
 - `HideCrosshair(owner)` and `ShowCrosshair(owner)` count hides for each owner, so two mods do not undo each other. The crosshair comes back only when every owner has taken back all of its hides.
-- `ShowTooltip` shows the game's tooltip box with your heading and text, exactly as you give it, so rich text such as `<b>` works. The game's own item tooltips make their heading bold, but yours is not wrapped in bold. An empty `details` hides the body of the box.
-- `HideTooltip` hides the box, and it clears what the game thinks the cursor is hovering over. A game tooltip under the cursor stays hidden until the cursor moves onto something again.
+- `ShowTooltip` shows the game's tooltip box with your heading and text, exactly as you give them. Rich text such as `<b>` works. The game's own item tooltips make their heading bold, but yours is not wrapped in bold. An empty `details` hides the body of the box.
+- `HideTooltip` hides the box. It also clears what the game thinks the cursor is hovering over. A game tooltip under the cursor stays hidden until the cursor moves onto something again.
 - The tooltip is the game's one shared box. Your text stays until you call `HideTooltip` or the game hides the box. The box follows the mouse only while the player uses the mouse. With a controller it stays where it was last placed. This tooltip suits a mod's own screen where the player has a free cursor.
 - `HideGameUi(owner)` hides the game's whole HUD, and `ShowGameUi(owner)` brings it back. Each owner counts its own hides, so two `HideGameUi` calls from one owner need two `ShowGameUi` calls. The HUD comes back when every owner's count is back at zero. `owner` must be a valid mod id. <span class="tech">(They call `GameUIController.HideGameUI` and `ShowGameUI`, which set the HUD canvas alpha.)</span>
 - A `HideGameUi` that gives back `false` counts nothing, so it needs no matching `ShowGameUi`.
-- A screenshot with F12 taken during a hide does not leave the HUD stuck. The game's no-UI screenshot hides the HUD itself and then shows it again only if it was visible. The framework cleans up after that when the last owner shows the HUD. <span class="tech">(`TakeScreenshot.ScreenshotNoUI` leaves an entry in the game's list. The framework records that object, and when the last owner shows the HUD it removes those entries.)</span>
+- A screenshot with F12 taken during a hide does not leave the HUD stuck. The game's no-UI screenshot hides the HUD itself, then shows it again only if it was visible. The framework cleans up after that when the last owner shows the HUD. <span class="tech">(`TakeScreenshot.ScreenshotNoUI` leaves an entry in the game's list. The framework records that object, and when the last owner shows the HUD it removes those entries.)</span>
 
 ## Limits
 
-- A subtitle with no visible text shows nothing and gives back `false`. That is a text that is empty, or only spaces once the codes are removed.
-- Two subtitles that start at the very same moment can clash, and the framework does not handle this. <span class="tech">(The game keys each line by `DateTime.Now.Ticks`, so two subtitles started in the same clock tick collide.)</span>
+- A subtitle with no visible text shows nothing and gives back `false`. That means a text that is empty, or only spaces once the codes are removed.
+- Two subtitles that start at the very same moment can clash. The framework does not handle this. <span class="tech">(The game keys each line by `DateTime.Now.Ticks`, so two subtitles started in the same clock tick collide.)</span>
 - Pressing the Hints key while a hint is showing hides all hints, and the game remembers that between sessions. A hint you show later stays hidden until the player presses the key again. The game has no hints option in its settings menu, so if a hint does not appear, tell the player to press the Hints key.
-- `ShowHint` gives back `false` when the hint box is not loaded yet. Call it after the game scene has loaded, for example inside `Events.WhenReady`.
-- `ShowNote` cannot show text of your own. The only way to show other text is to give the player a note, which saves it with the game, and this API does not give notes.
+- `ShowHint` gives back `false` when the hint box is not loaded yet. Call it after the game scene has loaded, for example inside [`Events.WhenReady`](../core-helpers/events-whenready.md).
+- `ShowNote` cannot show text of your own. The only way to show other text is to give the player a note, which saves it with the game. This API does not give notes.
 - `HideCrosshair(owner)` gives back `false` and counts nothing when the crosshair is not in the scene. `ShowCrosshair(owner)` gives back `false` for an owner with no hide. `owner` must be a valid mod id (1 to 64 letters, digits, `.`, `_` or `-`).
-- `title` must not be empty, and a `null` `details` is an error. It gives back `false` when the game's tooltip is not in the scene. <span class="tech">(A null `details` throws `ArgumentException`. The box is the game's `ToolTip`.)</span>
+- For `ShowTooltip`, `title` must not be empty, and a `null` `details` is an error. It gives back `false` when the game's tooltip is not in the scene. <span class="tech">(A null `details` throws `ArgumentException`. The box is the game's `ToolTip`.)</span>
 - `HideTooltip` gives back `false` when the tooltip is not in the scene.
-- The tooltip is one shared box, so the game can replace your text. When the player hovers over an item or other game tooltip, your text is replaced, and when that hover ends, the box hides.
+- The tooltip is one shared box, so the game can replace your text. When the player hovers over an item or other game tooltip, your text is replaced. When that hover ends, the box hides.
 - `ShowGameUi` gives back `false` for an owner with no hide. Both `HideGameUi` and `ShowGameUi` give back `false` when the game's HUD is not in the scene.
-- Loading a new scene ends every hide, so hide again if you still need it. The game replaces its HUD controller then, so every owner is dropped and the HUD shows. Call `HideGameUi` again from your own `Events.SceneLoaded` handler. <span class="tech">(A Single scene load ends every hide.)</span>
+- Loading a new scene ends every hide, so hide again if you still need it. The game replaces its HUD controller then, so every owner is dropped and the HUD shows. Call `HideGameUi` again from your own [`Events.SceneLoaded`](../../api-core/events.md) handler. <span class="tech">(A Single scene load ends every hide.)</span>
+
+**Common problems**
+
+- A hint does not appear: the player has probably pressed the Hints key, which hides all hints and is remembered between sessions. Tell the player to press the Hints key (K by default). A newer mod hint or a game hint shown later also takes over the box. If `ShowHint` gave back `false`, or a new scene has loaded, see the next two bullets. The FAQ entry [My hint does not show](../../faq.md#my-hint-does-not-show) covers the key.
+- `ShowHint` gives back `false`: the hint box is not loaded yet. Call it after the game scene has loaded, for example inside `Events.WhenReady`.
+- Your hint, or your `HideGameUi` hide, is gone after a new scene loads: a new scene load hides every mod hint and ends every hide. Show the hint or call `HideGameUi` again from your `Events.SceneLoaded` handler.
+- The HUD stays hidden after `ShowGameUi`: an owner still has a hide counted. Each `HideGameUi` that gave back `true` needs its own `ShowGameUi`, and the HUD comes back only when every owner's count is back at zero.

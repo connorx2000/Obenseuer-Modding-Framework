@@ -7,11 +7,13 @@ nav_order: 5
 
 # UI state
 
+`UiState` reads the game's menu, pause and input states. Use it when your mod must know whether the player is really playing right now.
+
 Status: experimental.
 
 ## What it is
 
-While the player plays, the game is often busy with something other than the world: a menu is open, the game is paused, a cutscene has taken the controls, or the inventory is locked. This API lets your mod ask about those states, so it does not react to a key press while the player is in a menu. It also tells you when the pause screen opens and closes.
+While the player plays, the game is often busy with something other than the world. A menu is open, the game is paused, a cutscene has taken the controls, or the inventory is locked. This API lets your mod ask about those states, so it does not react to a key press while the player is in a menu. It also tells you when the pause screen opens and closes.
 
 ## When to use it
 
@@ -21,7 +23,7 @@ While the player plays, the game is often busy with something other than the wor
 
 ## Quick example
 
-This mod writes a log line when the pause screen opens and closes. Its `Update` method runs every frame, so it also logs when a menu opens or closes.
+This mod writes a [log](../guides/getting-started/logging.md) line when the pause screen opens and closes. It also logs when a menu opens or closes, which it checks in `Update`.
 
 ```csharp
 using ObenseuerCore;
@@ -69,7 +71,7 @@ bool inventoryLocked = UiState.InventoryDisabled;
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. Skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>UiState</code> <span>menu, pause and input flags</span></p>
@@ -100,13 +102,25 @@ public static class UiState
 | `CursorVisible` | `bool` | `true` when the game shows the mouse cursor. |
 | `InventoryDisabled` | `bool` | `true` when something has locked the inventory. |
 | `PauseEventsAvailable` | `bool` | `false` when the pause events could not be set up. |
+
 - All flag members are read-only properties. Each returns `false` when `GameController.instance` or `GameUIController.instance` is missing (main menu, loading, no save).
-- `IsMenuOpen`: `GameUIController.IsMenuVisible`. It is also `true` while the wait or sleep timer is on screen. It does not cover the pause menu, shops or dialogue. Those are separate flags.
-- `IsPaused`: `GameController.GameIsPaused`. The pause menu, the saving screen and the load menu set it. Do not confuse it with `GameTime.IsPaused`, which reads `Time.timeScale == 0`: the pause menu and the saving screen set the time scale to 0 too, so `GameTime.IsPaused` is also `true` while either is open.
-- `IsInputBlocked`: `GameController.keysDisabled`. It is `true` while a `ControlsDisabled` call with the default `disableKeys` is active (cutscenes, dialogue, sleep and similar). An open game menu does not set it, because `ShowGameMenu` passes `disableKeys: false`. The framework's own input lock also sets it.
-- `CursorVisible`: `GameController.cursorVisible`. This is the game's cursor flag. It does not include the controller-input and computer-screen cases that `UpdateCursorVisibility` adds.
-- `InventoryDisabled`: `GameController.inventoryDisabled`. It stays `true` while any holder from `DisableInventory` has not called `EnableInventory`.
-- `IsTyping`: `true` while a text field has focus, so a mod's hotkey can stand down. It reads `EventSystem.current.currentSelectedGameObject` and accepts a `TMP_InputField` whose `isFocused` is true on that object or on one of its parents, so a selection that is an inner child of the field still counts; the framework's own text fields instead compare the selection to the field object itself. It also covers the developer console through `DeveloperConsole.Instance.consoleOpened` and `InputField.isFocused`. Any `TMP_InputField` that Unity focuses sets that selection, whether the player clicked it or the game called `ActivateInputField` or `Select`, which is how the in-game computer screens (including the framework's own app text fields), the notes editor, the editable signs, the new-game and character name fields, the virtual keyboard, the developer console and the framework's own Mods-menu text fields take the keyboard. It does not cover the WebUi module's HTML fields, which take the keyboard themselves, a field that holds focus while the event system selection is neither the field nor one of its parents, or a `UnityEngine.UI.InputField`, which the game does not ship. It is a read: it never changes focus, and it is safe on the main menu and with no save.
+- `IsMenuOpen` reads `GameUIController.IsMenuVisible`. It is also `true` while the wait or sleep timer is on screen. It does not cover the pause menu, shops or dialogue. Those are separate flags.
+- `IsPaused` reads `GameController.GameIsPaused`. The pause menu, the saving screen and the load menu set it. Do not confuse it with [`GameTime.IsPaused`](../api-core/gametime.md), which reads `Time.timeScale == 0`. The pause menu and the saving screen set the time scale to 0 too, so `GameTime.IsPaused` is also `true` while either is open.
+- `IsInputBlocked` reads `GameController.keysDisabled`. It is `true` while a `ControlsDisabled` call with the default `disableKeys` is active (cutscenes, dialogue, sleep and similar). An open game menu does not set it, because `ShowGameMenu` passes `disableKeys: false`. The framework's own input lock also sets it.
+- `CursorVisible` reads `GameController.cursorVisible`, the game's cursor flag. It does not include the controller-input and computer-screen cases that `UpdateCursorVisibility` adds.
+- `InventoryDisabled` reads `GameController.inventoryDisabled`. It stays `true` while any holder from `DisableInventory` has not called `EnableInventory`.
+- `IsTyping` is `true` while a text field has focus, so a mod's hotkey can stand down. It is a read: it never changes focus, and it is safe on the main menu and with no save.
+  - How it reads: it reads `EventSystem.current.currentSelectedGameObject`. It accepts a `TMP_InputField` whose `isFocused` is true on that object or on one of its parents. So a selection that is an inner child of the field still counts. The framework's own text fields instead compare the selection to the field object itself. It also covers the developer console through `DeveloperConsole.Instance.consoleOpened` and `InputField.isFocused`.
+  - What sets it: any `TMP_InputField` that Unity focuses sets that selection, whether the player clicked it or the game called `ActivateInputField` or `Select`. This is how these take the keyboard:
+    - the in-game computer screens (including the framework's own app text fields)
+    - the notes editor and the editable signs
+    - the new-game and character name fields
+    - the virtual keyboard and the developer console
+    - the framework's own Mods-menu text fields
+  - What it does not cover:
+    - the [WebUi](webui.md) module's HTML fields, which take the keyboard themselves
+    - a field that holds focus while the event system selection is neither the field nor one of its parents
+    - a `UnityEngine.UI.InputField`, which the game does not ship
 - `PauseEventsAvailable` is `installed && !CorePatcher.IsDisabled(owner)`. It is `false` when the pause patches could not be installed, and then the two events never fire.
 
 | Event | Gives you | When it fires |
@@ -119,37 +133,43 @@ public static class UiState
 
 ### Things to know
 
-- Every flag is read only, and each one is `false` when there is no game to ask. On the main menu, while a level is loading, or with no save loaded, all five flags are `false`. Reading them never changes anything and never throws an error. <span class="tech">(Each returns `false` when `GameController.instance` or `GameUIController.instance` is missing.)</span>
+- Every flag is read-only, and each one is `false` when there is no game to ask. On the main menu, while a level is loading, or with no save loaded, all five flags are `false`. Reading them never changes anything and never throws an error. <span class="tech">(Each returns `false` when `GameController.instance` or `GameUIController.instance` is missing.)</span>
 - `IsMenuOpen` is `true` while a game menu is open, and also while the wait or sleep timer is on screen. It does not cover the pause menu, shops or dialogue. Those have their own states. <span class="tech">(It reads `GameUIController.IsMenuVisible`, which also checks `WaitingUI.waitingUIisVisible`.)</span>
 - `IsPaused` is `true` while the pause menu, the saving screen or the load menu is open. Do not confuse it with `GameTime.IsPaused`. That one is `true` whenever the game clock is stopped, which also happens while the pause menu or the saving screen is open. <span class="tech">(`IsPaused` reads `GameController.GameIsPaused`. `GameTime.IsPaused` reads `Time.timeScale == 0`.)</span>
-- `IsInputBlocked` is `true` while the game has switched off the player's keys. That is the case in cutscenes, dialogue, sleep and similar. An open game menu does not set it. A mod that blocks the player's input with the framework sets it too. <span class="tech">(It reads `GameController.keysDisabled`. A `ControlsDisabled` call with the default `disableKeys` sets it, and `ShowGameMenu` passes `disableKeys: false`.)</span>
+- `IsInputBlocked` is `true` while the game has switched off the player's keys: in cutscenes, dialogue, sleep and similar. An open game menu does not set it. A mod that blocks the player's input with the framework sets it too. <span class="tech">(It reads `GameController.keysDisabled`. A `ControlsDisabled` call with the default `disableKeys` sets it, and `ShowGameMenu` passes `disableKeys: false`.)</span>
 - `CursorVisible` is the game's own cursor flag. It does not include the cases where the game also shows the cursor for a controller or a computer screen. <span class="tech">(It reads `GameController.cursorVisible`, without what `UpdateCursorVisibility` adds.)</span>
 - `InventoryDisabled` stays `true` until everyone who locked the inventory has unlocked it. Several things can lock it at the same time. <span class="tech">(It reads `GameController.inventoryDisabled`, which stays `true` while any holder of `DisableInventory` has not called `EnableInventory`.)</span>
 - `PauseOpened(isDeathScreen)` fires right after the pause screen opens. The value is `true` when the pause screen is the death screen shown after the player dies. <span class="tech">(It is raised after `PauseMenu.PauseMenuOpen` returns. The argument is `Death.instance.dead`. `PauseMenu.PausemenuDeath` calls the same open path after `dead` is set.)</span>
-- `PauseOpened` can fire twice in a row. If the pause screen is already open when the player dies, the game opens the death screen without closing the pause screen first, so you get a second `PauseOpened(true)`. If your handler must act only once, keep your own flag. <span class="tech">(The framework does not remove the repeat. `PausemenuDeath` runs the open path again with no close between.)</span>
-- `PauseOpened` does not fire when the game fails to open the pause screen. On a scene with no game controller, such as the main menu, the game's own opening code fails before the framework is told, and the framework does not catch that failure. <span class="tech">(`PauseMenuOpen` throws at `GameController.instance.ChangeCursorStatus` when there is no `GameController`, before the postfix runs.)</span>
+- `PauseOpened` can fire twice in a row. If the pause screen is already open when the player dies, the game opens the death screen without closing the pause screen first. You then get a second `PauseOpened(true)`. If your handler must act only once, keep your own flag. <span class="tech">(The framework does not remove the repeat. `PausemenuDeath` runs the open path again with no close between.)</span>
+- `PauseOpened` does not fire when the game fails to open the pause screen. On a scene with no game controller, such as the main menu, the game's own opening code fails before the framework is told. The framework does not catch that failure. <span class="tech">(`PauseMenuOpen` throws at `GameController.instance.ChangeCursorStatus` when there is no `GameController`, before the postfix runs.)</span>
 - `PauseClosed` fires when the player goes back to the game from the pause screen. It fires only if the pause screen was really open. <span class="tech">(It is raised after `PauseMenu.PauseMenuClose` returns, and only when `PauseIsActive()` was true before the call (read in the prefix). In the game code only `PauseMenu.Resume` calls `PauseMenuClose`, and `CardGameUI` calls `Resume` only while the menu is open.)</span>
-- `PauseClosed` does not fire when the player quits to the main menu or to the desktop. Quitting to the menu loads a scene, and `Events.SceneLoaded` fires for that instead. Quitting to the desktop ends the game. <span class="tech">(`PauseMenu.QuitMainMenu` and `PauseMenu.QuitDesktop` do not call `PauseMenuClose`.)</span>
+- `PauseClosed` does not fire when the player quits to the main menu or to the desktop. Quitting to the menu loads a scene, and [`Events.SceneLoaded`](../api-core/events.md) fires for that instead. Quitting to the desktop ends the game. <span class="tech">(`PauseMenu.QuitMainMenu` and `PauseMenu.QuitDesktop` do not call `PauseMenuClose`.)</span>
 - `PauseEventsAvailable` tells you whether the two events work. It is `false` when the framework could not set them up, and then neither event ever fires. The five flags still work.
 - There are no events for the five flags, so check them yourself. The game changes them in many places, and the framework could not watch all of them. Read them when you need them, for example once per frame in `Update` or when a key is pressed. Each read is cheap. <span class="tech">(`ControlsDisabled` and `ControlsEnabled` (`GameController`) write `keysDisabled` and `cursorVisible`. `DisableInventory` and `EnableInventory` write `inventoryDisabled`. `ShowGameMenu` and `HideGameMenu` (`GameUIController`) change the menu state. One postfix would miss the others, and each read is a field read.)</span>
 
+**Common problems**
+
+- `PauseOpened` and `PauseClosed` never fire: the framework could not set up the pause events, and `PauseEventsAvailable` is `false`. Error lines and a warning are in the group's log file in `BepInEx\logs`. The five flags still work.
+- `PauseOpened` fires twice in a row: the player died while the pause screen was already open. If your handler must act only once, keep your own flag.
+- `PauseClosed` does not fire after the player quits: quitting to the main menu loads a scene, so `Events.SceneLoaded` fires instead. Quitting to the desktop ends the game.
+
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Files: `src/Api/UiState.cs`, `src/Api/UiStatePatches.cs`.
 
 Everything not listed in this reference is internal and may change without notice. Items marked experimental may change too.
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when the pause screen opens and closes. Those changes belong to one feature group, `obenseuer.moddingframework.uistate`, the name you will see in the log. The five flags only read the game and need no changes to it.
+The framework changes some of the game's methods when it starts, so it can tell your mod when the pause screen opens and closes. Those changes belong to one [feature group](../glossary.md#feature-group), `obenseuer.moddingframework.uistate`. That is the name you will see in the log. The five flags only read the game and need no changes to it.
 
 ### When you can call it
 
 - Call everything from your mod's normal code (`OnLoad`, event handlers, `Update`), not from a background thread you started. The game and Unity only work safely on one thread, the main thread (see the [glossary](../glossary.md#main-thread)).
 - Your event handlers run inside the game's own call, one at a time. If one of your handlers throws an error, the framework logs it once and still runs the other handlers.
-- The framework does not hold back the pause events while a save is loading or being written. A handler that should ignore those moments can check `SaveData.Busy`.
+- The framework does not hold back the pause events while a save is loading or being written. A handler that should ignore those moments can check [`SaveData.Busy`](../api-core/savedata.md).
 
 ### If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the [feature group](../glossary.md#feature-group) that depends on it, turns the group off, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework removes all the changes of the feature group that depends on it. It then turns the group off. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the pause events can't be set up, only `PauseOpened` and `PauseClosed` stop. The feature group `obenseuer.moddingframework.uistate` turns off, error lines and a warning go to the log, and `PauseEventsAvailable` is `false`. The five flags keep working. <span class="tech">(The game methods involved are `PauseMenu.PauseMenuOpen` and `PauseMenu.PauseMenuClose`. The framework's own code in them never throws into the game: each prefix and postfix catches an error and logs it once.)</span>

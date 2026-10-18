@@ -8,9 +8,16 @@ nav_order: 7
 
 # Player movement
 
+`PlayerMovement` lets your mod read and change how the player moves. Use it to change the player's speed or jump, make them crouch, or hold them still for a scene.
+
 ## What it is
 
-This API is about how the player moves. You can read it: is the player on the ground, running or crouching, how fast are they going and where are they. You can change it: make the player walk, run or jump faster or slower, make them crouch or stand up, hold them in place for a scene, or lock where they look. Every change is tied to your mod's id, so two mods that change the same thing do not undo each other.
+This API is about how the player moves. It works in two directions:
+
+- Read it: is the player on the ground, running or crouching, how fast are they going and where are they.
+- Change it: make the player walk, run or jump faster or slower, or make them crouch or stand up. Hold them in place for a scene, or lock where they look.
+
+Every change is tied to your [mod id](../glossary.md#mod-id) (the id for your config, log, save data and keybinds). So two mods that change the same thing do not undo each other.
 
 ## When to use it
 
@@ -22,7 +29,7 @@ This API is about how the player moves. You can read it: is the player on the gr
 
 ## Quick example
 
-This mod waits for a save to load. Then it makes the player 1.5 times faster and logs what the game now says about their movement.
+This mod waits for a save to load. Then it makes the player 1.5 times faster and writes to the [log](../guides/getting-started/logging.md) what the game now says about their movement.
 
 ```csharp
 using ObenseuerCore;
@@ -43,4 +50,4 @@ public sealed class Speedy : FrameworkMod
 }
 ```
 
-`Mod.Id` is your mod's own id. It is how the framework knows the change is yours, so you can take it back later with `PlayerMovement.ClearMultipliers(Mod.Id)`. `State()` returns `null` when no player is loaded, which is why the example checks for it. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+`Mod.Id` is your mod's own id. The framework uses it to know the change is yours. You can then take it back later with [`PlayerMovement.ClearMultipliers(Mod.Id)`](player-movement/speed-and-jump-multipliers.md). [`State()`](player-movement/reading-how-the-player-moves.md) returns `null` when no player is loaded, which is why the example checks for it. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

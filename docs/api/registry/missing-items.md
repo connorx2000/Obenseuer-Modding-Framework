@@ -7,11 +7,13 @@ nav_order: 8
 
 # Missing items
 
-A save can hold a stack of an item from a mod that is not installed. The game would turn that stack into a coin when it loads. The framework answers with a placeholder instead, so the stack keeps its number and shows the real item again when the mod returns. The item's number is at or above 1000000 (the lowest number the registry hands out) and is not in the game's item list.
+This page explains what a save shows for an item whose mod is not installed, and how to clear those stacks. You need it when players may remove your mod from a save.
+
+A save can hold a stack of an item from a mod that is not installed. When the save loads, the game would turn that stack into a coin. The framework uses a placeholder instead. The stack keeps its number, and shows the real item again when the mod returns. Such an item's number is at or above 1000000 (the lowest number the registry hands out) and is not in the game's item list.
 
 ## Things to know
 
-- The placeholder is called `Missing item`, or `Missing item (mod: title)` when the save's list names the item. Its description says the mod is not installed or, when the mod is installed, that it could not add the item (see the framework log). When the mod is installed and loads, the stack shows the real item again.
+- The placeholder is called `Missing item`, or `Missing item (mod: title)` when the save's list names the item. Its description says the mod is not installed. When the mod is installed, the description says instead that the mod could not add the item (see the framework [log](../../guides/getting-started/logging.md)). When the mod is installed and loads, the stack shows the real item again.
 - The placeholder looks like a paper bag and has no use. It has no categories, actions or attachments, and its value is 0. A stack can hold a huge number of them, far more than any real stack. <span class="tech">(The icon is `Sprites/Items/Paper Bag_spr` and the prefab is `Prefabs/Items/ERROR`, both paths in `Items.json`. The stack size is 100000000, which stays below `int.MaxValue` after the difficulty multiplier (at most 4x).)</span>
 - A trader whose saved stock holds a removed mod's item still sells its `Missing item` stack, for 0 money. The player can't sell the placeholder back, but a trader can still sell one. <span class="tech">(`CanBuy` checks money only, so buying is not refused.)</span>
 - Recipes have no placeholder. A saved copy of a missing recipe is not listed and can't be crafted until the mod returns. <span class="tech">(Crafting reads only recipes from the database.)</span>
@@ -24,7 +26,7 @@ A save can hold a stack of an item from a mod that is not installed. The game wo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ItemRegistry</code> <span>the clean-up calls for missing stacks</span></p>
 
-Use `MissingItems()` to list the placeholder stacks, and the two remove calls to empty them.
+`MissingItems()` lists the placeholder stacks. The two remove calls empty them.
 
 <div class="api-pair" markdown="1">
 
@@ -39,7 +41,7 @@ public static class ItemRegistry
 
 | Method | Returns | What it does |
 |---|---|---|
-| `MissingItems()` | `List<MissingItemInfo>` | Lists the missing stacks you can reach. |
+| `MissingItems()` | `List<MissingItemInfo>` | Lists the missing stacks it can reach. |
 | `RemoveMissingItems(modId)` | `bool` | Empties the missing stacks of one mod. |
 | `RemoveAllMissingItems()` | `bool` | Empties the missing stacks of every mod. |
 
@@ -67,7 +69,7 @@ public sealed class MissingItemInfo
 | Property | Type | What it means |
 |---|---|---|
 | `Id` | `int` | The item's number. |
-| `Mod` | `string` | The mod it came from, from the save's list. Empty if unknown. |
+| `Mod` | `string` | The mod the item came from, from the save's list. Empty if unknown. |
 | `Title` | `string` | The item's name, from the save's list. Empty if unknown. |
 | `Where` | `string` | Where the stack is: "player inventory", or "container" and its name. |
 | `Amount` | `int` | How many are in the stack. |
@@ -76,14 +78,19 @@ public sealed class MissingItemInfo
 </div>
 
 - `MissingItems()` lists the placeholder stacks in the player's inventory and in the containers of the loaded scenes. The inventory includes the backpack and the character slots. It gives an empty list while a save is loading or being written, and before the game's item list is built.
-- `RemoveMissingItems(modId)` empties the placeholder stacks of that mod in the places it can reach. It also drops that mod's carried entries from the save's list: all of its recipe entries, and each of its item entries whose number no scanned stack holds after the clear. An item entry whose number a scanned stack still holds is kept. It returns `true`.
+- `RemoveMissingItems(modId)` empties the placeholder stacks of that mod in the places it can reach. It also drops that mod's carried entries from the save's list (see [Save manifest](save-manifest.md)). Those are all of its recipe entries, and each of its item entries whose number no scanned stack holds after the clear. An item entry whose number a scanned stack still holds is kept. It returns `true`.
 - A null or empty `modId` removes nothing: it returns `false` and writes a warning to the log once. A `modId` that is not empty but is not a valid mod id throws an `ArgumentException`.
 - `RemoveAllMissingItems()` empties the placeholder stacks of every mod, and drops every mod's carried entries by the same rule. It returns `true`, and `false` in the same cases as `RemoveMissingItems`.
-- When `RemoveAllMissingItems()` removes a stack it writes a warning with the count for each mod, because it also clears mods the player only switched off for this session. Call it only from a clean-up the player asked for. A mod that clears its own stacks calls `RemoveMissingItems(modId)`.
+- When `RemoveAllMissingItems()` removes a stack, it writes a warning with the count for each mod. It does so because it also clears mods the player only switched off for this session. Call it only from a clean-up the player asked for. A mod that clears its own stacks calls `RemoveMissingItems(modId)`.
 - The warning at load names this call as the way to clear the stacks. There is no Mods menu entry for it, because the Mods menu has a Reset button on each row and no confirmation step. The clean-up is only available from code.
 
 ## Limits
 
-- `MissingItems()`, `RemoveMissingItems` and `RemoveAllMissingItems` return an empty list or `false` while a save is loading or being written, or before the game's item list is built.
+- `MissingItems()`, `RemoveMissingItems` and `RemoveAllMissingItems` return an empty list or `false` while a save is loading or being written. They do the same before the game's item list is built.
 - An emptied stack is gone for good. Installing the mod again does not bring it back.
-- Some places are not checked. Stacks in scenes that are not loaded, on the floor, or in the list of items a container will spawn next are not cleared. The log says so. Run the call again after those scenes load. Their numbers are kept, but the mod's name is lost if the clean-up dropped its entry, because only the stacks it checked keep their entries. <span class="tech">(The list of items a container will spawn next is `Storage.nextItemsToSpawn`.)</span>
+- Some places are not checked. Stacks in scenes that are not loaded, on the floor, or in the list of items a container will spawn next are not cleared. The log says so. Run the call again after those scenes load. Their numbers are kept. But the mod's name is lost if the clean-up dropped its entry, because only the stacks it checked keep their entries. <span class="tech">(The list of items a container will spawn next is `Storage.nextItemsToSpawn`.)</span>
+
+**Common problems**
+
+- Placeholder stacks are still there after a clean-up, and the log says some places were not checked: the stacks are in scenes that are not loaded, on the floor, or in the list of items a container will spawn next. Run the call again after those scenes load. A stack on the floor or in the next-spawn list is never scanned, so no call clears it (see [Limits](limits.md)).
+- `RemoveMissingItems` returns `false`: `modId` is null or empty, a save is loading or being written, or the game's item list is not built yet. Pass your mod id, and call it after a save has loaded, as in [Common tasks](common-tasks.md).

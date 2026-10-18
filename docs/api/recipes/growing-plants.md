@@ -7,10 +7,12 @@ nav_order: 4
 
 # Growing plants
 
+`Plants` lists the plants that grow in the [scene](../../glossary.md#scene) you are in and tells your mod when they are harvested or picked. This page lists every call, property and event, with the rules behind them.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-`Plants` lists the plants that grow in the scene you are in and tells your mod when they are harvested or picked. Each plant is a `PlantInfo`.
+Each plant is a `PlantInfo`, a snapshot of the plant.
 
 
 
@@ -19,7 +21,7 @@ This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Plants</code> <span>the plant list and pick events</span></p>
 
-Use it to list the plants in the scene, read the fruit slots of one plant, and hear when a plant is harvested or a fruit is picked.
+Lists the plants in the scene and reads the fruit slots of one plant. Also tells you when a plant is harvested or a fruit is picked.
 
 <div class="api-pair" markdown="1">
 
@@ -45,8 +47,8 @@ public static class Plants
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `Harvested` | `PlantHarvestArgs` | A plant's harvest was handed out. |
-| `Picked` | `PlantPickArgs` | One fruit was picked. |
+| `Harvested` | `PlantHarvestArgs` | When a plant's harvest is handed out. |
+| `Picked` | `PlantPickArgs` | When one fruit is picked. |
 
 </div>
 </div>
@@ -94,7 +96,7 @@ public sealed class PlantPickArgs
 |---|---|---|
 | `PlantId` | `string` | The plant the fruit came from. |
 | `ItemId` | `int` | The fruit's item number. |
-| `Amount` | `int` | How many. It is the amount the game rolled for the fruit. |
+| `Amount` | `int` | How many: the amount the game rolled for the fruit. |
 
 </div>
 </div>
@@ -127,7 +129,7 @@ public sealed class PlantInfo
 | `Position` | `Vector3` | Where the plant is, in world coordinates. |
 | `Age` | `int` | How old it is, as the game counts. |
 | `FullGrownAge` | `int` | The age at which it is fully grown. |
-| `Progress` | `float` | How far it has come. It is 0 to 1 while growing, and then it counts up through spoiling. |
+| `Progress` | `float` | How far it has come. 0 to 1 while growing, then it counts up through spoiling. |
 | `FullyGrown` | `bool` | `true` when `Age` has reached `FullGrownAge`. |
 | `Paused` | `bool` | `true` when its growth is paused. |
 | `Rotting` | `bool` | `true` when it is rotting. |
@@ -158,27 +160,33 @@ public sealed class PlantFruitInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `ItemId` | `int` | The fruit's item number. It is 0 when the fruit has no item. |
+| `ItemId` | `int` | The fruit's item number. 0 when the fruit has no item. |
 | `Amount` | `int` | How many the game rolled for this fruit. |
 | `Visible` | `bool` | `true` when the fruit's object is switched on. |
 | `Ready` | `bool` | `true` when it is ready to pick. |
 | `Spoiled` | `bool` | `true` when it has spoiled. |
-| `GrowProgress` | `float` | 0 to 1. How far it has grown. It is 0 when its full age is 0. |
-| `SpoilProgress` | `float` | 0 to 1. How far it has spoiled. It is 0 when the value is not a number. |
+| `GrowProgress` | `float` | How far it has grown, from 0 to 1. 0 when its full age is 0. |
+| `SpoilProgress` | `float` | How far it has spoiled, from 0 to 1. 0 when the value is not a number. |
 
 </div>
 </div>
 
 ## Things to know
 
-- `All()` lists every growing plant in the scene you are in. That is the plants in growing spots and any others. <span class="tech">(It returns every `grow` object in the active scene. `Id` is `grow.GUID`. `Progress` is `grow.GetCurrentStageProcess()`. `ReadyFruit` counts active fruits with `readyToPick`; hidden animal-meta fruits are not counted.)</span>
+- `All()` lists every growing plant in the scene you are in: the plants in growing spots and any others. <span class="tech">(It returns every `grow` object in the active scene. `Id` is `grow.GUID`. `Progress` is `grow.GetCurrentStageProcess()`. `ReadyFruit` counts active fruits with `readyToPick`; hidden animal-meta fruits are not counted.)</span>
 - `Harvested` fires when the game hands out a plant's harvest. That covers the player harvesting a ripe plant and a growing station harvesting its spots. It also fires when a dead plant is pulled up, with the plant's leftover items. <span class="tech">(It fires on `grow.HarvestExternal`.)</span>
-- `Picked` fires when one fruit is picked. That is a player picking a ripe fruit. It also fires for each ripe fruit that a harvest of a multi-fruit plant picks, so that harvest raises one `Picked` for each ripe fruit and no `Harvested`. <span class="tech">(It fires when `GrowItem.GetItem` hands out a fruit: it returned 0 and the fruit is not spoiled. The harvest case is the loop inside the plant's `HarvestExternal`.)</span>
+- `Picked` fires when one fruit is picked, that is, when a player picks a ripe fruit. It also fires for each ripe fruit that a harvest of a multi-fruit plant picks. So that harvest raises one `Picked` for each ripe fruit and no `Harvested`. <span class="tech">(It fires when `GrowItem.GetItem` hands out a fruit: it returned 0 and the fruit is not spoiled. The harvest case is the loop inside the plant's `HarvestExternal`.)</span>
 - A spoiled fruit raises nothing, and seeds are not reported. `Amount` is the number the game rolled for the fruit. It is not checked against free space in the inventory. <span class="tech">(It is the rolled `GrowItem.itemAmount`.)</span>
-- `Fruits(plantId)` lists the fruit slots of one plant, including hidden ones. Check `Visible`. It returns an empty list for a `null`, empty or unknown id. It does not read the growth through the game's stage call, because that call can throw an error. <span class="tech">(The stage call is `GetCurrentStageProcess`. `GrowProgress` is age divided by `fullGrownAgeFinal`, and `SpoilProgress` is `currentSpoilTime` divided by `randomSpoilTime`.)</span>
-- `IsAvailable` tells you whether `Harvested` and `Picked` work. It is `false` when the framework could not set up the events, or when its feature group was turned off. `All()` and `Fruits()` keep working.
+- `Fruits(plantId)` lists the fruit slots of one plant, including hidden ones, so check `Visible`. It returns an empty list for a `null`, empty or unknown id. It does not read the growth through the game's stage call, because that call can throw an error. <span class="tech">(The stage call is `GetCurrentStageProcess`. `GrowProgress` is age divided by `fullGrownAgeFinal`, and `SpoilProgress` is `currentSpoilTime` divided by `randomSpoilTime`.)</span>
+- `IsAvailable` tells you whether `Harvested` and `Picked` work. It is `false` when the framework could not set up the events, or its [feature group](../../glossary.md#feature-group) was turned off. `All()` and `Fruits()` keep working.
 
 ## Limits
 
 - `Harvested` does not fire for a multi-fruit plant picked fruit by fruit. Picking ripe fruit off such a plant hands the items out another way, so the harvest comes back empty and the event is not raised. Use `Picked` for those.
 - `Harvested` does not cover plants that are single collectable items, which a growing station picks up another way. It also does not cover pulling up a plant that has not grown up, which destroys the plant without giving any items. <span class="tech">(The first is `CollectibleItem` plants. The second is the immature-plant harvest.)</span>
+
+**Common problems**
+
+- `Harvested` does not fire: the plant is a multi-fruit plant (use `Picked` for those), a single collectable item, or a plant pulled up before it had grown up. Both events also stop when `IsAvailable` is `false`; the group's log file in `BepInEx\logs` has the error lines (see [Details](details.md#if-something-fails-to-set-up)).
+- `Picked` does not fire for a fruit: the fruit is spoiled, or it is a seed, or `IsAvailable` is `false`.
+- `Fruits` returns an empty list: the id is `null`, empty or unknown. A plant that was just planted can have a `null` `Id`.

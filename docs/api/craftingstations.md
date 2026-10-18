@@ -8,6 +8,8 @@ nav_order: 2
 
 # Crafting stations
 
+[`CraftingSpeed`](craftingstations/the-calls.md), `CraftingQuality` and `CraftingStations` let your mod change how fast stations craft, how good their output is, and start, stop, pause or resume a station. Use them for game rules about crafting, or to drive a station from a quest or an automation.
+
 Status: experimental.
 
 ## What it is
@@ -18,7 +20,7 @@ A crafting station is any place in the game where the player crafts, processes o
 - `CraftingQuality` makes what stations produce better or worse.
 - `CraftingStations` starts, stops, pauses and resumes a station from your mod.
 
-Each station has an id. You get the ids from `Crafting.All()` (see [Recipes, crafting and growing](recipes.md)), where each station is a `CraftingStationInfo` with an `Id`.
+Each station has an id. You get the ids from [`Crafting.All()`](recipes/crafting-stations.md) (see [Recipes, crafting and growing](recipes.md)). Each station there is a `CraftingStationInfo` with an `Id`.
 
 ## When to use it
 
@@ -29,7 +31,7 @@ Each station has an id. You get the ids from `Crafting.All()` (see [Recipes, cra
 
 ## Quick example
 
-This mod makes every crafting station work twice as fast. The speed is set again every time a scene loads, because the game clears it then.
+This mod makes every crafting station work twice as fast. The speed is set again every time a [scene](../glossary.md#scene) loads, because the game clears it then.
 
 ```csharp
 using ObenseuerCore;
@@ -49,4 +51,4 @@ public sealed class FastCraft : FrameworkMod
 }
 ```
 
-`SceneLoaded` is an event: the framework calls your code each time a scene finishes loading. The first argument to `SetSpeedFactor` is your mod's id. The framework uses it to keep your change apart from other mods' changes. See [Using events](../guides/getting-started/using-events.md).
+`SceneLoaded` is an event: the framework calls your code each time a scene finishes loading. See [Using events](../guides/getting-started/using-events.md). The first argument to `SetSpeedFactor` is your [mod id](../glossary.md#mod-id). The framework uses it to keep your change apart from other mods' changes.

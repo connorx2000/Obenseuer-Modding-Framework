@@ -7,7 +7,7 @@ nav_order: 4
 
 # Shops
 
-`Shops` is for the NPC traders (shops run by a character) and the vending machines. You can list them, read their stock and prices, change what they charge, and get told about trades. Each shop is a `ShopInfo`, a snapshot taken when you asked.
+`Shops` covers the [NPC](../npcs.md) traders (shops run by a character) and the vending machines. It lists them, reads their stock and prices, changes what they charge, and tells you about trades. Each shop is a `ShopInfo`, a snapshot taken when you asked.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Shops</code> <span>list shops, read prices, and hear about trades</span></p>
@@ -32,8 +32,8 @@ public static class Shops
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<ShopInfo>` | Every trader and vending machine in the scene you are in. |
-| `Open()` | `ShopInfo` | The trader whose trade screen is open. `null` when none. |
+| `All()` | `List<ShopInfo>` | Every trader and vending machine in the [scene](../../glossary.md#scene) you are in. |
+| `Open()` | `ShopInfo` | The trader whose trade screen is open. `null` when none is. |
 | `Stock(shopId)` | `List<StockItem>` | What the shop has for sale. |
 | `PriceOf(shopId, itemId, count, playerBuys, out currency)` | `float` | The price for a stack. |
 
@@ -68,7 +68,7 @@ public sealed class ShopInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | Names this shop. Use it with `Stock` and `PriceOf`. |
+| `Id` | `string` | Names this shop. Pass it to `Stock` and `PriceOf`. |
 | `Name` | `string` | The shop's title, or its object name when it has none. |
 | `Kind` | `ShopKind` | Trader or vending machine. |
 
@@ -99,7 +99,7 @@ public sealed class StockItem
 | `Name` | `string` | The item's name. |
 | `Count` | `int` | How many the shop has. |
 | `UnitPrice` | `float` | The price of one. |
-| `Currency` | `MoneyCurrency` | The money the price is in. |
+| `Currency` | `MoneyCurrency` | The currency the price is in. |
 
 </div>
 </div>
@@ -127,7 +127,7 @@ public sealed class TradeArgs
 | `ItemId` | `int` | The item that was traded. |
 | `Count` | `int` | How many were asked for. |
 | `Price` | `float` | The money that really moved, in `Currency`. |
-| `Currency` | `MoneyCurrency` | The money used. |
+| `Currency` | `MoneyCurrency` | The currency used. |
 | `Shop` | `ShopInfo` | The shop. |
 
 </div>
@@ -158,7 +158,7 @@ public sealed class PriceQueryArgs
 | `ItemId` | `int` | The item. |
 | `Count` | `int` | How many the price is for. |
 | `PlayerBuys` | `bool` | `true` when the player buys from the shop. `false` when the player sells to it. |
-| `Currency` | `MoneyCurrency` | The money the price is in. |
+| `Currency` | `MoneyCurrency` | The currency the price is in. |
 | `Price` | `float` | The price for the whole stack of `Count`. Your handler can change it. |
 
 </div>
@@ -189,13 +189,15 @@ public enum ShopKind
 
 ### Things to know
 
-- `All()` lists the NPC traders and the vending machines. A shop that has no id is left out and can't be addressed. `Open()` gives the trader whose trade screen is open right now, or `null`. Stock and prices are looked up by item id. <span class="tech">(traders are `Trade` objects, including `TradeSpecial`. `Open()` reads `TradePanel.activeTrade`.)</span>
-- A trader's price is worked out for a brand new item. The trader sells at its buying-price setting times the item's value, and buys at its selling-price setting. The money (OC or RM) follows the trader's own price settings, as in the game. <span class="tech">(the trader's `basePurchasePrice` and `baseSellPrice`, applied to a fresh item with no meta.)</span>
-- Because it ignores the liquid, quality or container state of a real item, a trader's price can differ from the price of one particular item in the world.
+- `All()` lists the NPC traders and the vending machines. A shop that has no id is left out and can't be addressed. <span class="tech">(traders are `Trade` objects, including `TradeSpecial`. `Open()` reads `TradePanel.activeTrade`.)</span>
+- `Open()` gives the trader whose trade screen is open right now, or `null`.
+- Stock and prices are looked up by item id.
+- A trader's price is worked out for a brand new item. The trader sells at its buying-price setting times the item's value, and buys at its selling-price setting. The currency ([OC](../../glossary.md#oc) or [RM](../../glossary.md#rm)) follows the trader's own price settings, as in the game. <span class="tech">(the trader's `basePurchasePrice` and `baseSellPrice`, applied to a fresh item with no meta.)</span>
+- The price ignores the liquid, quality or container state of a real item. So a trader's price can differ from the price of one particular item in the world.
 - A vending machine's stock is every item it sells, with its count and price. `PriceOf` gives a price for a vending machine only when `playerBuys` is `true`, because a machine does not buy from the player. <span class="tech">(the price is the entry's `GetPrice()`.)</span>
 - `Bought` and `Sold` fire after a trade really went through. `Price` is the money that moved, taken from the balance before and after, so it matches what the player really paid or got. `Count` is how many were asked for, and for a vending machine it is always 1. A vending machine raises `Bought` only. <span class="tech">(they follow a successful game `Trade.Buy` or `Trade.Sell` (and the `TradeSpecial` overrides), or a successful `VendingMachine.Buy`.)</span>
 - Any other money change made by a handler or game script during the same trade is counted in `Price` too.
-- A trade made with `Traders.Buy` or `Traders.Sell` raises its events when the trade is finished, and none if it is refused or cancelled. See [Traders](../traders.md).
+- A trade made with `Traders.Buy` or `Traders.Sell` raises its events when the trade is finished. It raises none if it is refused or cancelled. See [Traders](../traders.md).
 - The framework can make trades with traders for you. `Traders.Buy` and `Traders.Sell` buy from or sell to a trader by id and item id, and give a reason when they refuse. The trade needs the game's own slot objects, and those calls handle that. See [Traders](../traders.md).
 
 ### How `PriceQuery` works
@@ -204,7 +206,11 @@ The game asks for a trader's price all the time: for price checks, for labels an
 
 - `PriceQuery` fires for every trader price the game works out. It also runs during a trader trade's own price checks. <span class="tech">(it is raised from a postfix on the game's `Trade.GetItemStackPrice`.)</span>
 - Handlers run in the order they were added, and each one sees the price the last one left. Each may set `Price`. A value that is not a real number is ignored, and the price stays as it was.
-- After all handlers have run, a changed price is adjusted to fit the game's rules. It is at least 1 OC for each unit (or the RM equivalent), at most 16,000,000, and rounded like the game does: OC to whole units, RM to 0.1. A handler can't make an item free, because that minimum is the game's own.
+- After all handlers have run, a changed price is adjusted to fit the game's rules:
+  - It is at least 1 OC for each unit (or the RM equivalent).
+  - It is at most 16,000,000.
+  - It is rounded like the game does: OC to whole units, RM to 0.1.
+- A handler can't make an item free, because that minimum is the game's own.
 - With no `PriceQuery` handler, the framework does almost nothing on the game's frequent price calls. An unchanged price is returned exactly as the game worked it out.
 - `PriceOf` includes the same adjustments, so it matches what the game charges.
 
@@ -212,4 +218,4 @@ The game asks for a trader's price all the time: for price checks, for labels an
 
 - `PriceQuery` is not raised for vending machine prices.
 - Inside a `PriceQuery` handler, `Shops.PriceOf` and the game's own price calls give the price before any changes. `PriceQuery` does not run again inside itself.
-- During a trader trade, a `PriceQuery` handler can read and set the price, but can't start a trader trade, and the framework's money and item writes are refused too (see [Traders](../traders.md)).
+- During a trader trade, a `PriceQuery` handler can read and set the price, but can't start a trader trade. The framework's money and item writes are refused too (see [Traders](../traders.md)).

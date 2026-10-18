@@ -7,12 +7,12 @@ nav_order: 3
 
 # Buying
 
-`Buy(id, furnitureId, count)` buys `count` pieces of one kind of furniture from a furniture shop for the player, the way the shop screen does.
+`Buy(id, furnitureId, count)` buys `count` pieces of one kind of furniture from a furniture shop for the player, the way the shop screen does. This page lists the result values, the `Bought` event, and the order in which the steps run.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShops</code> <span>buying furniture from a shop</span></p>
 
-Call `Buy` to buy furniture for the player from a furniture shop, and listen to `Bought` to hear about purchases made through it.
+Call `Buy` to buy furniture for the player from a furniture shop. Listen to `Bought` to hear about purchases made through it.
 
 <div class="api-pair" markdown="1">
 
@@ -38,7 +38,7 @@ public static class BaseShops
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopBuyResult</code> <span>what happened when you tried to buy</span></p>
 
-`Buy` returns this. `Ok` means the purchase is complete, and the other values say why it was not.
+`Buy` returns this. `Ok` means the purchase is complete. The other values say why it was not.
 
 <div class="api-pair" markdown="1">
 
@@ -63,7 +63,7 @@ public enum BaseShopBuyResult
 | `Busy` | Not now. A save is loading or being written, money handlers are nested too deep, or the shop screen is open. |
 | `NotFound` | No furniture shop has that id, or the shop has no such furniture. |
 | `Unsupported` | The shop is a train shop. |
-| `Refused` | The request is not allowed. `count` is below 1, `furnitureId` is empty, a piece that needs a custom picture has none, or the total is above 16 million in either currency. |
+| `Refused` | <details>{::nomarkdown}<summary>{:/nomarkdown}The request is not allowed.{::nomarkdown}</summary>{:/nomarkdown}`count` is below 1, `furnitureId` is empty, a piece that needs a custom picture has none, or the total is above 16 million in either currency.</details> |
 | `OutOfStock` | The shop holds fewer pieces than you asked for. |
 | `NoMoney` | The player cannot pay. Nothing was taken. |
 | `Unavailable` | The player's wallet or home building is not ready. |
@@ -75,7 +75,7 @@ public enum BaseShopBuyResult
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>BaseShopBoughtArgs</code> <span>what Bought tells you</span></p>
 
-`Bought` hands you this after a purchase made with `Buy`. `FurnitureId` and `Count` say what was bought, and `Oc` and `Rm` what was paid.
+`Bought` hands you this after a purchase made with `Buy`. `FurnitureId` and `Count` say what was bought. `Oc` and `Rm` say what was paid.
 
 <div class="api-pair" markdown="1">
 
@@ -97,22 +97,22 @@ public sealed class BaseShopBoughtArgs
 | `Kind` | `string` | The type of shop. It is always `FurnitureShop`. |
 | `FurnitureId` | `string` | The id of the furniture that was bought. |
 | `Count` | `int` | How many pieces were bought. |
-| `Oc` | `int` | The total OC paid. |
-| `Rm` | `int` | The total RM paid. |
+| `Oc` | `int` | The total [OC](../../glossary.md#oc) (Open Sewer Coins) paid. |
+| `Rm` | `int` | The total [RM](../../glossary.md#rm) (Real Money) paid. |
 
 </div>
 </div>
 
 ## Things to know
 
-- You find the furniture by its furniture id, and the shop must hold at least `count` pieces of it. There is no call that lists a shop's stock yet, so for a piece your mod added, use the id the furniture registry gave you. <span class="tech">(The stock entry is the first entry of `GetAvailableItems()` whose `furniture.Id` is `furnitureId`, and its `amount` must be at least `count`.)</span>
+- You find the [furniture](../furniture.md) by its furniture id, and the shop must hold at least `count` pieces of it. There is no call that lists a shop's stock yet. For a piece your mod added, use the id the furniture registry gave you. <span class="tech">(The stock entry is the first entry of `GetAvailableItems()` whose `furniture.Id` is `furnitureId`, and its `amount` must be at least `count`.)</span>
 - The price is the shop's buying price for each piece, times `count`. There is no haggling, discount or owner price. <span class="tech">(It uses the game's `GetOcBuyPrice` and `GetRmBuyPrice`, which use `buyPercent`.)</span>
-- The money comes from the player's wallet only, and the bank is not used. OC is taken first, then RM. <span class="tech">(It uses `Money.RemoveMoney` through `Cash.TrySpend`.)</span>
-- The framework checks everything before it takes any money: the save must not be busy, the id and count must be valid, the shop must have the piece and enough of it, a piece that needs a custom picture must have one, and the wallet must hold both prices.
-- Then it charges OC and RM, puts the piece in the player's building stock, and only after that takes the piece out of the shop's stock and adds the money to the shop. <span class="tech">(A custom-image piece is one with `canPlaceCustomImage`, which the game checks in `ShopBaseUI.InfoButtonPressed`. The delivery is `BuildingSystem.AddFurniture`. The shop's stock goes through `RemoveItem` and its money through the game's `AddBuyMoney`.)</span>
-- If the RM charge fails, the OC charge is refunded. If the delivery fails, both charges are refunded and the shop's stock and money are left as they were. <span class="tech">(A refund adds the money back without the wallet-limit check and without the save and nesting refusals, so those can't block it. If the game's money add itself throws, the refund is logged as an error and the money is not returned. OC is a whole number in the wallet, so its refund is exact. RM is a decimal number, so a charge and its refund can differ by one step of the number type.)</span>
-- If the shop can't remove its stock after the delivery, the piece is taken back out of the player's building stock, both charges are refunded, and the result is `Failed`.
-- If the piece can't be taken back, the money is not refunded, an error goes to the log, and the result is `Failed`. This means the player never keeps both the piece and the money.
+- The money comes from the player's wallet only. The bank is not used. [OC](../../glossary.md#oc) is taken first, then [RM](../../glossary.md#rm). <span class="tech">(It uses `Money.RemoveMoney` through `Cash.TrySpend`.)</span>
+- The framework checks everything before it takes any money. The save must not be busy, and the id and count must be valid. The shop must have the piece and enough of it. A piece that needs a custom picture must have one. The wallet must hold both prices.
+- Then it charges OC and RM and puts the piece in the player's building stock. Only after that does it take the piece out of the shop's stock and add the money to the shop. <span class="tech">(A custom-image piece is one with `canPlaceCustomImage`, which the game checks in `ShopBaseUI.InfoButtonPressed`. The delivery is `BuildingSystem.AddFurniture`. The shop's stock goes through `RemoveItem` and its money through the game's `AddBuyMoney`.)</span>
+- If the RM charge fails, the OC charge is refunded. If the delivery fails, both charges are refunded, and the shop's stock and money are left as they were. <span class="tech">(A refund adds the money back without the wallet-limit check and without the save and nesting refusals, so those can't block it. If the game's money add itself throws, the refund is logged as an error and the money is not returned. OC is a whole number in the wallet, so its refund is exact. RM is a decimal number, so a charge and its refund can differ by one step of the number type.)</span>
+- If the shop can't remove its stock after the delivery, the piece is taken back out of the player's building stock. Both charges are refunded, and the result is `Failed`.
+- If the piece can't be taken back, the money is not refunded. An error goes to the [log](../../guides/getting-started/logging.md), and the result is `Failed`. This means the player never keeps both the piece and the money.
 - `Bought` only fires for purchases made with `Buy`. A purchase made on the game's own shop screen does not raise it.
 - An `Ok` result stands even when the shop's till fails afterwards. That problem is written to the log, and the purchase is not undone.
 - `Busy` also covers the shop screen being open. The screen has to be closed, because its selected entry would otherwise point at stock that was just removed. <span class="tech">(`Busy` comes from `Cash.Refused`, which is true while a save is loading or being written, while the player's inventory is in the middle of a change (`PlayerInventory.InTransaction`), and when `MoneyChanged` or `Received` handlers are nested too deep. The 16 million limit is `Cash.MaxAmount`. The shop screen is `ShopController.menuIsOpen`.)</span>
@@ -126,3 +126,9 @@ public sealed class BaseShopBoughtArgs
 - `Buy` takes the first matching entry only. A piece with custom pictures can have several entries, and one `Buy` can't take pieces from two of them. It returns `OutOfStock` instead.
 - `Buy` does not refresh a shop screen that is open.
 - A purchase from a furniture display in the world goes a different way and is not covered. <span class="tech">(The display purchase is `InteractableFurnitureDisplay.Purchase`.)</span>
+
+**Common problems**
+
+- `Buy` returns `Busy` while no save is loading or being written: the shop screen is open, or money handlers are nested too deep. Close the screen before you buy.
+- `Buy` returns `OutOfStock` although the shop seems to have enough: the piece has custom pictures and sits in several stock entries. `Buy` takes the first entry only.
+- `Bought` does not fire: the purchase was made on the game's shop screen, not with `Buy`.

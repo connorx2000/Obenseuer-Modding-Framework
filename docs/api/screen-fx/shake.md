@@ -7,7 +7,7 @@ nav_order: 3
 
 # Shake
 
-`Shake` moves the camera for a set time.
+`Shake` moves the camera for a set time. Use it for an explosion or a hit.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ScreenFx</code> <span>shake the camera</span></p>
@@ -22,7 +22,7 @@ public static bool Shake(float duration, float amount);
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Shake(duration, amount)` | `bool` | Shakes the camera for `duration` seconds. `amount` is the most the camera moves each frame, in world units. Returns `true` when the shake started. |
+| `Shake(duration, amount)` | `bool` | Shakes the camera for `duration` seconds. `amount` is the most the camera moves each frame, in world units. `true` when the shake started. |
 
 </div>
 </div>

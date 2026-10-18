@@ -7,24 +7,26 @@ nav_order: 1
 
 # Common tasks
 
+Short examples of the jobs mods do most often with [`Landmarks`](game-landmarks.md): check and unlock, list, create with your own icon, move and remove.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Check whether the player has a landmark, and unlock it if not. The id is the landmark's id in the game, which you can see by listing `Landmarks.All()`.
+Check whether the player has a landmark, and unlock it if not. Use the landmark's id in the game. Listing `Landmarks.All()` shows the ids.
 
 ```csharp
 if (!Landmarks.Has("some.landmark.id"))
     Landmarks.Unlock("some.landmark.id");
 ```
 
-List every landmark the game has loaded and whether the player owns it.
+List every landmark the game has loaded, and whether the player owns it.
 
 ```csharp
 foreach (LandmarkInfo landmark in Landmarks.All())
     Log.Info(landmark.Id + ": " + landmark.Title + (landmark.Owned ? " (owned)" : ""));
 ```
 
-Create a new landmark with your own icon. The icon is a PNG or JPEG file inside your mod's folder, here next to your mod's DLL.
+Create a new landmark with your own icon. The icon is a PNG or JPEG file inside your mod's folder, here next to your mod's DLL. The rules for icon files are on [Custom landmarks](custom-landmarks.md).
 
 ```csharp
 string folder = System.IO.Path.GetDirectoryName(GetType().Assembly.Location);
@@ -32,7 +34,7 @@ string icon = System.IO.Path.Combine(folder, "well.png");
 Landmarks.Create(Mod.Id, "well", "Old well", new Vector3(120f, 0f, -40f), icon);
 ```
 
-Move a landmark you made. There is no move call, so remove it and create it again. Then take away all your landmarks.
+Move a landmark you made. There is no move call, so remove it and create it again. The last line then takes away all your landmarks.
 
 ```csharp
 Landmarks.Remove(Mod.Id, "well");

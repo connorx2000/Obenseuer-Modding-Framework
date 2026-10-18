@@ -7,12 +7,12 @@ nav_order: 3
 
 # Making a task
 
-`QuestAuthoring.Create` makes a new task from a definition you build, and tells you why when it refuses.
+`QuestAuthoring.Create` makes a new task from a definition you build. When it refuses, it tells you why.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestAuthoring</code> <span>making a task</span></p>
 
-Call `Create` with a `QuestDefinition` to make the task. `TaskId` tells you the id it would get, and when `Create` returns `null`, `refusal` says why.
+Call `Create` with a `QuestDefinition` to make the task. `TaskId` tells you the id the task would get. When `Create` returns `null`, `refusal` says why.
 
 <div class="api-pair" markdown="1">
 
@@ -27,8 +27,8 @@ public static class QuestAuthoring
 
 | Method | Returns | What it does |
 |---|---|---|
-| `TaskId(modId, key)` | `string` | The task id for this mod and key. It is `null` when either is not allowed. |
-| `Create(modId, definition, out refusal)` | `string` | Makes the task. It returns its id, or `null` with the reason in `refusal`. |
+| `TaskId(modId, key)` | `string` | The task id for this mod and key. `null` when either one is not allowed. |
+| `Create(modId, definition, out refusal)` | `string` | Makes the task and returns its id. Returns `null` with the reason in `refusal`. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -40,7 +40,7 @@ public static class QuestAuthoring
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>QuestDefinition</code> <span>the task you want to make</span></p>
 
-Pass one of these to `Create`. Its `Key` gets your mod id in front of it, and it holds 1 to 12 `QuestObjectiveDefinition` steps.
+Pass one of these to `Create`. Your [mod id](../../glossary.md#mod-id) is put in front of its `Key`. It holds 1 to 12 `QuestObjectiveDefinition` steps.
 
 <div class="api-pair" markdown="1">
 
@@ -56,7 +56,7 @@ public sealed class QuestDefinition
 
 | Property | Type | What it means |
 |---|---|---|
-| `Key` | `string` | The task's key. Your mod id is put in front of it. |
+| `Key` | `string` | The task's key. Your mod id goes in front of it. |
 | `Title` | `string` | Up to 100 characters. |
 | `Description` | `string` | Up to 1000 characters. Can be `null`. |
 | `Objectives` | `List<QuestObjectiveDefinition>` | 1 to 12 steps. |
@@ -86,8 +86,8 @@ public sealed class QuestObjectiveDefinition
 |---|---|---|
 | `Key` | `string` | The step's id inside the task. |
 | `Title` | `string` | The text the player sees. |
-| `Description` | `string` | More text. Can be `null`. |
-| `Target` | `int` | The counter target. Use 0 for no counter, and at most 9999. |
+| `Description` | `string` | Extra text. Can be `null`. |
+| `Target` | `int` | The counter target: 0 for no counter, at most 9999. |
 | `Optional` | `bool` | `true` when the player does not have to do this step. |
 
 </div>
@@ -134,13 +134,23 @@ public enum QuestRefusal
 
 - `Create` shows the player the "New Task" notice and adds the task to the task panel. Every objective in your definition starts active. A task has 1 to 12 objectives. <span class="tech">(`Create` runs the game's own create path, `TaskController.EditTask` with `createNewTask`. It queues `Quests.TaskChanged` and `Quests.ObjectiveChanged`.)</span>
 - `Create` returns the task id, or `null` with the reason in `refusal`. A refusal for a bad input or a conflict is logged once for each reason.
-- `AlreadyExists` means the save already has a task with that id. For example from an earlier session. Call `Quests.Get` first and create the task only when it returns `null`.
+- `AlreadyExists` means the save already has a task with that id, for example from an earlier session. Call [`Quests.Get`](../../api-story/quests-experimental.md) first, and create the task only when it returns `null`.
 - `Rejected` means the game refused the first objective and no task was made. `Failed` means a game call threw an error before the task was made.
-- `Create` refuses a title that another task already has, which the framework checks against the tasks that have been started and the task files that are loaded (`DuplicateTitle`). Two tasks with one title are confusing in the task panel.
-- The game matches a saved task to a task by title, and the framework changes that for tasks made here. Without the change, a game task with the same title could join your task, or yours could take over a game task's objectives. For a task made here, the game now matches by id only. If this change cannot be made, quest authoring is switched off. <span class="tech">(The game finds a started task again with `TaskInfo.Compare`, which falls back to the title. The framework patches `Compare` so a task with an id of the form `modId.key` and no addressable path is compared by id only, against game tasks and other tasks alike. That includes the game's "new task" check and the task's status.)</span>
+- `Create` refuses a title that another task already has (`DuplicateTitle`). The framework checks this against the tasks that have been started and the task files that are loaded. Two tasks with one title are confusing in the task panel.
+- The game matches a saved task to a task by title. The framework changes that for tasks made here, with a [patch](../../guides/getting-started/patching.md) (a change to a game method). Without the change, a game task with the same title could join your task, or yours could take over a game task's objectives. For a task made here, the game now matches by id only. If this change cannot be made, quest authoring is switched off. <span class="tech">(The game finds a started task again with `TaskInfo.Compare`, which falls back to the title. The framework patches `Compare` so a task with an id of the form `modId.key` and no addressable path is compared by id only, against game tasks and other tasks alike. That includes the game's "new task" check and the task's status.)</span>
 
 ## Limits
 
-- `PartiallyCreated` is the one refusal that still comes with a task id. The task was made, but the game refused or threw on a later objective, so the task has fewer objectives than your definition. Add the missing ones with `AddObjective`, or finish or fail the task.
-- A game task that is not loaded and not started can't be seen by the duplicate check, so a clash with it is still possible. It only shows as two equal titles in the panel.
-- Writes are refused during a save or a load. They are also refused while one of the game's quest hooks is running, and when the task panel or notifications are not loaded, which is outside a game scene.
+- `PartiallyCreated` is the one refusal that still comes with a task id. The task was made, but the game refused or threw on a later objective. The task has fewer objectives than your definition. Add the missing ones with `AddObjective`, or finish or fail the task.
+- The duplicate check can't see a game task that is not loaded and not started, so a clash with it is still possible. It only shows as two equal titles in the panel.
+- Writes are refused in these cases:
+  - during a save or a load
+  - while one of the game's quest hooks is running
+  - when the task panel or notifications are not loaded, which is outside a game scene
+
+**Common problems**
+
+- `Create` returns `null` with `AlreadyExists`: the save already has a task with that id, made in this session or an earlier one. Call `Quests.Get` first and create the task only when it returns `null`, or use another key.
+- `Create` returns `null` with `DuplicateTitle`: another task already has this title. Pick another title.
+- `Create` returns `null` with `NotReady`: you are not in a game scene, or the task panel and notifications have not loaded. Make the task again once a save has loaded.
+- `Create` returns a task id with `PartiallyCreated`: the game refused or threw on a later objective. Add the missing ones with `AddObjective`, and do not call `Create` again.

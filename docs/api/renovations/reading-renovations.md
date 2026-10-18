@@ -7,12 +7,12 @@ nav_order: 2
 
 # Reading renovations
 
-`Renovations.All()` and `Renovations.Get(id)` give you a `RenovationInfo`, a snapshot of one renovation taken when you asked. The snapshot does not update by itself, so ask again for fresh values. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+`Renovations.All()` and `Renovations.Get(id)` give you a `RenovationInfo`: a snapshot of one renovation, taken when you asked. The snapshot does not update by itself, so ask again for fresh values. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Renovations</code> <span>read the renovations</span></p>
 
-Use `All()` or `Get` to read the renovations, `Progress` to see how far a build has got, and `Cost` for the first payment.
+`All()` and `Get` read the renovations. `Progress` shows how far a build has got, and `Cost` gives the first payment.
 
 <div class="api-pair" markdown="1">
 
@@ -45,7 +45,7 @@ public static class Renovations
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RenovationInfo</code> <span>a snapshot of one renovation</span></p>
 
-`Renovations.All()` and `Renovations.Get` give you these. `Cost` is the first payment in OC, and `FinalCost` is the final payment in RM.
+`Renovations.All()` and `Renovations.Get` give you these. `Cost` is the first payment in [OC](../../glossary.md#oc) (Open Sewer Coins). `FinalCost` is the final payment in [RM](../../glossary.md#rm) (Real Money).
 
 <div class="api-pair" markdown="1">
 
@@ -76,7 +76,7 @@ public sealed class RenovationInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>RenovationState</code> <span>where a renovation stands</span></p>
 
-This is the value of `RenovationInfo.State`. `Available` is the state in which the player can order the renovation now.
+This is the value of `RenovationInfo.State`. In the `Available` state, the player can order the renovation now.
 
 <div class="api-pair" markdown="1">
 
@@ -95,8 +95,8 @@ public enum RenovationState
 |---|---|
 | `Locked` | The player cannot order it yet. |
 | `Available` | The player can order it now. |
-| `InProgress` | It is ordered and the contractor is building it. |
-| `AwaitingFinalPayment` | The work is done and the player has to pay the final payment. |
+| `InProgress` | It is ordered, and the contractor is building it. |
+| `AwaitingFinalPayment` | The work is done, and the player has to pay the final payment. |
 | `Installed` | It is finished and in the building. |
 
 </div>
@@ -105,6 +105,6 @@ public enum RenovationState
 ## Things to know
 
 - An id looks like `"<apartment number>/<upgrade id>"`. The apartment number is `0` for an upgrade of the whole building. Read ids from `All()`, and do not build them yourself. <span class="tech">(General upgrades come from `TenementGeneral`, and apartment upgrades use `TenementApartment.apartmentNumber`. The upgrade id is `TenementUpgrade.Id`.)</span>
-- `All()` lists every renovation the game offers for the building and for each apartment, whether or not the player can order it yet. If one of them cannot be described, it is skipped and logged once, and you still get the rest. A renovation that is the same in the same place is listed once. <span class="tech">(It walks the general upgrade groups and each apartment type's groups (`TenementUpgradeGroup.updateGroup`).)</span>
-- `Cost` is the first payment after any change by the `TweaksRenovations` cost setting. The tweak changes the price the game reads, and this reads the same price. <span class="tech">(It is `TenementUpgrade.GetPriceStartOC`, which `TweaksRenovations.CostMultiplier` patches. `FinalCost` is `GetPriceFinalRM`.)</span>
-- `Progress` is `0` when the renovation is not ordered, and `1` when it is installed or waiting for the final payment. While it is being built, it is how far the build has got. <span class="tech">(While `InProgress` it is `TenementUpgradeProgress.GetCurrentProgress`.)</span>
+- `All()` lists every renovation the game offers for the building and for each apartment, whether or not the player can order it yet. If one of them cannot be described, it is skipped and [logged](../../guides/getting-started/logging.md) once, and you still get the rest. A renovation that is the same in the same place is listed once. <span class="tech">(It walks the general upgrade groups and each apartment type's groups (`TenementUpgradeGroup.updateGroup`).)</span>
+- `Cost` is the first payment after any change by the `TweaksRenovations` cost setting. The tweak changes the price the game reads, and `Cost` reads the same price. <span class="tech">(It is `TenementUpgrade.GetPriceStartOC`, which `TweaksRenovations.CostMultiplier` patches. `FinalCost` is `GetPriceFinalRM`.)</span>
+- `Progress` is `0` when the renovation is not ordered. It is `1` when the renovation is installed or waiting for the final payment. While it is being built, it is how far the build has got. <span class="tech">(While `InProgress` it is `TenementUpgradeProgress.GetCurrentProgress`.)</span>

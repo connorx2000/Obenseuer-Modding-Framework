@@ -8,11 +8,21 @@ nav_order: 3
 
 # Hotels
 
+[`Hotels`](hotels/listing-and-renting-rooms.md) lets your mod read, price and rent the hotel rooms in the [scene](../glossary.md#scene) you are in. Use it when a menu, quest or reward of yours depends on a hotel stay.
+
 Status: experimental.
 
 ## What it is
 
-Hotels in the game rent out rooms by the night. The player pays for a room, gets a key to its door and a bed to sleep in, and loses the room when the nights run out. This API lets a mod list the hotel rooms in the scene you are in, and see which are free and how many nights are left on the player's room. It can ask what a stay costs, rent a room for the player, and tells you when a room is rented or runs out.
+Hotels in the game rent out rooms by the night. The player pays for a room and gets a key to its door and a bed to sleep in. The player loses the room when the nights run out.
+
+This API gives your mod these jobs:
+
+- List the hotel rooms in the scene you are in.
+- See which rooms are free, and how many nights are left on the player's room.
+- Ask what a stay costs.
+- Rent a room for the player.
+- Get told when a room is rented or a stay runs out.
 
 ## When to use it
 
@@ -22,7 +32,7 @@ Hotels in the game rent out rooms by the night. The player pays for a room, gets
 
 ## Quick example
 
-This mod logs every room when a save is loaded, with its price for one night, and writes a line each time the player rents a room or a stay ends.
+This mod [logs](../guides/getting-started/logging.md) every room once a save is loaded, with its price for one night. It also writes a line each time the player rents a room or a stay ends.
 
 ```csharp
 using ObenseuerCore;
@@ -47,4 +57,4 @@ public sealed class HotelWatch : FrameworkMod
 }
 ```
 
-`RoomRented` and `RoomExpired` are events: the framework calls your code each time they happen. `WhenReady` runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). `Price` gives the cost in both of the game's currencies, OC and RM (see [Money](economy/money-cash.md#money-cash)).
+`RoomRented` and `RoomExpired` are events: the framework calls your code each time they happen. [`WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded (see [Using events](../guides/getting-started/using-events.md)). `Price` gives the cost in both of the game's currencies, [OC](../glossary.md#oc) and [RM](../glossary.md#rm) (see [Money](economy/money-cash.md#money-cash)).

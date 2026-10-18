@@ -7,7 +7,9 @@ nav_order: 2
 
 # How picking works
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail you can skip on a first read.
+The full list of what `LootPools` gives you, and how the game picks items from a category's lists. Read it before you choose a weight or a tier for your item.
+
+Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>LootPools</code> <span>add items to the game's loot categories</span></p>
@@ -33,9 +35,9 @@ public static class LootPools
 |---|---|---|
 | `Categories()` | `List<LootCategoryInfo>` | Every category the game has. |
 | `PoolFor(category)` | `List<LootEntryInfo>` | The items one category can give. |
-| `DefineCategory(modId, name)` | `bool` | Makes a new, empty category. Returns `true` when it was made. |
-| `Add(modId, category, itemId, weight, tier)` | `bool` | Adds your item to a category. Returns `true` when it was registered. |
-| `Remove(modId, category, itemId)` | `bool` | Takes your item out again. Returns `true` when you had one. |
+| `DefineCategory(modId, name)` | `bool` | Makes a new, empty category. `true` when it was made. |
+| `Add(modId, category, itemId, weight, tier)` | `bool` | Adds your item to a category. `true` when it was registered. |
+| `Remove(modId, category, itemId)` | `bool` | Takes your item out again. `true` when you had one there. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -126,7 +128,7 @@ public sealed class LootEntryInfo
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ContainerFilledArgs</code> <span>what ContainerFilled tells you</span></p>
 
-`ContainerFilled` gives you one of these after a container is filled. `ItemIds` lists what the fill placed, one entry per stack.
+`ContainerFilled` gives you one of these after a container is filled. `Container` is a [`ContainerInfo`](../inventory/containers.md). `ItemIds` lists what the fill placed, one entry per stack.
 
 <div class="api-pair" markdown="1">
 
@@ -140,20 +142,26 @@ public sealed class ContainerFilledArgs
 
 | Property | Type | What it means |
 |---|---|---|
-| `Container` | `ContainerInfo` | The container that was filled. It has its id, name and position. |
-| `ItemIds` | `List<int>` | One item number for each stack placed by this fill. It is never empty. |
+| `Container` | `ContainerInfo` | The container that was filled, with its id, name and position. |
+| `ItemIds` | `List<int>` | One item number for each stack this fill placed. It is never empty. |
 
 </div>
 </div>
 
 ## Things to know
 
-- Weight is a number of copies. The game picks an item from a list evenly, so an item that appears three times is three times as likely as an item that appears once. `weight` puts that many copies of your item in the list. <span class="tech">(Containers that fill their slots in order pick by slot position instead of drawing, and the copies lengthen the list, so slots past the end of the game's own list get your item.)</span>
-- Adding to an empty rare list switches rare picks on. A container tries the rare list first, with its own chance (half the time by default), and only uses it when it is not empty. 32 categories have no rare items. One rare item added to such a category would take about half of that container's picks, so use the common list unless the category already has rare items.
-- Other things read the same lists, so a change reaches them too. Collectible spawners put items in the world from these lists. Storage packages fill their contents from a category. A trader's stock can come from a category too, such as `General Store Bazaar`, so a change reaches the trader at its next restock. Check what shares a category before you add an item to it. <span class="tech">(Collectible spawners record the world items they spawn in a saved list. Storage packages fill from a category when `spawnFromCategory` is set. A trader's stock is the `Storage` on the trader, and the next batch is rolled in advance.)</span>
+- Weight is a number of copies. The game picks an item from a list evenly. So an item that appears three times is three times as likely as an item that appears once. `weight` puts that many copies of your item in the list. <span class="tech">(Containers that fill their slots in order pick by slot position instead of drawing, and the copies lengthen the list, so slots past the end of the game's own list get your item.)</span>
+- Adding to an empty rare list switches rare picks on. A container tries the rare list first, with its own chance (half the time by default). It only uses the rare list when that list is not empty. 32 categories have no rare items. One rare item added to such a category would take about half of that container's picks. So use the common list unless the category already has rare items.
+- Other things read the same lists, so a change reaches them too. Collectible spawners put items in the world from these lists. Storage packages fill their contents from a category. A [trader's](../traders.md) stock can also come from a category, such as `General Store Bazaar`, so a change reaches the trader at its next restock. Check what shares a category before you add an item to it. <span class="tech">(Collectible spawners record the world items they spawn in a saved list. Storage packages fill from a category when `spawnFromCategory` is set. A trader's stock is the `Storage` on the trader, and the next batch is rolled in advance.)</span>
 
 ## Limits
 
-- Weight is not a percentage. The chance of a pick being your item is your weight divided by the length of the whole list. Many categories have 6 or fewer common items, so a weight of 100 would make your item about 94 percent of that list's picks and the game's own items nearly never appear. Mods add up, too. Compare your weight with `LootCategoryInfo.CommonWeight` and `RareWeight` before you choose it.
+- Weight is not a percentage. The chance that a pick is your item is your weight divided by the length of the whole list. Many categories have 6 or fewer common items. There, a weight of 100 would make your item about 94 percent of that list's picks, and the game's own items would nearly never appear. Mods add up, too. Compare your weight with `LootCategoryInfo.CommonWeight` and `RareWeight` before you choose it.
 - How many items a container gives, and its chances, are not part of this API. Each container sets those itself, and they are private in the game. The game also stores no smallest or largest amount for an item: the amount comes from the container's own count.
-- Changes only affect picks made later. A container fills only its empty slots, so a full container keeps its items unless the container is set to remove its old items first. A container works out its next batch right after each fill, so a change reaches it at its next batch, not at once.
+- Changes only affect picks made later. A container fills only its empty slots, so a full container keeps its items, unless the container is set to remove its old items first. A container works out its next batch right after each fill. So a change reaches it at its next batch, not at once.
+
+**Common problems**
+
+- The game's own items nearly never appear: your weight is large compared with the list. Compare your weight with `LootCategoryInfo.CommonWeight` and `RareWeight` before you choose it. Weights from several mods add up.
+- One rare item takes about half of a container's picks: the category had no rare items, so your item switched rare picks on. Use the common list unless the category already has rare items.
+- Your item does not turn up in a container at once: a change reaches a container at its next batch. A full container keeps its items unless it is set to remove its old items first.

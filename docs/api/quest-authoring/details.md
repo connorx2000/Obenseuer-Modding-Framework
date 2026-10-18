@@ -7,7 +7,9 @@ nav_order: 7
 
 # Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+The build this API targets and where its log goes. Also when it is safe to call it, and what happens when the framework cannot change the game method it needs.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.questauthoring.log`.
 
 Everything not listed in this reference is internal and may change without notice.
@@ -20,10 +22,10 @@ The framework changes one of the game's methods when it starts, so a task made h
 
 ## What to check for
 
-- `QuestAuthoring.IsAvailable` tells you whether you can make and change tasks. Every call that changes a task returns `false` (or `null` for `Create`) while it is `false`. It also needs `Quests.IsAvailable` to be `true`.
+- `QuestAuthoring.IsAvailable` tells you whether you can make and change tasks. Every call that changes a task returns `false` (or `null` for `Create`) while it is `false`. It also needs [`Quests.IsAvailable`](../../api-story/quests-experimental.md) to be `true`.
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it. It writes error lines to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the change that matches tasks by id cannot be made, quest authoring is switched off. `QuestAuthoring.IsAvailable` becomes `false`. The `Quests` page keeps working for the game's own tasks.

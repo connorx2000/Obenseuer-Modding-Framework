@@ -7,12 +7,12 @@ nav_order: 7
 
 # Sending an NPC to another scene
 
-One call moves an NPC that is far away into another scene.
+One call moves an NPC that is far away into another [scene](../../glossary.md#scene) (one loaded area of the game). This page covers where the NPC appears, what is saved, and when the call is refused.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcActions</code> <span>moving a far-away NPC to another scene</span></p>
 
-`ChangeLevel` moves the NPC into the scene you name. Check `Npcs.Get(id).CurrentScene` afterwards to see where it is.
+`ChangeLevel` moves the NPC into the scene you name. Afterwards, check [`Npcs.Get(id).CurrentScene`](../npcs/finding-npcs.md) to see where it is.
 
 <div class="api-pair" markdown="1">
 
@@ -25,16 +25,22 @@ public static class NpcActions
 
 | Method | Returns | What it does |
 |---|---|---|
-| `ChangeLevel(npcId, scene)` | `bool` | Moves a far-away NPC to another scene. |
+| `ChangeLevel(npcId, scene)` | `bool` | Moves an NPC that is far away to another scene. |
 
 </div>
 </div>
 
 ## Things to know
 
-- `ChangeLevel` moves an NPC that is not in your scene into the scene you name. The NPC does not walk there. The game puts it there at once. <span class="tech">(It calls the game's `NPCSceneUtilities.ChangeNPCLevel`.)</span>
-- `ChangeLevel` gives `true` when the NPC now belongs to that scene, which does not mean you can see it. You can check with `Npcs.Get(id).CurrentScene`. If `scene` is the one that is loaded, the game spawns the NPC at a level-change door of that scene: the door to its old level, or else the first door it finds. With no door, the game logs an error and the NPC appears the next time that scene loads.
-- The change stays in memory until the next game save, and then it is saved. The saved fields are the scene, the time spent in the level (the game resets it to 0), and the position, which the framework clears so the NPC does not reuse coordinates from its old level. With the position cleared, the game uses the NPC's scheduled spot instead. The NPC's path is not changed. <span class="tech">(The fields are `currentScene`, `timeInLevel` and `currentPosition`. `activePath` is not changed.)</span>
+- `ChangeLevel` moves an NPC that is not in your [scene](../../glossary.md#scene) into the scene you name. The NPC does not walk there. The game puts it there at once. <span class="tech">(It calls the game's `NPCSceneUtilities.ChangeNPCLevel`.)</span>
+- `ChangeLevel` gives `true` when the NPC now belongs to that scene, which does not mean you can see it. You can check with `Npcs.Get(id).CurrentScene`.
+- If `scene` is the one that is loaded, the game spawns the NPC at a [level-change door](../../glossary.md#level-changer) of that scene. That is the door to its old level, or else the first door it finds. With no door, the game logs an error, and the NPC appears the next time that scene loads.
+- The change stays in memory until the next game save, and then it is saved. The saved fields are:
+  - the scene
+  - the time spent in the level, which the game resets to 0
+  - the position, which the framework clears so the NPC does not reuse coordinates from its old level
+
+  With the position cleared, the game uses the NPC's scheduled spot instead. The NPC's path is not changed. <span class="tech">(The fields are `currentScene`, `timeInLevel` and `currentPosition`. `activePath` is not changed.)</span>
 
 ## Limits
 
@@ -42,6 +48,6 @@ public static class NpcActions
   - A save is loading or being written.
   - `scene` is empty, or `scene` is not a scene in the game.
   - The NPC id is not known, or the NPC is already in `scene`.
-  - The NPC is in the scene you are in. The game's save would write the loaded scene back into the NPC, and there is no way to take a live NPC out of the scene.
+  - The NPC is in the [scene](../../glossary.md#scene) you are in. The game's save would write the loaded scene back into the NPC. There is no way to take a live NPC out of the scene.
   - The NPC is walking between scenes, or it is following a target. The game moves those NPCs by itself.
   - The NPC's timetable puts it in a different scene and its scheduler is on. The game's own update would move it again, and the framework does not switch the scheduler off. <span class="tech">(The checks are `SaveController.CheckIfLevelExists`, `data.Controller != null`, `data.state.activePath != null`, `CurrentActivity.GetFollowTarget() != null`, and the timetable scene from `currentScheduledAction.activity.GetTargetScene()` while `schedulerDisabled` is false.)</span>

@@ -7,14 +7,16 @@ nav_order: 1
 
 # Common tasks
 
-Read how far a renovation has got. `renovationId` is the `Id` of a renovation from `Renovations.All()`. The value runs from 0 to 1.
+Short examples for reading, ordering and checking renovations with [`Renovations`](reading-renovations.md). Where an example uses `renovationId`, it is the `Id` of a renovation from `Renovations.All()`.
+
+Read how far a renovation has got. The value runs from 0 to 1.
 
 ```csharp
 float done = Renovations.Progress(renovationId);
 Log.Info("Renovation is " + (int)(done * 100f) + " percent done.");
 ```
 
-Order a renovation. This only works while the player has the contractor menu open, and it takes the money and items the way the game does.
+Order a renovation. This only works while the player has the contractor menu open. It takes the money and items the way the game does.
 
 ```csharp
 if (!Renovations.Start(renovationId)) Log.Info("The renovation could not be ordered.");

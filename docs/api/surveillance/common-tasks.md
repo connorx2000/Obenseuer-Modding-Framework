@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-List the cameras in the scene, with how far and how wide each one sees.
+Short snippets for the usual jobs with [`Surveillance`](cameras-and-the-checks.md): list and switch cameras, check whether the player could be seen or is trespassing, and check that the [events](events.md) work.
+
+List the cameras in the [scene](../../glossary.md#scene), with how far and how wide each one sees.
 
 ```csharp
 foreach (SurveillanceCameraInfo camera in Surveillance.Cameras())

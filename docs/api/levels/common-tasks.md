@@ -7,7 +7,9 @@ nav_order: 1
 
 # Common tasks
 
-Lock a door. `SetLocked` returns `true` when the door is now in the state you asked for, and `false` when the id is not a door with a lock.
+Short snippets for the usual jobs with [`Levels`](level-changers.md). They lock a door and move the player to a level by name. One uses a [level changer](../../glossary.md#level-changer) (a door, use point or invisible area) for the player.
+
+Lock a door. `SetLocked` returns `true` when the door is now in the state you asked for. It returns `false` when the id is not a door with a lock.
 
 ```csharp
 string id = "put an id from All() here";
@@ -22,7 +24,7 @@ string id = "put an id from All() here";
 if (!Levels.Use(id)) Log.Info("The game would not let the player use that right now.");
 ```
 
-Move the player to any level by name. The second argument names the spot in the new level where the player arrives. Use the entry point name that the target level has, or one you added with `Travel.AddEntrypoint` (see the [Player](../player.md) page).
+Move the player to any level by name. The second argument names the spot in the new level where the player arrives. Use an [entry point](../../glossary.md#entrypoint) (a named spawn point) name that the target level has. You can also use one you added with `Travel.AddEntrypoint` (see the [Player](../player.md) page).
 
 ```csharp
 string levelName = "put a level name here";

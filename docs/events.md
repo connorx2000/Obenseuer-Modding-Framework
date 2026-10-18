@@ -5,20 +5,22 @@ nav_order: 7
 
 # Events
 
+The [framework](glossary.md#framework) raises an event when something happens in the game, such as a door opening or a day passing. Use this page to find the event for a feature and the page that explains what its handler receives.
+
 ## What it is
 
-An event is a message the game sends when something happens: a day passes, the player's money changes, a door opens. Your mod subscribes to an event with a small piece of code (a handler), and the framework runs it each time that thing happens. You do not have to watch the game and check for changes yourself. This page lists every event the framework offers, grouped by the class that owns it.
+An event is a message the game sends when something happens: a day passes, the player's money changes, a door opens. Your mod subscribes to an event with a small piece of code (a handler). The framework runs that code each time the thing happens. You do not have to watch the game and check for changes yourself. This page lists every event the framework offers, grouped by the class that owns it.
 
 ## When to use it
 
 - Show a message when a new day starts (`Events.DayPassed`).
-- Write to your log, or pay a bonus, when the player's money changes (`Cash.MoneyChanged`).
-- Run set-up work once a save has loaded (`Events.WhenReady`, which is a method, not an event).
-- React when the player is fined, arrested, hurt or asleep (`Law.Fined`, `Law.Arrested`, `Survival.Damaged`, `PlayerState.SleepStarted`).
+- Write to your log, or pay a bonus, when the player's money changes ([`Cash.MoneyChanged`](api/economy/money-cash.md)).
+- Run set-up work once a save has loaded ([`Events.WhenReady`](api/core-helpers/events-whenready.md), which is a method, not an event).
+- React when the player is fined, arrested, hurt or asleep ([`Law.Fined`](api-story/law-experimental-for-arrest.md), `Law.Arrested`, `Survival.Damaged`, [`PlayerState.SleepStarted`](api/player/playerstate.md)).
 
 ## Quick example
 
-This mod shows a notification at the start of each day, and writes every money change to its log. See [Using events](guides/getting-started/using-events.md) for a longer walk-through.
+This mod shows a notification at the start of each day, and writes every money change to its [log](guides/getting-started/logging.md). See [Using events](guides/getting-started/using-events.md) for a longer walk-through.
 
 ```csharp
 using ObenseuerCore;
@@ -40,17 +42,17 @@ public sealed class EventWatcher : FrameworkMod
 }
 ```
 
-The `+=` adds your handler. Most events pass one argument that describes what happened (here `MoneyChangedArgs`). Some pass a plain value, such as the day number, and some pass nothing.
+The `+=` adds your handler. Most events pass one argument that describes what happened, here [`MoneyChangedArgs`](api/economy/money-cash.md). Some pass a plain value, such as the day number, and some pass nothing. [`Hud.Notify`](api/hud/hud.md) shows the notification.
 
 ## Common tasks
 
-- Stop listening with `-=`, using a named method (an inline lambda has no name to remove): `Cash.MoneyChanged -= OnMoneyChanged;`.
-- Run something once a save is loaded, instead of subscribing to `Events.Loaded`: `Events.WhenReady(() => Log.Info("save is ready"));`. `Events.Loaded` also runs on every door change.
-- Find an event for a feature: look for the class of the feature in the list below (`Doors`, `Trains`, `Quests` and so on), then read that class's page in the [API reference](API.md) for what the arguments hold.
+- Stop listening with `-=`, using a named method: `Cash.MoneyChanged -= OnMoneyChanged;`. An inline lambda has no name to remove.
+- Run something once a save is loaded, instead of subscribing to `Events.Loaded`: `Events.WhenReady(() => Log.Info("save is ready"));`. `Events.Loaded` also runs on every door change. See [`Events.WhenReady`](api/core-helpers/events-whenready.md).
+- Find an event for a feature: look for the class of the feature in the list below (`Doors`, `Trains`, `Quests` and so on). Then read that class's page in the [API reference](API.md) for what the arguments hold.
 
 ## Reference
 
-These are all the events the framework offers, grouped by the part of the game they belong to. The optional WebUi module's events are not listed here. The Handler type column says what your handler receives: `Action<ReplantedArgs>` is a method that takes one `ReplantedArgs` value, `Action<int>` takes a plain number, and `Action` takes nothing. The last column links to the page that explains the arguments. Most events belong to the class itself (`Events.DayPassed`). A few belong to one object, such as one `ModSetting`, and are listed last.
+These are all the events the framework offers, grouped by the part of the game they belong to. The events of the optional [WebUi](api/webui.md) module are not listed here. The Handler type column says what your handler receives. [`Action<ReplantedArgs>`](glossary.md#action-and-actionlttgt) is a method that takes one `ReplantedArgs` value. `Action<int>` takes a plain number, and `Action` takes nothing. The last column links to the page that explains the arguments. Most events belong to the class itself (`Events.DayPassed`). A few belong to one object, such as one [`ModSetting`](api/framework-mods/settings.md), and are listed last.
 
 ### Autofarms
 
@@ -875,7 +877,7 @@ These are all the events the framework offers, grouped by the part of the game t
 
 ### Instance events
 
-These belong to one object, not to the class itself. For example, each `ModSetting` has its own change event.
+These events belong to one object, not to the class itself. Each `ModSetting`, for example, has its own change event.
 
 | Event | Handler type | Page with details |
 | --- | --- | --- |
@@ -886,6 +888,6 @@ These belong to one object, not to the class itself. For example, each `ModSetti
 ## Details
 
 - This page is generated by `tools/gen-events.py` from the source. Do not edit it by hand.
-- Subscribe with `+=` in `OnLoad` of a `FrameworkMod`, or in `Awake` of a plain BepInEx plugin.
+- Subscribe with `+=` in `OnLoad` of a [`FrameworkMod`](api/framework-mods/attributes-and-base-class.md), or in `Awake` of a plain [plugin](glossary.md#plugin) for BepInEx (the game's mod loader).
 - Handlers run in the order they were added. The first throw from each handler is logged, and the other handlers still run.
-- The game raises events from its normal game loop. Use the framework from your handler as usual, and do not call it from a background thread you started. See [main thread](glossary.md#main-thread).
+- The game raises events from its normal game loop. Use the framework from your handler as usual. Do not call it from a background thread you started. See [main thread](glossary.md#main-thread).

@@ -7,4 +7,4 @@ nav_order: 6
 
 # Items and crafting
 
-Items, containers, recipes and crafting stations, new items and recipes, resource nodes, extractables, furniture and loot pools.
+This group covers items, containers, recipes and crafting stations, and adding new items and recipes. It also covers resource nodes, extractables, furniture and loot pools.

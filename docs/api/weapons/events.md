@@ -7,9 +7,11 @@ nav_order: 4
 
 # Events
 
+These events tell your mod when a Detonator goes off or starts a reload. They also report when a melee swing starts and when a melee hit lands.
+
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Weapons</code> <span>the weapon events</span></p>
-Use these events to hear when a weapon is fired, swung, reloaded or lands a melee hit.
+These events report when a weapon is fired, swung, reloaded or lands a melee hit.
 
 <div class="api-pair" markdown="1">
 
@@ -33,14 +35,14 @@ public static class Weapons
 | `Fired` | `WeaponFiredArgs` | A Detonator press used a charge. |
 | `MeleeSwung` | `WeaponInfo` | A melee swing has started. |
 | `Reloaded` | `WeaponInfo` | A Detonator reload has started. |
-| `Hit` | `HitArgs` | A melee hit has landed. See Hit power. |
+| `Hit` | `HitArgs` | A melee hit has landed. See [Hit power](hit-power.md). |
 
 </div>
 </div>
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WeaponFiredArgs</code> <span>what you get when a Detonator goes off</span></p>
-`Fired` gives you this when a Detonator goes off, and `Kind` is `Explosive` for it.
+`Fired` gives you this when a Detonator goes off. `Kind` is `Explosive` for it.
 
 <div class="api-pair" markdown="1">
 
@@ -66,6 +68,7 @@ public sealed class WeaponFiredArgs
 
 - `Fired` fires when a Detonator press uses a charge. `Kind` is `Explosive`. Nothing else raises it.
 - `MeleeSwung` fires once for each swing, when the swing's hit window opens. It does not fire once for each thing the swing hits.
-- `Reloaded` fires when a Detonator reload starts and its ammo item is used up. The refill comes later, so the snapshot shows the ammo from before the refill.
-- `Hit` fires once for each melee hit that a target accepts, just before the target takes the damage. See "Hit power" for what you get.
+- `Reloaded` fires when a Detonator reload starts and its ammo item is used up. The refill comes later, so the snapshot (a [`WeaponInfo`](held-weapons.md)) shows the ammo from before the refill.
+- `Hit` fires once for each melee hit that a target accepts, right before the target takes the damage. [Hit power](hit-power.md) describes what you get.
 - Damage to the player from weapons is not repeated here. Use `Survival.Damaged` (see the [core API page](../../api-core/survival.md#survival)).
+- When `IsAvailable` is `false`, see [Details](details.md#what-to-check-for-and-what-comes-back) for which events still fire.

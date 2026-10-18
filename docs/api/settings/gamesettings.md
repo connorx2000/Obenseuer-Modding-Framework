@@ -7,14 +7,14 @@ nav_order: 2
 
 # GameSettings
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail you can skip on a first read.
+`GameSettings` reads the options the player chose in the game's Options screen, and can change the field of view. This page lists everything it gives you, one section for each part.
 
-`GameSettings` reads the options the player chose in the game's Options screen. Each read gives a snapshot of what is saved when you ask.
+Each read gives a snapshot of what is saved when you ask. Text in brackets at the end of a note is extra detail you can skip on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameSettings</code> <span>reads the player's options</span></p>
 
-This is the class to start from. `Display()` and `Quality()` give you the saved options, `SetFov` and `ClearFov` change the field of view, and `Changed` tells you when the game applies new display or quality options.
+This is the class to start from. `Display()` and `Quality()` give you the saved options. `SetFov` and `ClearFov` change the field of view. `Changed` tells you when the game applies new display or quality options.
 
 <div class="api-pair" markdown="1">
 
@@ -53,7 +53,7 @@ public static class GameSettings
 
 | Property | Type | What it means |
 |---|---|---|
-| `IsAvailable` | `bool` | `true` when the `Changed` event works. See Details. |
+| `IsAvailable` | `bool` | `true` when the `Changed` event works. See [Details](details.md#if-something-fails-to-set-up). |
 
 | Event | Gives you | When it fires |
 |---|---|---|
@@ -90,7 +90,7 @@ public enum GameScreenMode
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>GameDisplay</code> <span>the saved display options</span></p>
 
-`GameSettings.Display()` gives you one of these, or `null` when the game has not created its options yet. It is a snapshot of what is saved when you ask. <span class="tech">(It is built from the game's saved display settings.)</span>
+`GameSettings.Display()` gives you one of these, or `null` when the game has not created its options yet. <span class="tech">(It is built from the game's saved display settings.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -161,15 +161,15 @@ public sealed class GameQuality
 
 - `Display()` gives the display options the game last saved, or `null` when the game has not created them yet. <span class="tech">(it reads `DisplaySave.instance.displaySave`; `Width`, `Height` and `RefreshRate` are `0` until the game has saved them once)</span>
 - `ScreenMode` turns the game's saved text into one of three values. The text `Full Screen` becomes `FullScreen`, `Borderless` becomes `Borderless`, and anything else becomes `Windowed`.
-- `Brightness` is the slider value, and the game applies it as that number divided by 100. The framework does not check that it is in a range.
+- `Brightness` is the slider value. The game applies it as that number divided by 100. The framework does not check that it is in a range.
 - `RunInBackground` is the saved `Run In Background` option. It is `false` by default.
 - `Brightness` and `RunInBackground` come from `Display()`, so they exist only when `Display()` does.
-- `Quality()` gives the graphics options. The numbers are the game's own index numbers, not named levels. It gives `null` when the game has not created them yet.
+- `Quality()` gives the graphics options, or `null` when the game has not created them yet. The numbers are the game's own index numbers, not named levels.
 - `Level` is the preset the player picked, and `Custom` is `true` for the Custom preset.
-- `MouseSensitivity()` is the raw saved value. It is 900 by default, and it is not a multiplier. The game's camera uses this number divided by 100 with whole-number division, so 900 gives 9, and anything below 100 gives 0. <span class="tech">(the division is in `SetControls.SetSensitivity`)</span>
+- `MouseSensitivity()` is the raw saved value, not a multiplier. It is 900 by default. The game's camera uses this number divided by 100 with whole-number division. So 900 gives 9, and anything below 100 gives 0. <span class="tech">(the division is in `SetControls.SetSensitivity`)</span>
 - `InvertX()` and `InvertY()` are `true` when the saved mouse inversion includes that direction. <span class="tech">(the saved modes are `X`, `Y`, `X + Y`, and an empty text for none)</span>
 - `ToggleSprint()` and `ToggleCrouch()` give `true` for toggle mode and `false` for hold mode. In toggle mode you press once to start and press again to stop. In hold mode the action lasts while you hold the key. <span class="tech">(the game checks `!toggleSprint` and `!toggleCrouch` for hold mode in `OpenSewerCharacterController`)</span>
-- Read `false` as hold, which is the opposite of what the name may make you think.
+- Read `false` as hold. That is the opposite of what the name may make you think.
 - If the game has no controls save yet, or the read fails, both give `true`, which is the game's default. This is the one read that does not give `false` when nothing is there.
 - `HintsEnabled()` tells you whether the card game's hints are switched on. The hints are the rules box that the card game shows. The player turns them on and off with the Hints key, which is K by default. It is `true` by default. <span class="tech">(it reads `HintOverlay.HintsEnabled`, a `PlayerPrefs` value (`HintOverlayEnabled`, default 1))</span>
 - The game has no hints option in its Options screen, so there is nothing to find there. <span class="tech">(the game's own `HintOverlay.HintsToggled` event exists, but the framework does not offer it, so subscribe to it directly if you need it)</span>
@@ -178,16 +178,16 @@ public sealed class GameQuality
 
 ## Field of view
 
-- `SetFov(fov)` overwrites the player's own field of view setting, and it writes the setting to `Display.json` on disk at once. Do not use it for a zoom or a short change.
-- The player's chosen value is lost, and it stays lost after a restart. A second mod that calls it simply replaces the first.
-- Use `SetFov(owner, fov)` or `ScreenFx.SetFovOverride(owner, fov)` instead, which never touch the file.
-- `SetFov(fov)` gives `true` when it saved the value. It gives `false` for a value outside 30 to 120, when the game has no display save yet, and while a save is loading or being written.
-- The options screen reads the saved value when it opens, so a screen that is already open keeps its old slider position.
+- `SetFov(fov)` overwrites the player's own field of view setting. It writes the setting to `Display.json` on disk at once. Do not use it for a zoom or a short change.
+- The player's chosen value is lost, and it stays lost after a restart. A second mod that calls it replaces the first.
+- Use `SetFov(owner, fov)` or [`ScreenFx.SetFovOverride(owner, fov)`](../screen-fx/fov-override.md) instead. Neither touches the file.
+- `SetFov(fov)` gives `true` when it saved the value. It gives `false` for a value outside 30 to 120. It also gives `false` when the game has no display save yet, and while a save is loading or being written.
+- The options screen reads the saved value when it opens. A screen that is already open keeps its old slider position.
 - The camera follows on the next frame, unless a field of view override is set. Then the camera stays where the override put it. The call does not raise `Changed`. <span class="tech">(it calls the game's own `DisplaySave.SaveDisplay("Fov", ...)`, the same call the options slider makes, and the camera follows through `SetCameraFOV.Update`; the range 30 to 120 is the `ScreenFx` limit, which is not necessarily the range of the game's slider)</span>
 - `SetFov(owner, fov)` sets the field of view in memory only, and `ClearFov(owner)` takes it back.
-- The newest owner wins, clearing falls back to the owner set before it, and a scene load that replaces the whole scene clears all of them.
+- The newest owner wins. Clearing falls back to the owner set before it. A scene load that replaces the whole scene clears all of them.
 - The player's saved setting is never written. It is the same as `ScreenFx.SetFovOverride(owner, fov)` and `ScreenFx.ClearFovOverride(owner)`. See [Screen effects](../screen-fx.md). An owner is your mod's id (see the [glossary](../../glossary.md#owner)).
-- `SetFov(owner, fov)` gives `false` for a value outside 30 to 120, or when the screen effects are not available. An owner that is not a valid mod id throws an `ArgumentException`. <span class="tech">(it returns `false` when `ScreenFx.IsAvailable` is `false`)</span>
+- `SetFov(owner, fov)` gives `false` for a value outside 30 to 120, or when the screen effects are not available. An owner that is not a valid [mod id](../../glossary.md#mod-id) throws an `ArgumentException`. <span class="tech">(it returns `false` when `ScreenFx.IsAvailable` is `false`)</span>
 
 ## Limits
 
@@ -195,3 +195,10 @@ public sealed class GameQuality
 - You can't read the display number. The game saves which display it uses, but this API does not give it to you yet.
 - You can't change any other option. The size, refresh rate, screen mode, vertical sync, quality, mouse, inversion and hints are changed by the Options screen and its apply methods. A change from here would skip those, so it is not offered.
 - The field of view has its own save call, so it is the only option you can change. <span class="tech">(the apply methods are `applyDisplaySettings` and `applyQualitySettings` on `OptionsMenu`)</span>
+
+**Common problems**
+
+- `Changed` fires when the Options screen opens: the game applies the quality options once when that screen opens. Compare the values before you act on it.
+- `Changed` does not fire after the player changes some options: it does not fire for the options in the last bullet under Display and quality. Read those when you need them.
+- `SetFov(fov)` returns `false`: the value is outside 30 to 120, the game has no display save yet, or a save is loading or being written.
+- `SetFov(owner, fov)` returns `false`: the value is outside 30 to 120, or the screen effects are not available.

@@ -8,9 +8,17 @@ nav_order: 6
 
 # Flood gates
 
+[`FloodGates`](floodgates/reading-and-controlling-gates.md) lets your mod read, move and power the flood gates in the scene you are in. Use it for quests or puzzles that open or close a gate.
+
 ## What it is
 
-A flood gate is a big powered gate that slides open or shut. It has a green light for open and a red light for closed, and it usually takes about ten seconds to move. This API lets your mod list the flood gates in the scene, and check whether each one is open and has power. It can open or close one, switch its power on or off, and tells you when one is commanded open or closed.
+A flood gate is a big powered gate that slides open or shut. It has a green light for open and a red light for closed. It usually takes about ten seconds to move. This API gives your mod these jobs:
+
+- List the flood gates in the [scene](../glossary.md#scene).
+- Check whether each one is open and has power.
+- Open or close a gate.
+- Switch a gate's power on or off.
+- Get told when a gate is commanded open or closed.
 
 ## When to use it
 
@@ -20,7 +28,7 @@ A flood gate is a big powered gate that slides open or shut. It has a green ligh
 
 ## Quick example
 
-This mod writes a log line whenever a flood gate is told to open or close. Once a save is loaded, it also logs every gate in the scene and whether it is open and powered.
+This mod writes a [log](../guides/getting-started/logging.md) line whenever a flood gate is told to open or close. Once a save is loaded, it also logs every gate in the scene, and whether it is open and powered.
 
 ```csharp
 using ObenseuerCore;
@@ -41,4 +49,4 @@ public sealed class GateWatch : FrameworkMod
 }
 ```
 
-`Changed` is an event: the framework calls your code each time it happens. `Events.WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).
+`Changed` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md).

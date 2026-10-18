@@ -7,12 +7,16 @@ nav_order: 6
 
 # Plant actions
 
+`PlantActions` changes one plant or one growing spot at a time, from harvesting to planting. Use it when your mod needs to act on a specific plant rather than a whole station.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
 ## What it is
 
-Plants grow in growing spots, such as the beds of a growing station. This API lets your mod change a single plant: harvest it, restart it, set how old it is, change how old it must be to be ripe, pause it, make it rot, or plant a new one in an empty spot. It can also pick up a plant that the player takes by hand. Listing the plants and getting told about a harvest are on the [Recipes page](recipes.md) (`Plants.All`, `Plants.Harvested`, `Plants.Picked`). Plant ids are the ids that `Plants.All` gives you. To act on a whole station at once, use [Growing stations](growingstations.md).
+Plants grow in growing spots, such as the beds of a growing station. This API lets your mod change a single plant: harvest it, restart it, set how old it is, or change how old it must be to be ripe. It can also pause a plant, make it rot, or plant a new one in an empty spot. A plant that the player takes by hand can be picked up too.
+
+Listing the plants and getting told about a harvest are on the [Recipes page](recipes.md) (`Plants.All`, `Plants.Harvested`, `Plants.Picked`). Plant ids are the ids that `Plants.All` gives you. To act on a whole station at once, use [Growing stations](growingstations.md).
 
 ## When to use it
 
@@ -25,7 +29,7 @@ Plants grow in growing spots, such as the beds of a growing station. This API le
 
 ## Quick example
 
-This mod waits for you to press F8. Then it harvests every plant in the scene that is fully grown, and logs how many it harvested.
+This mod waits for you to press F8. Then it harvests every plant in the scene that is fully grown, and [logs](../guides/getting-started/logging.md) how many it harvested.
 
 ```csharp
 using ObenseuerCore;
@@ -56,18 +60,18 @@ public sealed class HarvestAll : FrameworkMod
 }
 ```
 
-Every call takes your mod's id first, which is `Mod.Id`. Each call gives back `true` when it did the job and `false` when it did not. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`.
+Every call takes your [mod's id](../glossary.md#mod-id) first, which is `Mod.Id`. Each call gives back `true` when it did the job and `false` when it did not. See the [keybinds guide](../guides/getting-started/keybinds.md) for `Mod.Key`, and [UI state](ui-state.md) for the `UiState` checks.
 
 ## Common tasks
 
-Make a plant fully grown, then harvest it. In the next snippets, `plantId` is the `Id` of a plant from `Plants.All()`.
+Make a plant fully grown, then harvest it. In the next snippets, `plantId` is the `Id` of a plant from [`Plants.All()`](recipes/growing-plants.md).
 
 ```csharp
 PlantActions.SetAgePercent(Mod.Id, plantId, 100);
 PlantActions.Harvest(Mod.Id, plantId);
 ```
 
-Make a plant ripen faster by lowering the age it must reach.
+Make a plant ripen sooner by lowering the age it must reach.
 
 ```csharp
 PlantActions.SetFullGrownAge(Mod.Id, plantId, 5);
@@ -94,14 +98,14 @@ PlantActions.HarvestSpot(Mod.Id, spotId);
 
 ## Reference
 
-This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+This is the full list of what the API gives you. Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 ### The calls
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlantActions</code> <span>change one plant or one growing spot</span></p>
 
-Use it to harvest a plant, reset or pause its growth, change its age or rot, plant an item in an empty growing spot, or pick up a plant that was picked by hand.
+Harvests a plant, resets or pauses its growth, and changes its age or rot. Also plants an item in an empty growing spot, or picks up a plant that was picked by hand.
 
 <div class="api-pair" markdown="1">
 
@@ -133,16 +137,16 @@ public static class PlantActions
 </div>
 </div>
 
-In these calls, `modId` is the id of your mod, `plantId` is the id of a plant from `Plants.All`, and `spotId` is the id of a growing spot.
+In these calls, `modId` is the [id of your mod](../glossary.md#mod-id) and `plantId` is the id of a plant from [`Plants.All`](recipes/growing-plants.md). `spotId` is the id of a growing spot.
 
 ### Harvesting
 
 - `Harvest` takes the plant's crop the way the player does. The items go to the player's inventory, and onto the floor when the inventory is full. `Plants.Harvested` fires when the call hands out a crop.
-- A plant with ripe fruit works differently. The game picks the fruit and gives no crop, so `Plants.Picked` fires once for each fruit, and `Plants.Harvested` does not fire. <span class="tech">(The check is whether any visible grown item is active and `readyToPick`.)</span>
+- A plant with ripe fruit works differently. The game picks the fruit and gives no crop. So `Plants.Picked` fires once for each fruit, and `Plants.Harvested` does not fire. <span class="tech">(The check is whether any visible grown item is active and `readyToPick`.)</span>
 - A plant that is not ripe gives a smaller crop, scaled by its age. The plant is then restarted or removed, as the game does. A plant that is removed this way also empties its growing spot.
 - `Harvest` gives `false` when the call handed out no items. This happens, for example, when the smaller crop of a young plant rounds down to nothing. The plant is still restarted or removed in that case.
 - `Reset` sets the plant's age back to 0, as the game does after a pick.
-- `HarvestSpot` picks up a plant that is picked by hand, and `Harvest` is for the plants that grow. A plant picked by hand is one with no growth of its own, so it has no age. `HarvestSpot` does what the player's pick-up does. The items go to the inventory, and the game's warning shows when the inventory is full. <span class="tech">(Such a plant is a `CollectibleItem` in a growing spot with no `grow` component. It runs the game's `CollectibleItem.PerformPickup`.)</span>
+- `HarvestSpot` picks up a plant that is picked by hand. `Harvest` is for the plants that grow. A plant picked by hand has no growth of its own, so it has no age. `HarvestSpot` does what the player's pick-up does. The items go to the inventory, and the game's warning shows when the inventory is full. <span class="tech">(Such a plant is a `CollectibleItem` in a growing spot with no `grow` component. It runs the game's `CollectibleItem.PerformPickup`.)</span>
 - `HarvestSpot` gives `true` when everything was picked up, and the spot is then empty. If only part of it fits in the inventory, the part that fits is added, the rest stays on the plant, and you get `false`. It also gives `false` for a spot with no plant and for a plant that grows (use `Harvest` for that).
 - `Plants.Harvested` does not fire for `HarvestSpot`.
 
@@ -166,7 +170,7 @@ In these calls, `modId` is the id of your mod, `plantId` is the id of a plant fr
 
 ## Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.plantactions.log`.
 
 Everything not listed in this reference is internal and may change without notice.

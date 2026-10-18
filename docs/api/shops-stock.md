@@ -8,11 +8,18 @@ nav_order: 9
 
 # Shop stock
 
+[`ShopStock`](shops-stock/shop-keys.md) puts your mod's items into traders' shops and vending machines, and takes them back. Use it when the player should be able to buy your mod's item in a shop.
+
 Status: experimental.
 
 ## What it is
 
-The game has two kinds of shop you can add goods to: traders, who are people with a shop of their own, and vending machines. This API lets your mod put an item in a trader's shop (a fixed stack that is kept topped up) or add one more item for sale in a vending machine. Reading shops, stock and prices is on the [economy page](economy/shops.md#shops).
+The game has two kinds of shop you can add goods to:
+
+- traders, who are people with a shop of their own
+- vending machines
+
+This API lets your mod put an item in a trader's shop, as a fixed stack that is kept topped up. It can also add one more item for sale in a vending machine. Reading shops, stock and prices is on the [economy page](economy/shops.md#shops).
 
 A trader's stock here is not a price list. A trader still prices an item by the item's own value, so you can't set a separate trader price for one item.
 
@@ -25,7 +32,7 @@ A trader's stock here is not a price list. A trader still prices an item by the 
 
 ## Quick example
 
-This mod keeps 5 apples in a trader's shop and adds apples to a vending machine for sale at the game's normal price. When the game is ready, it also logs every shop in the scene with its id, so you can find the right key.
+This mod keeps 5 apples in a trader's shop. It also adds apples to a vending machine, for sale at the game's normal price. When the game is ready, it [logs](../guides/getting-started/logging.md) every shop in the [scene](../glossary.md#scene) with its id, so you can find the right key.
 
 ```csharp
 using ObenseuerCore;
@@ -47,4 +54,9 @@ public sealed class AppleStall : FrameworkMod
 }
 ```
 
-The first value you pass is your mod id (see [Mod id](../glossary.md#mod-id)). The second is the shop key: the id, the title or the name of the shop. Replace the two placeholder keys with ones from your log. The number 10620 is the apple's item id. A price of 0 means the machine uses the game's normal price. See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.
+- The first value you pass is your mod id (see [Mod id](../glossary.md#mod-id)).
+- The second is the [shop key](shops-stock/shop-keys.md#things-to-know): the id, the title or the name of the shop. Replace the two placeholder keys with ones from your log.
+- The number 10620 is the apple's item id.
+- A price of 0 means the machine uses the game's normal price.
+
+See [Using events](../guides/getting-started/using-events.md) for more on `WhenReady`.

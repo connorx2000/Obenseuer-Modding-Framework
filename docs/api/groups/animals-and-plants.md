@@ -7,4 +7,4 @@ nav_order: 4
 
 # Animals and plants
 
-Animals and their actions and breeding, plant actions, growing stations and autofarms.
+This group covers animals, their actions and their breeding. It also covers plant actions, growing stations and autofarms.

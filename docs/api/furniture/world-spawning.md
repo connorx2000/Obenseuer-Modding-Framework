@@ -7,12 +7,14 @@ nav_order: 5
 
 # World spawning
 
-A blueprint can join the game's own blueprint pools, so it turns up as a pickup in the world or is taught by the game's blueprint magazines. A blueprint can also be sent by mail. Flatpacks of your furniture can turn up in containers, on the ground and in packages that roll from a loot category.
+This page covers how [blueprints](../../glossary.md#blueprint) (crafting plans) and [flatpacks](../../glossary.md#flatpack) (packed furniture) of your furniture reach the player in the world.
+
+A blueprint can join the game's own blueprint pools. It then turns up as a pickup in the world, or the game's blueprint magazines teach it. A blueprint can also be sent by [mail](../economy/mail.md). Flatpacks of your furniture can turn up in containers, on the ground and in packages that roll from a [loot](../loot/how-picking-works.md) category.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FurnitureRegistry</code> <span>world spawning</span></p>
 
-This is the class for spawning blueprints and flatpacks. `MailBlueprint` sends a blueprint by mail, and `AddFlatpackLoot` makes flatpacks turn up in a loot category. The two pool names are for the `Pools` list on `BlueprintDefinition`.
+This is the class for spawning blueprints and flatpacks. `MailBlueprint` sends a blueprint by mail, and `AddFlatpackLoot` makes flatpacks turn up in a loot category. The two pool names are for the `Pools` list on [`BlueprintDefinition`](blueprints-and-flatpacks.md).
 
 <div class="api-pair" markdown="1">
 
@@ -39,7 +41,7 @@ public static class FurnitureRegistry
 </div>
 </div>
 
-Here is a blueprint that joins two pools, flatpack loot, and a mailed blueprint.
+This example defines a blueprint that joins two pools, adds flatpack loot and mails the blueprint.
 
 ```csharp
 BlueprintDefinition blueprint = new BlueprintDefinition();
@@ -56,9 +58,9 @@ FurnitureRegistry.MailBlueprint(furnitureId, "Oak Table plans", MailKind.Letter)
 ## Things to know
 
 - `Pools` is checked in `DefineBlueprint`. Names are compared exactly, so `Start` and `start` are two entries.
-- `GeneralBlueprintPool` is the general pool and `StartBlueprintPool` is the start pool. Any other name must be a blueprint category the scene defines, such as `Improved` or `Detailed`.
-- Pool membership is not saved. It is set again every session. Blueprints in a pool show in `Building.AllBlueprints` and in the game's console blueprint commands.
-- `MailBlueprint` sends the blueprint by mail. `MailKind.Letter` goes to the mailbox and `MailKind.Package` goes to the parcel locker with the game's parcel card. The game's mail delay applies.
+- `GeneralBlueprintPool` is the general pool and `StartBlueprintPool` is the start pool. Any other name must be a blueprint category the [scene](../../glossary.md#scene) defines, such as `Improved` or `Detailed`.
+- Pool membership is not saved. It is set again every session. Blueprints in a pool show in [`Building.AllBlueprints`](../housing/building.md) and in the game's console blueprint commands.
+- `MailBlueprint` sends the blueprint by [mail](../economy/mail.md). `MailKind.Letter` goes to the mailbox. `MailKind.Package` goes to the parcel locker with the game's parcel card. The game's mail delay applies.
 - `AddFlatpackLoot` makes flatpacks of the furniture turn up wherever the game rolls items from `category`. That is containers (and traders that stock from it), ground spawns and package contents. Calling it again for the same furniture and category replaces the weight. <span class="tech">(All flatpack loot of one category is one common-tier `LootPools` record of the Furniture Flatpack item, under the mod id `obenseuer.moddingframework.furniture`. Its weight is the sum of the weights, capped at 100.)</span>
 - Each flatpack the game rolls from that category holds one furniture, picked by weight. A flatpack whose furniture does not build is not spawned.
 - Flatpacks in a package that rolls from the category get their furniture the same way, whether or not the package uses the category's item data.
@@ -66,16 +68,22 @@ FurnitureRegistry.MailBlueprint(furnitureId, "Oak Table plans", MailKind.Letter)
 - Define your furniture and blueprints while your mod loads. A container that rolls its loot can build mod furniture early, and after the first build `Define` and `DefineBlueprint` refuse.
 - A stand-in that is placed and then taken again keeps its mod id. So it becomes the mod furniture again when the mod returns.
 - Mod furniture in the console is listed after the game's own. So `add_furniture` picks a game furniture whose name matches a mod title.
-- Pieces placed as stand-ins by an earlier framework build keep the template when taken.
+- Pieces placed as stand-ins by an earlier framework build keep the [template](../../glossary.md#template) (the game piece they were copied from) when taken.
 
 ## Limits
 
-- `Pools` throws an `ArgumentException` for a `null` list, more than 8 entries, an entry that is `null`, over 64 characters, or repeated.
+- `Pools` throws an `ArgumentException` for a `null` list, more than 8 entries, or an entry that is `null`, over 64 characters or repeated.
 - A name the scene does not define is logged once and ignored.
 - `MailBlueprint` throws an `ArgumentException` for a `null` or empty `mailName` or an undefined `kind`.
-- `MailBlueprint` returns `false` and sends nothing for a `null` or unknown id, a furniture with no blueprint, a blueprint that does not build, a blueprint the player already knows, when `IsAvailable` is `false`, when the world spawning features are not installed, before a save is fully restored, while a save is loading or being written, and when the game's mail manager is not loaded. An error inside is logged once and returns `false`.
+- `MailBlueprint` returns `false` and sends nothing in these cases:
+  - a `null` or unknown id;
+  - a furniture with no blueprint, a blueprint that does not build, or a blueprint the player already knows;
+  - `IsAvailable` is `false`, or the world spawning features are not installed;
+  - before a save is fully restored, or while a save is loading or being written;
+  - the game's mail manager is not loaded.
+- An error inside `MailBlueprint` is logged once and returns `false`.
 - `AddFlatpackLoot` throws an `ArgumentException` for a `null` or empty `category` or a `weight` outside 1 to 100.
-- `AddFlatpackLoot` returns `false` for a `null` or unknown id, when `IsAvailable` is `false`, when the loot features are not installed, when `LootPools.IsAvailable` is `false`, or when the loot record can't be added, for example while a save is loading or being written.
+- `AddFlatpackLoot` returns `false` in these cases: a `null` or unknown id, `IsAvailable` is `false`, the loot features are not installed, or [`LootPools.IsAvailable`](../loot/how-picking-works.md) is `false`. It also returns `false` when the loot record can't be added, for example while a save is loading or being written.
 - You can't remove flatpack loot, mail a flatpack or a furniture, or put a flatpack in a particular container. Flatpack loot is common tier only.
 - A mod item can't teach only your own blueprint pool. Mod blueprints use the game's magazines and pools.
 - You can't override power or storage for a single piece.
@@ -86,5 +94,10 @@ When the mod or the framework is removed, world spawns change like this:
 |---|---|---|---|---|
 | Mod and framework present | It shows the mod blueprint, and taking it teaches it. | Taking it teaches it. | It is named `<title> in Furniture Flatpack`, and it unpacks to the mod furniture. | It is not a stand-in. |
 | Mod removed, framework present | It is kept. Its title is the blueprint id, and one warning goes to the log. Taking it records the blueprint as hidden. | Taking it records the blueprint as hidden. The notice shows the id. | It keeps the same name and value, and it unpacks to the stand-in. | The stock keeps the stand-in with the mod id. |
-| Mod and framework removed | It is lost for good. The game may also drop one other untaken pickup of that spawner at the next save. Vanilla blueprints are not affected and can spawn again. | The game refuses it, so the blueprint is lost. | It keeps the same name and value, and it unpacks to the plain template. | It becomes the plain template. |
+| Mod and framework removed | <details>{::nomarkdown}<summary>{:/nomarkdown}It is lost for good.{::nomarkdown}</summary>{:/nomarkdown}The game may also drop one other untaken pickup of that spawner at the next save. Vanilla blueprints are not affected and can spawn again.</details> | The game refuses it, so the blueprint is lost. | It keeps the same name and value, and it unpacks to the plain template. | It becomes the plain template. |
 | Mod added back | It is restored if the framework stayed installed. | It is restored if it was recorded as hidden. | It unpacks to the mod furniture. | It becomes the mod furniture on the next load. |
+
+**Common problems**
+
+- `Define` or `DefineBlueprint` refuses after a container has rolled its loot: the container built mod furniture early. Define your furniture and blueprints while your mod loads.
+- A pool name is ignored and logged once: the scene does not define it. Use `GeneralBlueprintPool`, `StartBlueprintPool` or a blueprint category the scene defines, such as `Improved` or `Detailed`.

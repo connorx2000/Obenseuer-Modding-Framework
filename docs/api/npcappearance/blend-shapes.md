@@ -7,6 +7,8 @@ nav_order: 5
 
 # Blend shapes
 
+This page covers the `NpcAppearance` calls that read and set blend shapes, and the `NpcBlendShapeInfo` type. `SetBlendShape` works only on a character with a baked look (see [Two kinds of body](two-kinds-of-body.md)).
+
 This page uses `Mesh` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,7 +17,7 @@ A blend shape is a setting on a part that bends it, for example to open a mouth 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcAppearance</code> <span>blend shape calls</span></p>
 
-Call `BlendShapes(npcId)` to read a character's shapes and `SetBlendShape` to change one. Use `Restore` or `Clear` to undo your changes.
+Call `BlendShapes(npcId)` to read a character's shapes, and `SetBlendShape` to change one. Use `Restore` or `Clear` to undo your changes.
 
 <div class="api-pair" markdown="1">
 
@@ -30,7 +32,7 @@ public static partial class NpcAppearance
 | Method | Returns | What it does |
 |---|---|---|
 | `BlendShapes(npcId)` | `List<NpcBlendShapeInfo>` | Every blend shape of the character, with its weight. |
-| `SetBlendShape(modId, npcId, mesh, shape, weight)` | `bool` | Sets the weight of one shape. Returns `true` when it was set. |
+| `SetBlendShape(modId, npcId, mesh, shape, weight)` | `bool` | Sets the weight of one shape. `true` when it was set. |
 
 </div>
 </div>
@@ -55,7 +57,7 @@ public sealed class NpcBlendShapeInfo
 |---|---|---|
 | `Mesh` | `string` | The name of the part. |
 | `Shape` | `string` | The name of the blend shape. |
-| `Weight` | `float` | Its weight right now. |
+| `Weight` | `float` | The shape's weight right now. |
 
 </div>
 </div>

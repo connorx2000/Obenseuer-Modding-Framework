@@ -8,9 +8,14 @@ nav_order: 5
 
 # Fuel
 
+[`FuelStations`](fuel/gas-stations.md) and [`FuelTypes`](fuel/fuel-items.md) cover the gas stations in the scene and the items that burn as fuel. Use them to read fuel prices, react when the player buys fuel, or work out burn times.
+
 ## What it is
 
-This page covers two things about fuel. The first is the gas stations: the pumps where the player fills up and pays. The API lists the stations in the scene you are in, tells you each station's current price, and tells your mod when the player pays for fuel. The second is the list of items that burn as fuel in a generator or similar machine, with how long each one burns and what it leaves behind.
+This API covers two parts of fuel:
+
+- Gas stations: the pumps where the player fills up and pays. The API lists the stations in the [scene](../glossary.md#scene) you are in and gives each station's current price. It also tells your mod when the player pays for fuel.
+- Fuel items: the items that burn as fuel in a generator or similar machine. For each one it gives how long it burns and what it leaves behind.
 
 The minitrain's fuel tank is not on this page. `Trains.Minitrain` already reports its `Fuel` and `Capacity` (see [Trains](trains.md)).
 
@@ -18,11 +23,11 @@ The minitrain's fuel tank is not on this page. `Trains.Minitrain` already report
 
 - Show or log the fuel price at each gas station.
 - React when the player buys fuel, for example to give a reward or keep a record of what was spent.
-- Work out how long an item burns in a generator, or which items give off ash or another leftover.
+- Work out how long an item burns in a generator, or which items leave ash or another leftover.
 
 ## Quick example
 
-This mod logs a line when the player pays for fuel. Once a save is loaded, it logs the price at each gas station and counts the items that can be used as fuel.
+This mod [logs](../guides/getting-started/logging.md) a line when the player pays for fuel. Once a save is loaded, it logs the price at each gas station and counts the items that can be used as fuel.
 
 ```csharp
 using ObenseuerCore;
@@ -44,4 +49,4 @@ public sealed class FuelWatch : FrameworkMod
 }
 ```
 
-`FuelBought` is an event: the framework calls your code each time it happens. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`FuelBought` is an event: the framework calls your code each time it happens. [`Events.WhenReady`](core-helpers/events-whenready.md) runs your code once a save is loaded. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

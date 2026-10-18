@@ -7,11 +7,13 @@ nav_order: 2
 
 # The minitrain
 
-The minitrain is the small train the player can drive. It has a fuel tank and a power switch. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+The minitrain is the small train the player can drive. It has a fuel tank and a power switch, and this page shows how to read its fuel, power and speed.
+
+Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>the minitrain the player uses</span></p>
-Use `Minitrain` to read the minitrain the player uses.
+`Minitrain` reads the minitrain the player uses.
 
 <div class="api-pair" markdown="1">
 
@@ -57,11 +59,11 @@ public sealed class MinitrainInfo
 
 ## Things to know
 
-- `Trains.Minitrain` is the minitrain the player is using, or the first one in the scene when the player is not using one. It is `null` when the scene has no minitrain. To ask whether the player is driving, use `Travel.UsingMinitrain`. <span class="tech">(It is `Minitrain.playerUsing`, which the game sets in `ChangePlayerUsingState` and restores when a save loads. The framework searches the active objects of the active scene.)</span>
+- `Trains.Minitrain` is the minitrain the player is using. When the player is not using one, it is the first one in the [scene](../../glossary.md#scene). It is `null` when the scene has no minitrain. To ask whether the player is driving, use [`Travel.UsingMinitrain`](../player/travel.md). <span class="tech">(It is `Minitrain.playerUsing`, which the game sets in `ChangePlayerUsingState` and restores when a save loads. The framework searches the active objects of the active scene.)</span>
 - `Fuel` and `Capacity` are `0` when the minitrain has no fuel tank. <span class="tech">(They are `fuelTank.currentFuelAmount` and `fuelTank.maxFuelAmount`.)</span>
 - `Running` turns itself off when the tank runs dry. The game does that, not the framework. <span class="tech">(It is `Minitrain.isOn`.)</span>
 - `Speed` is the speed of the train on the track that the minitrain drives. <span class="tech">(It is `GetTrain().currentSpeed`.)</span>
 
 ## Limits
 
-- You can't add fuel. The fuel tank has no call that adds a given amount. Its only filling call takes the fuel out of the player's inventory, which is the game's own refuelling action and not a plain "add fuel". <span class="tech">(That call is `FillTankFromInventory`.)</span>
+- You can't add fuel. The fuel tank has no call that adds a given amount. Its only filling call takes the fuel out of the player's inventory. That is the game's own refuelling action, not a plain "add fuel". <span class="tech">(That call is `FillTankFromInventory`.)</span>

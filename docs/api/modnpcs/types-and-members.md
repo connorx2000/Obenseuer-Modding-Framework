@@ -7,17 +7,19 @@ nav_order: 2
 
 # Types and members
 
+This page lists every member of `ModNpcs` and `ModNpcInfo`, with the rules for ids and character numbers. Look here for a call's arguments and what it returns.
+
 This page uses `Vector3`, `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-This is the full list of what the API gives you, one section for each part. Text in brackets at the end of a note is extra detail for experienced modders, and you can skip it on a first read.
+Text in brackets at the end of a note is extra detail for experienced modders. You can skip it on a first read.
 
-ModNpcs adds and removes the people, and each person it adds is described by a `ModNpcInfo`. Every call takes your mod's id (`modId`), and each person or figure also has an id that you choose (`npcId` or `extraId`), so two mods can use the same word without clashing. A person is the same one for the same two ids.
+`ModNpcs` adds and removes [mod NPCs](../../glossary.md#mod-npc) (copies of existing people), and each person it adds is described by a `ModNpcInfo`. Every call takes your [mod id](../../glossary.md#mod-id) (`modId`). Each person or figure also has an id that you choose (`npcId` or `extraId`), so two mods can use the same word without clashing. The same two ids always mean the same person.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModNpcs</code> <span>adds, removes and lists people</span></p>
 
-Call `Spawn` or `SpawnSaved` to add a person, and `Despawn` or `Clear` to remove them. `List(modId)` gives you the people your mod has added.
+Call [`Spawn`](spawn.md) or [`SpawnSaved`](spawnsaved.md) to add a person, and `Despawn` or `Clear` to remove them. `List(modId)` gives you the people your mod has added.
 
 <div class="api-pair" markdown="1">
 
@@ -44,20 +46,20 @@ public static class ModNpcs
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Spawn(modId, npcId, sourceCharacterId, name, lastName, position, yaw, keepSourceDialogue)` | `int` | Adds a person that lasts until the scene changes or you remove it. Returns the new character number, or `0` when it could not. |
-| `Spawn(modId, npcId, sourceCharacterId, bodyCharacterId, name, lastName, position, yaw, keepSourceDialogue)` | `int` | Adds a person, with the body you pick. Returns the new character number, or `0` when it could not. |
+| `Spawn(modId, npcId, sourceCharacterId, name, lastName, position, yaw, keepSourceDialogue)` | `int` | Adds a person who stays until the scene changes or you remove them. Returns the new character number, or `0` when it could not. |
+| `Spawn(modId, npcId, sourceCharacterId, bodyCharacterId, name, lastName, position, yaw, keepSourceDialogue)` | `int` | Adds a person with the body you pick. Returns the new character number, or `0` when it could not. |
 | `SpawnSaved(modId, npcId, sourceCharacterId, name, lastName, position, yaw, scene, keepSourceDialogue)` | `int` | Adds a person who is added again after every load of that scene. Returns the new character number, or `0` when it could not. |
-| `SpawnSaved(modId, npcId, sourceCharacterId, bodyCharacterId, name, lastName, position, yaw, scene, keepSourceDialogue)` | `int` | Adds a saved person, with the body you pick. Returns the new character number, or `0` when it could not. |
-| `SpawnWithLook(modId, npcId, sourceCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person and gives them a look from the game's files in the same call. Returns the new character number, or `0` when it could not. |
-| `SpawnWithLook(modId, npcId, sourceCharacterId, bodyCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person with a look, with the body you pick. Returns the new character number, or `0` when it could not. |
-| `Despawn(modId, npcId)` | `bool` | Removes one person. Returns `true` when there was one. |
-| `Clear(modId)` | `bool` | Removes all of your mod's people. Returns `true` when there were any. |
-| `CharacterIdOf(modId, npcId)` | `int` | Gives one person's character number, or `0` when that person is not added. |
+| `SpawnSaved(modId, npcId, sourceCharacterId, bodyCharacterId, name, lastName, position, yaw, scene, keepSourceDialogue)` | `int` | Adds a saved person with the body you pick. Returns the new character number, or `0` when it could not. |
+| `SpawnWithLook(modId, npcId, sourceCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person with a look from the game's files, in one call. Returns the new character number, or `0` when it could not. |
+| `SpawnWithLook(modId, npcId, sourceCharacterId, bodyCharacterId, look, name, lastName, position, yaw)` | `int` | Adds a person with a look and the body you pick. Returns the new character number, or `0` when it could not. |
+| `Despawn(modId, npcId)` | `bool` | Removes one person. `true` when there was one. |
+| `Clear(modId)` | `bool` | Removes all of your mod's people. `true` when there were any. |
+| `CharacterIdOf(modId, npcId)` | `int` | One person's character number, or `0` when that person is not added. |
 | `List(modId)` | `List<ModNpcInfo>` | Every person your mod has added right now. |
 | `SpawnExtra(modId, extraId, sourceCharacterId, bodyCharacterId, position, yaw)` | `GameObject` | Adds an extra, a simple background figure. Returns `null` when it could not. See [Extras](extras.md). |
-| `DespawnExtra(modId, extraId)` | `bool` | Removes one extra. Returns `true` when it existed. |
+| `DespawnExtra(modId, extraId)` | `bool` | Removes one extra. `true` when it existed. |
 | `ClearExtras(modId)` | `int` | Removes all your extras. Returns how many it removed. |
-| `ExtraObject(modId, extraId)` | `GameObject` | Gives you the extra's object, or `null` when there is none. |
+| `ExtraObject(modId, extraId)` | `GameObject` | The extra's object, or `null` when there is none. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -69,7 +71,7 @@ public static class ModNpcs
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>ModNpcInfo</code> <span>one person your mod has added</span></p>
 
-`List(modId)` gives you one of these for each person your mod has added. Use its `CharacterId` on the other Mod NPC pages, such as movement and appearance.
+`List(modId)` gives you one of these for each person your mod has added. Pass its `CharacterId` to the other NPC pages, such as [movement](../npc-movement.md) and [appearance](../npcappearance.md).
 
 <div class="api-pair" markdown="1">
 
@@ -107,7 +109,7 @@ public sealed class ModNpcInfo
 
 - `IsAvailable` is `false` when mod NPCs have been switched off, and `Spawn` then returns `0`. <span class="tech">(it is the opposite of `CorePatcher.IsDisabled("obenseuer.moddingframework.modnpcs")`)</span>
 - The new character's number is the same every time for the same `modId` and `npcId`. It is picked from the range 1000000 to 1999999. If another character already has that number, the next free one is used. <span class="tech">(the number is a hash of the two ids)</span>
-- `Characters.All` does list a mod NPC for as long as it exists. Use `CharacterId` to give a mod NPC to the movement, action and appearance pages.
+- [`Characters.All`](../characters.md) does list a mod NPC for as long as it exists. Use `CharacterId` to give a mod NPC to the [movement](../npc-movement.md), [action](../npc-actions.md) and [appearance](../npcappearance.md) pages.
 
 ## Limits
 

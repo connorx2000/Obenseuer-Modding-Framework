@@ -8,6 +8,8 @@ nav_order: 10
 
 # Settings
 
+[`GameSettings`](settings/gamesettings.md), [`Keybinds`](settings/keybinds.md) and [`Localization`](settings/localization.md) read the player's options, key bindings and game language. Use them when your mod should follow the player's choices or needs a hotkey of its own.
+
 This page uses `KeyCode` from Unity. The [glossary](../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
@@ -15,19 +17,26 @@ Status: experimental.
 
 ## What it is
 
-This API lets a mod read the options a player has chosen: display, graphics quality, mouse, and sprint and crouch mode. It also reads which keys the player has bound to the game's actions, lets a mod register keys of its own, and reads the language the game is set to. The only game option a mod can change is the field of view.
+This API covers these jobs:
+
+- Read the options the player has chosen: display, graphics quality, mouse, and sprint and crouch mode.
+- Read which keys the player has bound to the game's actions.
+- Register keys for your mod.
+- Read the language the game is set to.
+
+The only game option a mod can change is the field of view.
 
 ## When to use it
 
 - Show a prompt such as "Press [E]" with the key the player really uses, whatever they rebound it to.
-- Add a hotkey for your mod that the player can rebind in the Mods menu.
+- Add a hotkey for your mod that the player can rebind in the [Mods menu](framework-mods/mods-menu.md).
 - Adjust your mod to the player's options, for example the screen size or the sprint mode.
 - Check whether the card game's hints are switched on with `HintsEnabled()`. The player turns them on and off with the Hints key (K by default). The game has no hints option in its settings menu.
 - Show your text in the language the player picked.
 
 ## Quick example
 
-This mod registers a key, logs the player's screen size and language once a save is loaded, and logs a line when the key is pressed.
+This mod registers a key and logs the player's screen size and language once a save is loaded. It also writes a [log](../guides/getting-started/logging.md) line when the key is pressed.
 
 ```csharp
 using ObenseuerCore;
@@ -60,4 +69,8 @@ public sealed class SettingsDemo : FrameworkMod
 }
 ```
 
-`Mod.Key` registers a key that the player can change in the Mods menu. `Down()` is `true` on the frame the key is pressed. The `UiState` check stops your key from firing while a menu is open. See the [keybinds guide](../guides/getting-started/keybinds.md) for more on keys, and [Using events](../guides/getting-started/using-events.md) for `WhenReady`.
+- `Mod.Key` registers a key that the player can change in the [Mods menu](framework-mods/mods-menu.md).
+- `Down()` is `true` on the frame the key is pressed.
+- The [`UiState`](ui-state.md) check stops your key from firing while a menu is open.
+
+See the [keybinds guide](../guides/getting-started/keybinds.md) for more on keys, and [Using events](../guides/getting-started/using-events.md) for `WhenReady`.

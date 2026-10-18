@@ -8,9 +8,16 @@ nav_order: 8
 
 # Main menu
 
+[`MainMenuButtons`](mainmenu/mainmenubuttons.md) puts your mod's own buttons on the game's main menu. Use it when your mod has a screen the player should open from there.
+
 ## What it is
 
-The main menu is the first screen the player sees, with buttons such as New Game, Load Game and Quit. `MainMenuButtons` lets your mod add a button of its own to it, and switch the menu's own controls off and on while your mod shows something over the menu. The framework's own MODS button is added the same way.
+The main menu is the first screen the player sees, with buttons such as New Game, Load Game and Quit. `MainMenuButtons` gives your mod two jobs:
+
+- Add a button of its own to the menu.
+- Switch the menu's own controls off and on while your mod shows something over the menu.
+
+The framework's own [MODS button](mainmenu/the-mods-button.md) is added the same way.
 
 ## When to use it
 
@@ -20,7 +27,7 @@ The main menu is the first screen the player sees, with buttons such as New Game
 
 ## Quick example
 
-This mod adds a button called HELLO to the main menu. Clicking it writes a line to the log.
+This mod adds a button called HELLO to the main menu. Clicking it writes a line to the [log](../guides/getting-started/logging.md).
 
 ```csharp
 using ObenseuerCore;
@@ -36,4 +43,11 @@ public sealed class MenuButton : FrameworkMod
 }
 ```
 
-The first argument is your mod's id. The second is a short name for the button, which must be different from every other button's name. The third is the text on the button, and the last is your code, which runs when the player clicks it. You can call `Add` from `OnLoad`, even though the menu may not exist yet: the framework builds the button when the menu appears.
+[`Add`](mainmenu/add.md) takes four arguments, in this order:
+
+- Your [mod id](../glossary.md#mod-id).
+- A short name for the button. It must be different from every other button's name.
+- The text on the button.
+- Your code, which runs when the player clicks the button.
+
+You can call `Add` from `OnLoad`, even though the menu may not exist yet. The framework builds the button when the menu appears.

@@ -7,10 +7,12 @@ nav_order: 1
 
 # Common tasks
 
+Short snippets for the most common door jobs: open one, close one, set opening hours and find where NPCs wait.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-Open one door. `Open` gives back `false` when the door is locked, so unlock it first if you need to.
+Open one door with [`Doors.Open`](opening-and-closing.md). It gives back `false` when the door is locked, so unlock it first if you need to. The [`Locks`](../interaction/locks-and-doors.md) calls do the unlocking.
 
 ```csharp
 foreach (DoorInfo door in Doors.All())
@@ -21,13 +23,13 @@ foreach (DoorInfo door in Doors.All())
 }
 ```
 
-Close a door that is open. In the next snippets, `doorId` is the `Id` of a door from `Doors.All()`.
+Close a door that is open. In the next snippets, `doorId` is the `Id` of a door from [`Doors.All()`](finding-doors.md).
 
 ```csharp
 if (Doors.IsOpen(doorId)) Doors.Close(doorId);
 ```
 
-Make a shop door open from 9 in the morning to 5 in the afternoon on weekdays. The hours are in 24-hour time.
+Make a shop door open from 9 in the morning to 5 in the afternoon on weekdays. The hours are in 24-hour time. [Opening hours](opening-hours.md) has the rules.
 
 ```csharp
 List<DoorOpenTime> hours = new List<DoorOpenTime>();

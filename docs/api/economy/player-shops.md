@@ -7,15 +7,17 @@ nav_order: 7
 
 # Player shops
 
+A player shop is a shop the player runs themselves, in a furniture area of their own. `PlayerShops` lists these shops, changes their prices, opens and closes them, works with their till, and sells things to them.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-A player shop is a shop the player runs themselves, in a furniture area of their own. It has prices, a cash register, a till that holds the earnings, and sales. See the [glossary](../../glossary.md#player-shop). `PlayerShops` lets you list these shops, change their prices, open and close them, work with their till, and sell things to them.
+Each player shop has prices, a cash register, a till that holds the earnings, and sales. See the [glossary](../../glossary.md#player-shop).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>PlayerShops</code> <span>list, price, till and sell</span></p>
 
-Call `All()` or `Get(shopId)` to read the player's shops, `SetPrice` to price an item, and `Sell` to make a sale through one.
+Call `All()` or `Get(shopId)` to read the player's shops and `SetPrice` to price an item. Call `Sell` to make a sale through one.
 
 <div class="api-pair" markdown="1">
 
@@ -46,16 +48,16 @@ public static class PlayerShops
 
 | Method | Returns | What it does |
 |---|---|---|
-| `All()` | `List<PlayerShopInfo>` | Every player shop in the scene you are in. |
+| `All()` | `List<PlayerShopInfo>` | Every player shop in the [scene](../../glossary.md#scene) you are in. |
 | `Get(shopId)` | `PlayerShopInfo` | One shop. `null` when there is none. |
 | `Stock(shopId)` | `List<StockItem>` | What the shop has for sale. |
 | `CollectEarnings(shopId)` | `bool` | Pays the till out to the player. |
-| `Ensure(managerGuid)` | `string` | Turns a furniture manager into a player shop. Gives its shop id. |
+| `Ensure(managerGuid)` | `string` | Turns a furniture manager into a player shop and gives its shop id. |
 | `Release(managerGuid)` | `bool` | Removes a shop that `Ensure` made. |
 | `SetOpen(shopId, open)` | `bool` | Opens or closes the shop. |
 | `SetMarkup(shopId, factor)` | `bool` | Sets the general price factor. |
 | `SetPrice(shopId, itemId, price)` | `bool` | Sets the price of one item. |
-| `ClearPrice(shopId, itemId)` | `bool` | Goes back to the general factor for that item. |
+| `ClearPrice(shopId, itemId)` | `bool` | Puts that item back on the general factor. |
 | `GetPrice(shopId, itemId, meta, out currency)` | `float` | The price of one unit. Sets `currency` to the shop's currency. |
 | `AddEarnings(shopId, currency, amount)` | `bool` | Puts money in the till. |
 | `TakeEarnings(shopId, currency, amount)` | `bool` | Takes money out of the till. |
@@ -106,11 +108,11 @@ public sealed class PlayerShopInfo
 | `HasCashRegister` | `bool` | `true` when the shop has a cash register. |
 | `ResidentsOnly` | `bool` | `true` when only residents can shop here. |
 | `InvalidArea` | `bool` | `true` when the shop is not in a valid area. |
-| `Currency` | `MoneyCurrency` | The money the shop charges in. |
+| `Currency` | `MoneyCurrency` | The currency the shop charges in. |
 | `PriceFactor` | `float` | The general price factor. Prices are multiplied by it. |
 | `StockCount` | `int` | How many units are on sale. |
-| `UncollectedOc` | `int` | The OC waiting in the till. |
-| `UncollectedRm` | `float` | The RM waiting in the till. |
+| `UncollectedOc` | `int` | The [OC](../../glossary.md#oc) (everyday coins) waiting in the till. |
+| `UncollectedRm` | `float` | The [RM](../../glossary.md#rm) (Real Money) waiting in the till. |
 | `ManagerGuid` | `string` | The id of the shop's furniture manager, which `Ensure` takes. `null` when there is none. |
 
 </div>
@@ -143,7 +145,7 @@ public sealed class SoldArgs
 | `Count` | `int` | How many were sold. |
 | `Price` | `float` | The money earned, in the shop's currency. |
 | `Currency` | `MoneyCurrency` | The shop's currency. |
-| `Stolen` | `bool` | `true` when the items are marked as someone else's (the stack's owner id is above 0). That is the game's test for stolen goods. |
+| `Stolen` | `bool` | `true` when the items are marked as someone else's (the stack's [owner](../../glossary.md#owner) id is above 0). That is the game's test for stolen goods. |
 | `ByWorker` | `bool` | `true` when a worker made the sale. |
 
 </div>
@@ -151,18 +153,23 @@ public sealed class SoldArgs
 
 ## Things to know
 
-- Player shops are found in the scene you are in only. `All` lists that scene's shops, including ones that are switched off.
-- For a shop the framework already tracks, `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice` and `AddEarnings` still update its record and return `true` from other scenes. The game's objects are updated the next time that shop is written, when a save finishes loading, or when its level becomes the scene you are in outside a load, as long as the shop is in that scene. `Earnings` reads the record of a tracked shop from any scene.
-- `Ensure(managerGuid)` turns a furniture manager in the scene you are in into a player shop, and gives you the shop id, `<managerGuid>-shop`. A manager that already has a shop gives that shop's id. A new shop starts closed with a price factor of 1.2, and it only works with a cash register in the manager's furniture. The manager's area does not change. The framework saves which managers it turned into shops, and does it again after a load.
-- `ManagerGuid` is the id that `Ensure` takes. `Ensure(info.ManagerGuid)` on a shop the game placed gives that shop's id, and a second call gives the same id.
-- `Release(managerGuid)` removes a shop that `Ensure` made. It returns `false` while the till holds money (collect it first), for a shop `Ensure` did not make, and while a save is busy.
-- A shop the game placed is taken over by the framework the first time you change it. The first `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice`, `AddEarnings`, `TakeEarnings` or `Sell` on its id takes it over, and so does `Ensure` on its manager. From then on, the framework's record sets the open flag, the price factor and the till, and the framework's price replaces the game's price settings and factor. A game factor of 0 becomes 1.2.
-- `Sell` takes the shop over before it checks the container and the stack, so a refused `Sell` can still take it over. `GetPrice` does not. The game's save keeps the open flag, the price factor and the till that the framework wrote, so they stay in the save even after the framework is removed. <span class="tech">(this is called adoption. It applies to a `PlayerShopManager` that `Ensure` did not make. The framework's price replaces the game's `SetPrices` and factor.)</span>
-- `SetOpen` opens or closes a shop. `SetMarkup` sets the general price factor, which must be above 0. `SetPrice` sets one item's price, which replaces the factor for that item. The price uses the game's unit: an OC shop charges that many OC, and an RM shop charges the price times 0.1 RM, as the game does. `ClearPrice` puts the item back on the general factor.
-- `GetPrice` gives the price of one unit. `meta` is the item's extra data, passed to the game's price method: pass `null` for an item without any. It does not take the shop over, so before that it gives the game's own price.
-- `AddEarnings` puts money in the till. OC loses any fraction and RM is rounded, the same as `Cash` does. `Earnings` reads the till for one currency. `CollectEarnings` pays the till out to the player. <span class="tech">(the rounding is `Cash.TryQuantize`.)</span>
+- Player shops are found only in the scene you are in. `All` lists that scene's shops, including ones that are switched off.
+- For a shop the framework already tracks, `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice` and `AddEarnings` still work from other scenes. They update its record and return `true`. The game's objects are updated the next time that shop is written, or when a save finishes loading. They are also updated when its level becomes the scene you are in outside a load. This holds as long as the shop is in that scene.
+- `Earnings` reads the record of a tracked shop from any scene.
+- `Ensure(managerGuid)` turns a furniture manager in the scene you are in into a player shop. It gives you the shop id, `<managerGuid>-shop`. A manager that already has a shop gives that shop's id.
+- A new shop starts closed with a price factor of 1.2. It only works with a cash register in the manager's furniture. The manager's area does not change. The framework saves which managers it turned into shops, and does it again after a load.
+- `ManagerGuid` is the id that `Ensure` takes. `Ensure(info.ManagerGuid)` on a shop the game placed gives that shop's id. A second call gives the same id.
+- `Release(managerGuid)` removes a shop that `Ensure` made. It returns `false` while the till holds money (collect it first). It also returns `false` for a shop `Ensure` did not make, and while a save is busy.
+- A shop the game placed is taken over by the framework the first time you change it. The first `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice`, `AddEarnings`, `TakeEarnings` or `Sell` on its id takes it over. So does `Ensure` on its manager.
+- From then on, the framework's record sets the open flag, the price factor and the till. The framework's price replaces the game's price settings and factor. A game factor of 0 becomes 1.2.
+- `Sell` takes the shop over before it checks the container and the stack, so a refused `Sell` can still take it over. `GetPrice` does not. The game's save keeps the open flag, the price factor and the till that the framework wrote. They stay in the save even after the framework is removed. <span class="tech">(this is called adoption. It applies to a `PlayerShopManager` that `Ensure` did not make. The framework's price replaces the game's `SetPrices` and factor.)</span>
+- `SetOpen` opens or closes a shop. `SetMarkup` sets the general price factor, which must be above 0. `SetPrice` sets one item's price, which replaces the factor for that item. `ClearPrice` puts the item back on the general factor.
+- The price uses the game's unit. An OC shop charges that many OC, and an RM shop charges the price times 0.1 RM, as the game does.
+- `GetPrice` gives the price of one unit. `meta` is the item's extra data, passed to the game's price method: pass `null` for an item without any. `GetPrice` does not take the shop over, so before that it gives the game's own price.
+- `AddEarnings` puts money in the till. OC loses any fraction and RM is rounded, the same as [`Cash`](money-cash.md) does. `Earnings` reads the till for one currency. `CollectEarnings` pays the till out to the player. <span class="tech">(the rounding is `Cash.TryQuantize`.)</span>
 - `TakeEarnings` takes exactly `amount` from the till. Use it to pay a worker's wage out of the till. The amount is rounded as `AddEarnings` does. It returns `true` only when the till holds at least that much. A shop the game placed is taken over only when it is taken from and the till is enough, as with `AddEarnings`.
-- `Sell(shopId, container, slot, expectedItemId, count, byWorker)` sells `count` items from a stack to the shop. The stack is in `slot` of `container`. The container must be one of `Storages(shopId)`, and the stack must still be `expectedItemId`. It takes the stack, adds the unit price times `count` to the till (for an RM shop, the RM total), and raises `Sold`. The stack keeps its owner (whose item it is) and its extra data. `byWorker` goes to `SoldArgs.ByWorker`. <span class="tech">(it takes the stack as `Containers.TakeStack` does.)</span>
+- `Sell(shopId, container, slot, expectedItemId, count, byWorker)` sells `count` items from a stack to the shop. The stack is in `slot` of `container`. The container must be one of `Storages(shopId)`, and the stack must still be `expectedItemId`.
+- `Sell` takes the stack, adds the unit price times `count` to the till (for an RM shop, the RM total), and raises `Sold`. The stack keeps its [owner](../../glossary.md#owner) (whose item it is) and its extra data. `byWorker` goes to `SoldArgs.ByWorker`. <span class="tech">(it takes the stack as `Containers.TakeStack` does.)</span>
 - For example, to sell everything in every storage of a shop:
 
   ```csharp
@@ -171,28 +178,50 @@ public sealed class SoldArgs
           PlayerShops.Sell(shopId, container, info.Slot, info.ItemId, info.Count, false);
   ```
 
-- `Storages` lists the storage furniture under the shop's manager, which are the only containers `Sell` takes from. `Stock` lists the items for sale and the sales storages, not these. <span class="tech">(`Stock` lists `ItemsForSale` and the sales storages.)</span>
-- `Registers` gives the positions of the shop's cash registers, read when you call it. A register belongs to the shop when the register's manager is the shop: the game sets that when the register starts, and the framework sets it for a shop it makes. When no register is linked, it lists the registers under the shop's furniture manager. The positions are the registers' own origins, not the spot a customer stands at. Choosing the spot in front is up to your mod.
+- `Storages` lists the storage furniture under the shop's manager. These are the only containers `Sell` takes from. `Stock` lists the items for sale and the sales storages, not these. <span class="tech">(`Stock` lists `ItemsForSale` and the sales storages.)</span>
+- `Registers` gives the positions of the shop's cash registers, read when you call it. A register belongs to the shop when the register's manager is the shop. The game sets that when the register starts, and the framework sets it for a shop it makes.
+- When no register is linked, `Registers` lists the registers under the shop's furniture manager. The positions are the registers' own origins, not the spot a customer stands at. Choosing the spot in front is up to your mod.
 
   ```csharp
   List<Vector3> tills = PlayerShops.Registers(shopId);
   ```
 
 - `Stock` shows unit prices with the framework's price change applied. <span class="tech">(it uses `PlayerShopData.GetItemPrice`.)</span>
-- `Sold` is raised only by `Sell`. The game's own sale methods do nothing in this version of the game (see the next section).
+- `Sold` is raised only by `Sell`. The game's own sale methods do nothing in this version of the game (see Limits, below).
 
 ## Limits
 
 - `IsAvailable` is `false` when the price change or the shop save data could not be set up. The calls that change something then return `false` or `null`.
-- `Ensure` returns `null` when the manager is not in the scene, a save is busy, or `IsAvailable` is `false`.
-- `GetPrice` returns 0 on failure: an unknown item or shop, the framework unavailable, or a game error (logged once).
+- `Ensure` returns `null` when the manager is not in the scene, a [save](../../guides/getting-started/save-data.md) is busy, or `IsAvailable` is `false`.
+- `GetPrice` returns 0 on failure: an unknown item or shop, the framework unavailable, or a game error ([logged](../../guides/getting-started/logging.md) once).
 - `Registers` gives an empty list for an unknown shop, a shop not in the scene you are in, or a failure (logged once).
-- A shop in a neighbouring level that the game loads in the background is not found: `Get`, `Stock`, `Storages`, `GetPrice`, `CollectEarnings`, `Sell` and `Ensure` do not reach it, and the framework does not take it over.
+- A shop in a neighbouring level that the game loads in the background is not found. `Get`, `Stock`, `Storages`, `GetPrice`, `CollectEarnings`, `Sell` and `Ensure` do not reach it, and the framework does not take it over.
 - Every change returns `false` (and `Ensure` returns `null`) while the game is saving or loading. That covers `SetOpen`, `SetMarkup`, `SetPrice`, `ClearPrice`, `AddEarnings`, `TakeEarnings`, `Sell`, `CollectEarnings`, `Ensure` and `Release`.
 - `SetMarkup` needs a factor above 0. `SetPrice` returns `false` for an item id of 0 or less, an unknown item, or a price below 0.
-- `AddEarnings` needs an amount above 0 and up to the money limit, and an amount that rounds to 0 returns `false`.
-- `TakeEarnings` returns `false` and changes nothing when the till holds less than `amount`, the amount is not above 0 or not a real number, the amount rounds to 0, the shop is unknown, or the call is refused (a save is busy, or handlers are nested too deep).
+- `AddEarnings` needs an amount above 0 and up to the money limit. An amount that rounds to 0 returns `false`.
+- `TakeEarnings` returns `false` and changes nothing in these cases:
+  - The till holds less than `amount`.
+  - The amount is not above 0 or not a real number.
+  - The amount rounds to 0.
+  - The shop is unknown.
+  - The call is refused (a save is busy, or handlers are nested too deep).
 - `Sell` refuses a unit price of 0 and a total that rounds to 0 before it takes anything. If writing to the till throws an error, the till and the stack are put back and `Sell` returns `false`.
-- `Sell` also returns `false` for a null container, a count below 1, a slot that is out of range or empty, a stack smaller than `count`, a locked container, an NPC-owned container that does not allow taking, a shop that is not in the scene you are in, and a refused call (a save is busy, or handlers are nested too deep). `slot` is `ItemStackInfo.Slot` from `Containers.GetItems`, and -1 is refused.
-- The game never reports a sale in a player shop, so there is nothing to watch. In this version, the player shop's sale code is empty: the methods that should make a sale do nothing, and the count of items sold is never written. There is no game method to attach to. <span class="tech">(`PlayerShopData.MakeSale` and `FindItemAndMakeSale` have empty bodies, `BrowseAndMakePurchase` returns `false`, and `itemsSold` is never written.)</span>
-- `CollectEarnings` pays out the till through the game's own method, and raises `Cash.MoneyChanged`. It returns `false` when nothing is owed, while a save is loading or being written, and when it runs inside a handler nested deeper than 8 levels.
+- `Sell` also returns `false` in these cases:
+  - The container is null.
+  - The count is below 1.
+  - The slot is out of range or empty.
+  - The stack is smaller than `count`.
+  - The container is locked.
+  - The container is NPC-owned and does not allow taking.
+  - The shop is not in the scene you are in.
+  - The call is refused (a save is busy, or handlers are nested too deep).
+- `slot` is `ItemStackInfo.Slot` from [`Containers.GetItems`](../inventory/containers.md), and -1 is refused.
+- The game never reports a sale in a player shop, so there is nothing to watch. In this version, the player shop's sale code is empty. The methods that should make a sale do nothing, and the count of items sold is never written. There is no game method to attach to. <span class="tech">(`PlayerShopData.MakeSale` and `FindItemAndMakeSale` have empty bodies, `BrowseAndMakePurchase` returns `false`, and `itemsSold` is never written.)</span>
+- `CollectEarnings` pays out the till through the game's own method, and raises `Cash.MoneyChanged`. It returns `false` when nothing is owed, and while a save is loading or being written. It also returns `false` when it runs inside a handler nested deeper than 8 levels (see [Handlers that call back into the framework](details.md#handlers-that-call-back-into-the-framework)).
+
+**Common problems**
+
+- `Release` returns `false`: the till still holds money, the shop was not made by `Ensure`, a save is busy, or `IsAvailable` is `false`. Collect the till first with `CollectEarnings`.
+- `Ensure` returns `null`: the manager is not in the scene, a save is busy, or `IsAvailable` is `false`. A shop in a neighbouring level that the game loads in the background is not reached either.
+- `Sell` returns `false`: one of the cases in the two `Sell` bullets above applies, or `IsAvailable` is `false`. The container must also be one of `Storages(shopId)`, and the stack must still be `expectedItemId` (see Things to know). A shop in a neighbouring level that the game loads in the background is not reached either. Pass a container from `Storages(shopId)` and a slot read from `Containers.GetItems`.
+- `Sold` never fires for the game's own sales: `Sold` is raised only by `Sell`, and the game's sale code is empty in this version.

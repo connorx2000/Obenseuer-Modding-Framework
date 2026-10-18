@@ -7,10 +7,10 @@ nav_order: 3
 
 # Trains on the track
 
+Each `TrackTrainInfo` is a snapshot of one train or wagon on the track, and `All()` gives you every one of them. Use it to read where the trains are, how fast they go, what is coupled to them and what they carry.
+
 This page uses `Vector3` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
-
-Each `TrackTrainInfo` is a snapshot of one train or wagon on the track. `All()` gives you every one of them.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>Trains</code> <span>lists the trains on the track</span></p>
@@ -53,7 +53,7 @@ public sealed class TrackTrainInfo
 
 | Property | Type | What it means |
 |---|---|---|
-| `Id` | `string` | The train's GUID. It is the same id that [Train actions](../trainactions.md) uses. |
+| `Id` | `string` | The train's GUID. [Train actions](../trainactions.md) uses the same id. |
 | `Speed` | `float` | Its speed. Negative when it is reversing. |
 | `Position` | `Vector3` | Where it is, in world coordinates. |
 | `FrontCoupledTo` | `string` | The id of the train joined to its front. `null` when nothing is. |
@@ -68,8 +68,8 @@ public sealed class TrackTrainInfo
 
 - `All()` gives every train the game has on the track. It gives an empty list when the game's train controller is not loaded yet. <span class="tech">(It reads the game's own registry, `TrainController.instance.TrackTrains`, which is keyed by GUID.)</span>
 - `FrontCoupledTo` and `BackCoupledTo` are the ids of the trains joined to each end. An end with nothing joined gives `null`. <span class="tech">(A coupler's partner is `TrainCoupler.coupledTo`, and its train is that coupler's `parent`.)</span>
-- `WagonType` is one of `None`, `Orewagon`, `Flatbed`, `Tanker` or `Passanger`. The game spells the last one "Passanger", and the framework passes the name through unchanged, so match that spelling. <span class="tech">(It is the name of `MinitrainWagonData.WagonType`. The wagon data is found with `GetComponentInChildren` on the train, inactive objects included, because `MinitrainWagonData.Awake` finds its train with `GetComponentInParent<TrackTrain>`.)</span>
-- `CargoGuid` names the wagon's cargo container. Pass it to `Containers.FindByGuid` (see [Inventory](../inventory.md)) to get the container. A wagon with no storage gives `null` too.
+- `WagonType` is one of `None`, `Orewagon`, `Flatbed`, `Tanker` or `Passanger`. The game spells the last one "Passanger". The framework passes the name through unchanged, so match that spelling. <span class="tech">(It is the name of `MinitrainWagonData.WagonType`. The wagon data is found with `GetComponentInChildren` on the train, inactive objects included, because `MinitrainWagonData.Awake` finds its train with `GetComponentInParent<TrackTrain>`.)</span>
+- `CargoGuid` names the wagon's cargo container. To get the container, pass it to `Containers.FindByGuid` (see [Inventory](../inventory.md)). A wagon with no storage gives `null` too.
 
 ## Limits
 

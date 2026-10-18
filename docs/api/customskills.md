@@ -8,9 +8,11 @@ nav_order: 2
 
 # Custom skills
 
+[`CustomSkills`](customskills/skills.md) lets your mod add its own skills to the character panel, with saved values and the game's level-up banner. Use it when your mod has an activity the player should level up.
+
 ## What it is
 
-The game has skills the player levels up, shown in the skills list on the character panel. This API lets your mod add skills of its own. A skill you register gets a row in that list, drawn the same way as the game's own rows, and the game's level-up banner when the player gains a level. The values are saved with the player's save, so a skill keeps its level between sessions.
+The game has skills the player levels up, shown in the skills list on the character panel. This API lets your mod add skills of its own. A skill you register gets a row in that list, drawn the same way as the game's own rows. It also gets the game's level-up banner when the player gains a level. The values are saved with the player's save, so a skill keeps its level between sessions. See [Saving](customskills/saving.md).
 
 The game's own skills are on the [Player](player/skills.md#skills) page.
 
@@ -22,7 +24,7 @@ The game's own skills are on the [Player](player/skills.md#skills) page.
 
 ## Quick example
 
-This mod adds a skill called Baking. Each time the player finishes a craft successfully, the skill goes up a little, and the log says when it reaches a new level.
+This mod adds a skill called Baking. Each time the player finishes a craft successfully, the skill goes up a little. The [log](../guides/getting-started/logging.md) says when it reaches a new level.
 
 ```csharp
 using ObenseuerCore;
@@ -43,4 +45,4 @@ public sealed class BakingSkill : FrameworkMod
 }
 ```
 
-`Register` declares the skill, and `10f` is the highest value it can reach. `Add` raises the value. `LevelChanged` and `Crafted` are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md).
+`Register` declares the skill, and `10f` is the highest value it can reach. `Add` raises the value. `Mod.Id` is your [mod id](../glossary.md#mod-id). `LevelChanged` and [`Crafted`](recipes/crafting-stations.md) are events: the framework calls your code each time they happen. See [Using events](../guides/getting-started/using-events.md).

@@ -7,14 +7,14 @@ nav_order: 3
 
 # WorldPower
 
+`WorldPower` tells your mod about blackouts and generators. It also lets you control how the player wakes up after a blackout.
+
 This page uses `GameObject` from Unity. The [glossary](../../glossary.md#types-that-come-from-unity) says what each one is.
 {: .unity-types}
 
-`WorldPower` tells your mod about blackouts and generators, and lets you control how the player wakes up after a blackout.
-
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>WorldPower</code> <span>blackouts, generators and wake-ups</span></p>
-Use `ScheduleWakeUp` to choose how the player wakes after a blackout, and `WakeUp` to wake them now.
+`ScheduleWakeUp` chooses how the player wakes after a blackout, and `WakeUp` wakes them now.
 
 <div class="api-pair" markdown="1">
 
@@ -47,7 +47,7 @@ public static class WorldPower
 
 | Event | Gives you | When it fires |
 |---|---|---|
-| `BlackoutStarted` | Nothing | A blackout has just started. |
+| `BlackoutStarted` | Nothing | A blackout has started. |
 | `GeneratorToggled` | `bool` | A generator was switched. The value is the new On state. |
 
 </div>
@@ -84,9 +84,13 @@ public enum WakeUpAnimation
 - `GeneratorToggled` fires when a generator is really switched on or off. The value is the new On state. It does not fire when a generator runs out of fuel, because the game turns that off another way. <span class="tech">(It fires when the generator's On switch changes through `CraftingBase.Toggle`.)</span>
 - `ScheduleWakeUp` only stores the wake-up for later. The wake-up happens on the next level load, which is when the player wakes. `ScheduleWakeUp` does not change the level, so your code must change it, the way the game's blackout does just before the level change. <span class="tech">(It calls `BlackoutController.SetScheduleWakeUp`. The wake-up takes effect in `BlackoutController.OnLoadingGame`. `BlackoutTrigger` changes the level with `SaveController.ChangeLevel`.)</span>
 - `WakeUp` wakes the player now, using the settings the game stored at the last blackout. It does not use the ones from `ScheduleWakeUp`. A blackout with `autoWakeUp` set to `false` stores them. With none stored, it runs with the animation `None` and no delay, and it turns the controls back on. <span class="tech">(It calls the game's `BlackoutController.TriggerWakeUp`, which uses the manual values from `SetPendingFinish`.)</span>
-- `IsAvailable` tells you whether the two events work. It is `false` when the blackout change or the generator change is missing or turned off. A missing change stops only its own event, and the other event keeps firing while `IsAvailable` is `false`. Reads are not affected.
+- `IsAvailable` tells you whether the two events work. It is `false` when the blackout change or the generator change is missing or turned off. These are the framework's changes to game methods, described on [Details](details.md#if-something-fails-to-set-up). A missing change stops only its own event, and the other event keeps firing while `IsAvailable` is `false`. Reads are not affected.
 - The light culling system is not a power state. It only hides far-away lights to save work, so it is not here. <span class="tech">(It is `LightsController`.)</span>
 
 ## Limits
 
 - Both calls return `false` in some cases: during a save or a load, and when the game's blackout controller is missing. `WakeUp` also returns `false` when the black screen is missing, because the game needs it to finish the wake-up. <span class="tech">(`BlackoutController.instance` is `null`, or `BlackCanvas.instance` is `null`. `FinishWakeUp` reads `BlackCanvas.instance.gameObject`.)</span>
+
+**Common problems**
+
+- The wake-up set with `ScheduleWakeUp` does not happen: it takes effect only on the next level load, and `ScheduleWakeUp` does not change the level. Change the level from your code, the way the game's blackout does just before the level change.

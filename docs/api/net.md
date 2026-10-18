@@ -8,11 +8,21 @@ nav_order: 1
 
 # Multiplayer
 
+The multiplayer API lets mods build online features on top of Steam: lobbies, messages, shared positions and larger data transfers. Use it when your mod needs online features shared between players.
+
 Status: experimental.
 
 ## What it is
 
-This API lets your mod build online features on top of Steam. It has five parts. `Steam` tells you who the local player is on Steam and who their friends are. `Lobby` hosts or joins a lobby, a group of players who are connected to each other. `Net` sends short text messages between the players in a lobby, on a channel (a name) that you choose. `Presence` shares where each player is and which area they are in. `NetBlob` sends larger data to one player. Nothing runs until a mod uses it. Every player in a lobby needs Steam and the same mods.
+This API lets your mod build online features on top of Steam. It has five parts:
+
+- [`Steam`](net/steam.md) tells you who the local player is on Steam and who their friends are.
+- [`Lobby`](net/lobby.md) hosts or joins a [lobby](../glossary.md#lobby) (a group of connected players).
+- [`Net`](net/net.md) sends short text messages between the players in a lobby, on a channel (a name) that you choose.
+- [`Presence`](net/presence.md) shares where each player is and which area they are in.
+- [`NetBlob`](net/blob.md) sends larger data to one player.
+
+Nothing runs until a mod uses it. Every player in a lobby needs Steam and the same mods.
 
 ## When to use it
 
@@ -23,7 +33,7 @@ This API lets your mod build online features on top of Steam. It has five parts.
 
 ## Quick example
 
-This mod hosts a lobby for up to four players once a save is loaded, joins a lobby when the player accepts an invite, and sends a hello to each player who joins. Messages that arrive on the `ping` channel are written to the log.
+This mod hosts a lobby for up to four players once a save is loaded. It joins a lobby when the player accepts an invite, and sends a hello to each player who joins. Messages that arrive on the `ping` channel are written to the [log](../guides/getting-started/logging.md).
 
 ```csharp
 using ObenseuerCore;
@@ -47,4 +57,4 @@ public sealed class PingPong : FrameworkMod
 }
 ```
 
-`Register` gives the framework a piece of your code to run each time a message arrives on a channel. `JoinRequested` and `MemberJoined` are events: the framework calls your code each time they happen. `WhenReady` waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.
+`Register` gives the framework a piece of your code to run each time a message arrives on a channel. `JoinRequested` and `MemberJoined` are events: the framework calls your code each time they happen. [`Events.WhenReady`](core-helpers/events-whenready.md) waits until a save is loaded before it runs your code. See [Using events](../guides/getting-started/using-events.md) for more on events and `WhenReady`.

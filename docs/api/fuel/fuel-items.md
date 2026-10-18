@@ -7,12 +7,12 @@ nav_order: 4
 
 # Fuel items
 
-`FuelTypes` lists the items that the game's machines burn as fuel and says how each one burns. Each one is a `FuelTypeInfo`.
+`FuelTypes` lists the items that the game's machines burn as fuel, and how each one burns. Use it to work out burn times and what an item leaves behind.
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelTypes</code> <span>the fuel data of each item</span></p>
 
-This is the class you start from. `All()` lists every item with fuel data, and `Get(itemId)` looks one up by its item number.
+This is the class you start from. `All()` lists every item with fuel data. `Get(itemId)` looks one up by its item number.
 
 <div class="api-pair" markdown="1">
 
@@ -35,7 +35,7 @@ public static class FuelTypes
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>FuelTypeInfo</code> <span>how one item behaves as fuel</span></p>
 
-`All()` and `Get(itemId)` on `FuelTypes` give you this, one per item that has fuel data. It is filled from the `ItemFueldata` metadata on each item in the game's item database. <span class="tech">(It reads `ItemDatabase.database`.)</span>
+`All()` and `Get(itemId)` give you one of these for each item that has fuel data. It is filled from the `ItemFueldata` metadata on each item in the game's item database. <span class="tech">(It reads `ItemDatabase.database`.)</span>
 
 <div class="api-pair" markdown="1">
 
@@ -61,12 +61,12 @@ public sealed class FuelTypeInfo
 
 ## Things to know
 
-- `All()` lists every item the game gives fuel data to. A generator burns such an item for `BurnSeconds` for each unit and leaves `BurntItemAmount` of `BurntItemId` for each unit. <span class="tech">(It lists every item in the game's item database that has `ItemFueldata` metadata. `BurnSeconds` is `ItemFueldata.burntime`, `BurntItemId` is `ItemFueldata.burntItem`, and `BurntItemAmount` is the refuse items per unit burned.)</span>
-- A machine may accept some items that are not in this list. Those burn for 60 seconds per unit. Which items a machine accepts is on the [Power devices](../power-devices.md) page, in `FuelItemIds`. <span class="tech">(An item with no fuel data that a machine accepts through its `FuelCategories` burns 60 seconds per unit.)</span>
+- `All()` lists every item the game gives fuel data to. A generator burns such an item for `BurnSeconds` per unit. It leaves `BurntItemAmount` of `BurntItemId` per unit. <span class="tech">(It lists every item in the game's item database that has `ItemFueldata` metadata. `BurnSeconds` is `ItemFueldata.burntime`, `BurntItemId` is `ItemFueldata.burntItem`, and `BurntItemAmount` is the refuse items per unit burned.)</span>
+- A machine may accept some items that are not in this list. Those burn for 60 seconds per unit. The items a machine accepts are in `FuelItemIds` on the [Power devices](../power-devices.md) page. <span class="tech">(An item with no fuel data that a machine accepts through its `FuelCategories` burns 60 seconds per unit.)</span>
 - `Get(itemId)` returns `null` for an item with no fuel data. That includes an item number the game does not have.
 
 ## Limits
 
 - `BurnSeconds` does not include a machine's own speed factor. Each machine can burn faster or slower than the number here. The factor is `PowerDeviceInfo.BurnTimeFactor` on the [Power devices](../power-devices.md) page. When a machine runs out of fuel, `PowerDevices.FuelRanOut` tells you.
-- Liquids are not in this list. A container of liquid burns as long as the liquid's burn time multiplied by the amount of liquid. If the liquid has no fuel data, it burns 60 seconds per unit. <span class="tech">(`burntime` times the liquid amount, or 60 per unit when the liquid has no fuel data.)</span>
+- Liquids are not in this list. A container of liquid burns for the liquid's burn time multiplied by the amount of liquid. If the liquid has no fuel data, it burns 60 seconds per unit. <span class="tech">(`burntime` times the liquid amount, or 60 per unit when the liquid has no fuel data.)</span>
 - Battery fuel and minitrain fuel are not in this list. The game keeps them in other places, so this API can't report them yet. <span class="tech">(Battery fuel uses ammo and liquid metadata, not `ItemFueldata`. Minitrain fuel is a private `acceptedFuels` list.)</span>

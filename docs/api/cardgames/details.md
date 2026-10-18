@@ -7,12 +7,14 @@ nav_order: 4
 
 # Details
 
-Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, BepInEx 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
+The build this API targets and where its log goes. Also when it is safe to call it, and what happens when the framework cannot change a game method.
+
+Target: Obenseuer 0.5.08 (buildid 25969064), Unity 6000.0.77f1 Mono, [BepInEx](../../glossary.md#bepinex) 6 Unity.Mono ([be.788](https://builds.bepinex.dev/projects/bepinex_be/788/BepInEx-Unity.Mono-win-x64-6.0.0-be.788%2B5b766a3.zip), the tested build) or BepInEx 5 (5.4.23 or later).
 Namespace: `ObenseuerCore`. Logs go to `BepInEx\logs\obenseuer.moddingframework.cardgames.log`.
 
 Everything not listed in this reference is internal and may change without notice.
 
-The framework changes some of the game's methods when it starts, so it can tell your mod when a card game starts and ends and change the payout. This page calls each set of changes a feature group. Each group has a name that shows up in the log. This page uses two: `obenseuer.moddingframework.cardgames` (the `Started` and `Ended` events) and `obenseuer.moddingframework.cardgames.payout` (the payout factors).
+The framework changes some of the game's methods when it starts. That is how it tells your mod when a card game starts and ends, and how it changes the payout. This page calls each set of changes a [feature group](../../glossary.md#feature-group). Each group has a name that shows up in the [log](../../guides/getting-started/logging.md). This page uses two: `obenseuer.moddingframework.cardgames` (the `Started` and `Ended` events) and `obenseuer.moddingframework.cardgames.payout` (the payout factors).
 
 ## When you can call it
 
@@ -22,7 +24,7 @@ The framework changes some of the game's methods when it starts, so it can tell 
 
 ## If something fails to set up
 
-The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it, and writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
+The framework changes some of the game's methods when it starts. If a game update breaks one of them, the framework turns off the [feature group](../../glossary.md#feature-group) that depends on it. It writes error lines and a warning to the group's log file in `BepInEx\logs`. The rest of the framework keeps working.
 
 - If the event changes fail, only `Started` and `Ended` stop. `CardGames.IsAvailable` becomes `false`, and `Tables()` and `Active()` keep working. Its feature group is `obenseuer.moddingframework.cardgames`.
-- If the payout change fails, only the payout factors stop. `CardGames.PayoutFactorsAvailable` becomes `false`, and the events are not affected. Its feature group is `obenseuer.moddingframework.cardgames.payout`. <span class="tech">(`CorePatcher.IsDisabled("obenseuer.moddingframework.cardgames")` becomes true when one of the event changes is missing. The payout change edits the compiled body of the game's `OnGameFinished` and needs to find exactly one `Mathf.RoundToInt` call in it.)</span>
+- If the payout change fails, only the [payout factors](payout-factors.md) stop. `CardGames.PayoutFactorsAvailable` becomes `false`, and the events are not affected. Its feature group is `obenseuer.moddingframework.cardgames.payout`. <span class="tech">(`CorePatcher.IsDisabled("obenseuer.moddingframework.cardgames")` becomes true when one of the event changes is missing. The payout change edits the compiled body of the game's `OnGameFinished` and needs to find exactly one `Mathf.RoundToInt` call in it.)</span>

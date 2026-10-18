@@ -7,7 +7,7 @@ nav_order: 1
 
 # Common tasks
 
-Each snippet goes inside a method of your `FrameworkMod`, after a save has loaded.
+Short snippets for the usual HUD jobs: subtitles, hints, bars, tooltips, console commands, achievements, quest items and difficulty. Each snippet goes inside a method of your [`FrameworkMod`](../framework-mods/attributes-and-base-class.md), after a save has loaded.
 
 Show a line of subtitle text, hide your hint, show a progress bar, remove it, and show and hide a tooltip.
 
@@ -20,7 +20,10 @@ Hud.ShowTooltip("Sign", "Closed on Sundays.");
 Hud.HideTooltip();
 ```
 
-`ShowSubtitle` types the text on screen, then fades it out over the seconds you give. `HideHint` removes your hint. `Bar` shows or updates one bar for your mod, with a fill from 0 (empty) to 1 (full), and `ClearBar` removes it. `ShowTooltip` and `HideTooltip` show and hide the game's tooltip box.
+- [`ShowSubtitle`](hud.md) types the text on screen, then fades it out over the seconds you give.
+- `HideHint` removes your hint.
+- [`Bar`](bars.md) shows or updates one bar for your mod. Its fill runs from 0 (empty) to 1 (full). `ClearBar` removes it.
+- `ShowTooltip` and `HideTooltip` show and hide the game's tooltip box.
 
 Add a command to the developer console.
 
@@ -38,4 +41,6 @@ int keys = TaskItems.Amount("some.task.item.id");
 GameDifficulty.SetFactor(Mod.Id, DifficultyMultiplier.Prices, 0.5f);
 ```
 
-The first two give back `false` or `0` for an id the game does not know. `SetFactor` halves the game's prices for this session, for your mod only. See [GameDifficulty](gamedifficulty.md#gamedifficulty) for what a factor does.
+- [`IsUnlocked`](achievement.md) gives back `false` for an id the game does not know.
+- [`Amount`](taskitems.md) gives back `0` for an id the game does not know.
+- `SetFactor` halves the game's prices for this session, for your mod only. See [GameDifficulty](gamedifficulty.md#gamedifficulty) for what a factor does.

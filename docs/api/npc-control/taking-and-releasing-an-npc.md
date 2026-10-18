@@ -7,12 +7,12 @@ nav_order: 2
 
 # Taking and releasing an NPC
 
-This is the full list of what the API gives you, one section for each part. Every call takes `modId`, the id of your mod. The framework uses it to remember which mod holds which NPC (see [Owner](../../glossary.md#owner) in the glossary).
+This page lists every call, property and flag of `NpcControl`, which takes an [NPC](../npcs.md) (a character in the game) and gives it back. Every call takes `modId`, the id of your mod. The framework uses it to remember which mod holds which NPC (see [Owner](../../glossary.md#owner) in the glossary).
 
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcControl</code> <span>take and release NPCs</span></p>
 
-Call `Take` with your mod's id and the NPC's id to hold it, and `Release` to give it back. `IsTaken` and `TakenBy` tell you whether another mod holds it.
+`Take` holds an NPC, given your mod's id and the NPC's id. `Release` gives it back. `IsTaken` and `TakenBy` tell you whether another mod holds it.
 
 <div class="api-pair" markdown="1">
 
@@ -32,11 +32,11 @@ public static class NpcControl
 
 | Method | Returns | What it does |
 |---|---|---|
-| `Take(modId, npcId, flags)` | `bool` | Takes the NPC and switches off the parts named in `flags`. `true` on success. |
+| `Take(modId, npcId, flags)` | `bool` | Takes the NPC and switches off the parts named in `flags`. `true` when it worked. |
 | `Release(modId, npcId)` | `bool` | Gives the NPC back. `false` when your mod holds nothing on that NPC. |
-| `ReleaseAll(modId)` | `int` | Gives back every NPC your mod holds, and returns how many. |
+| `ReleaseAll(modId)` | `int` | Gives back every NPC your mod holds. Returns how many. |
 | `IsTaken(npcId)` | `bool` | `true` while any mod holds the NPC. |
-| `TakenBy(npcId)` | `string` | The id of the mod that holds the NPC. `null` when it is free. |
+| `TakenBy(npcId)` | `string` | The id of the mod that holds the NPC. `null` when no mod holds it. |
 
 | Property | Type | What it means |
 |---|---|---|
@@ -48,7 +48,7 @@ public static class NpcControl
 <div class="api-type" markdown="1">
 <p class="api-type-head"><code>NpcControlFlags</code> <span>which parts of the NPC to switch off</span></p>
 
-`Take` takes one of these to choose which parts of the NPC to switch off. Leave it out and every part is switched off.
+`Take` uses one of these to choose which parts of the NPC to switch off. Leave it out and every part is switched off.
 
 <div class="api-pair" markdown="1">
 
@@ -68,12 +68,12 @@ public enum NpcControlFlags
 
 | Value | Meaning |
 |---|---|
-| `None` | Hold the NPC but change nothing. |
+| `None` | Holds the NPC but changes nothing. |
 | `Sight` | The NPC stops noticing anything around it. |
-| `Talk` | The player can no longer start a conversation with it. |
-| `Barks` | The game's own comments from it stop. |
-| `Fade` | It is no longer hidden when you are far away or look away. |
-| `Movement` | It stops walking and stays where it is. |
+| `Talk` | The player can no longer start a conversation with the NPC. |
+| `Barks` | The game's own comments from the NPC stop. |
+| `Fade` | The NPC is no longer hidden when you are far away or look away. |
+| `Movement` | The NPC stops walking and stays where it is. |
 | `All` | Every part above. |
 
 </div>
@@ -83,13 +83,18 @@ public enum NpcControlFlags
 
 - `Take` switches off every part by default, or only the parts you name in `flags`.
 - Only one mod can hold an NPC at a time. Another mod's `Take` on the same NPC returns `false` until the mod that holds it releases it.
-- Calling `Take` again with the same mod changes the parts you hold. A flag that is no longer in the set is put back. A new flag is switched on at once. It returns `true`.
+- Calling `Take` again from the same mod changes the parts you hold. A flag that is no longer in the set is put back. A new flag is switched on at once. The call returns `true`.
 - `Take` with `None` holds the NPC without changing anything about it. Other mods can't take it while you hold it.
 - `Release` puts back each thing your mod changed.
 - `ReleaseAll` returns how many NPCs it released.
 - `TakenBy` tells you which mod holds the NPC.
-- `IsAvailable` is `false` when the feature group was turned off. `Release` and the reads keep working, so a mod can still give back an NPC it took earlier.
+- `IsAvailable` is `false` when the [feature group](../../glossary.md#feature-group) (the framework's changes for one feature) was turned off. `Release` and the reads keep working, so a mod can still give back an NPC it took earlier.
 
 ## Limits
 
-- `Take` returns `false` when it can't take the NPC. That happens when another mod already holds it, when the NPC is unknown, dead or in a different scene, when it is switched off for any other reason than being far away, while a save is loading or being written, and when the feature group is turned off.
+- `Take` returns `false` when it can't take the NPC. That happens in these cases:
+  - Another mod already holds the NPC.
+  - The NPC is unknown, dead or in a different [scene](../../glossary.md#scene).
+  - The NPC is switched off for any other reason than being far away.
+  - A save is loading or being written.
+  - The [feature group](../../glossary.md#feature-group) is turned off.
